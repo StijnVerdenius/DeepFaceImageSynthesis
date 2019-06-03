@@ -1,6 +1,9 @@
 from utils.general_utils import ensure_current_directory
 
 
+# todo: in this file put functions that are only for finetuning
+
+
 def local_test():
     """ for testing something in this file specifically """
     pass

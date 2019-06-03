@@ -2,7 +2,7 @@ import _pickle as pickle
 from collections import defaultdict
 import matplotlib.pyplot as plt
 from datetime import datetime
-
+import os
 
 class DataManager:
 
@@ -10,6 +10,7 @@ class DataManager:
 
         # determines relative disk directory for saving/loading
         self.directory = directory
+        self.stamp = ""
 
     def save_python_obj(self, obj, name):
         """ Saves python object to disk in pickle """
@@ -76,4 +77,8 @@ class DataManager:
     def date_stamp(self):
         """ generates printable date stamp"""
 
-        return str(datetime.now()).split(".")[0].replace(" ", "_")
+        self.stamp = str(datetime.now()).split(".")[0].replace(" ", "_")
+        return self.stamp
+
+    def create_dir(self, name):
+        os.makedirs(self.directory+name, exist_ok=True)

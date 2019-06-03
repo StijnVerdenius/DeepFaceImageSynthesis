@@ -107,3 +107,12 @@ venv.bak/
 .idea/*
 .DS_Store
 .idea
+
+*/results/output
+./results/output
+*/output
+
+*/local_data
+*/local_data/
+./data/local_data
+./data/local_data/
