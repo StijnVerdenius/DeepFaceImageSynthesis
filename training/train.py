@@ -1,4 +1,8 @@
+from models.discriminators.GeneralDiscriminator import GeneralDiscriminator
+from models.embedders.GeneralEmbedder import GeneralEmbedder
 from models.general.statistic import Statistic
+from models.generators.GeneralGenerator import GeneralGenerator
+from models.losses.GeneralLoss import GeneralLoss
 from utils.general_utils import ensure_current_directory, setup_directories, get_device
 from utils.constants import *
 from models.general.trainer import Trainer
@@ -19,15 +23,50 @@ def plot_some_pictures(feedback):
 
     date_directory = DATA_MANAGER.stamp
 
-    pass  # todo: do something
+    pass  # todo: create
 
 
-def training_iteration(dataloader, loss_function, embedder, generator, discriminator, arguments, optimizer_dis,
-                       optimizer_gen,
-                       trainer_dis, trainer_gen, epoch_num):
+def combine_real_and_fake(real, fake, device):
     """
-    one epoch (template) TODO: this function obviously needs work, but this really depends on the goal we eventually set,
-     todo:  so please see it just as an example solution and not as a proposed solution
+    Combines a set of real and fake images along the batch dimension
+    Also generates targets.
+
+    :param real:
+    :param fake:
+    :param device:
+    :return:
+    """
+
+
+    # random indices
+    shuffle_indices = list(range(int(real.shape[0] * 2)))
+    random.shuffle(shuffle_indices)
+    shuffle_indices = torch.LongTensor(shuffle_indices).to(device)
+
+    # combine fake and real images
+    composite = torch.cat((fake, real), dim=0).index_select(0, shuffle_indices)
+
+    # combine real and fake targets
+    labels = (torch.zeros(fake.shape[0]).to(device), torch.ones(real.shape[0]).to(device))
+    ground_truth = torch.cat(labels, dim=0).index_select(0, shuffle_indices).to(device)
+
+    return composite, ground_truth
+
+
+def training_iteration(dataloader,
+                       loss_function_gen: GeneralLoss,
+                       loss_function_dis: GeneralLoss,
+                       embedder: GeneralEmbedder,
+                       generator: GeneralGenerator,
+                       discriminator: GeneralDiscriminator,
+                       arguments,
+                       optimizer_dis,
+                       optimizer_gen,
+                       trainer_dis: Trainer,
+                       trainer_gen: Trainer,
+                       epoch_num):
+    """
+    one epoch
 
     :param dataloader:
     :param loss_function:
@@ -46,52 +85,56 @@ def training_iteration(dataloader, loss_function, embedder, generator, discrimin
 
     progress = []
 
-    for i, (batch, _, _) in enumerate(dataloader):  # todo: how to split the data
+    for i, (batch, landmarks) in enumerate(dataloader):  # todo: how to split the data @ Klaus
 
-        ground_truth_landmarks = None  # todo
+        # prepare input
+        batch.to(device)
+        landmarks.to(device)
+        combined_generator_input = torch.cat((batch, landmarks), dim=3) # concatenate in the channel-dimension?
 
-        # preset everything for training
+        # set generator to train and discriminator to evaluation
         trainer_gen.prepare_training()
+        trainer_dis.prepare_evaluation()
+
+        # forward pass generator
+        fake = generator.forward(combined_generator_input)
+        loss_gen = loss_function_gen.forward(fake, discriminator)
+
+        # backward pass generator
+        trainer_gen.do_backward(loss_gen)
+
+        # set generator to evaluation and discriminator to train
+        trainer_gen.prepare_evaluation()
         trainer_dis.prepare_training()
 
-        # generator images todo: i know we have to work on this still, its just a suggestion
-        embedded = embedder.forward(batch)
-        fake = generator.forward(embedded, ground_truth_landmarks)
+        # combine real and fake images
+        combined_set, labels = combine_real_and_fake(batch, fake, device)
 
-        # random indices
-        shuffle_indices = list(range(int(batch.shape[0] * 2)))
-        random.shuffle(shuffle_indices)
-        shuffle_indices = torch.LongTensor(shuffle_indices).to(device)
+        # forward pass discriminator
+        predictions = discriminator.forward(combined_set)
+        loss_dis = loss_function_dis.forward(predictions, labels)
 
-        # combine fake and real images and also their targets in a composite input for discriminator
-        composite = torch.cat((fake, batch), dim=0).index_select(0, shuffle_indices)
-        labels = (torch.zeros(fake.shape[0]).to(device), torch.ones(batch.shape[0]).to(device))
-        ground_truth = torch.cat(labels, dim=0).index_select(0, shuffle_indices).to(device)
-
-        # discriminator forward pass todo: i know we have to work on this still, its just a suggestion
-        discriminator_output = discriminator.forward(composite)
-
-
-        # combined loss function, todo: i know we have to work on this still, its just a suggestion
-        loss = loss_function.forward(discriminator_output, ground_truth, embedded,
-                                     fake)  # i dunno whats gonna go in here but just see it as anything can go in
-
-        # backward passes todo: i dont know if we can actually call backward on the same loss twice? depends a bit on implementation as well
-        trainer_gen.do_backward(loss)
-        trainer_dis.do_backward(loss)
+        # backward discriminator
+        trainer_dis.do_backward(loss_dis)
 
         # print progress to terminal
-        if (i + (epoch_num * len(dataloader)) % arguments.eval_freq == 0):
-            statistic = log(dataloader, loss_function, embedder, generator, discriminator, arguments)
+        batches_passed = i + (epoch_num * len(dataloader))
+        if (batches_passed % arguments.eval_freq == 0):
+            statistic = log(dataloader, loss_gen.item(), loss_dis.item(), embedder, generator, discriminator, arguments)
             progress.append(statistic)
+
+        # save a set of pictures
+        if (batches_passed % arguments.plot_freq == 0):
             plot_some_pictures(arguments.feedback)
 
     return progress
 
 
-def log(dataloader, loss, embedder, generator, discriminator, arguments) -> Statistic:
+def log(dataloader, loss_gen, loss_dis, embedder, generator, discriminator, arguments) -> Statistic:
     """
-    logs to terminal and calculate log_statistics # todo
+    logs to terminal and calculate log_statistics
+
+    # todo: validation-set?
 
     :param dataloader: validationset?
     :param loss:
@@ -101,16 +144,28 @@ def log(dataloader, loss, embedder, generator, discriminator, arguments) -> Stat
     :param arguments:
     :return:
     """
-    loss = 1
-    print(f"\r loss: {loss:0.5f}", end='')  # print in-place with 5 decimals example
 
-    return Statistic(loss=loss)
+    # print in-place with 5 decimals
+    print(f"\r loss-generator: {loss_gen:0.5f}, loss-discriminator: {loss_dis:0.5f}", end='')
+
+    # define training statistic
+    return Statistic(loss_gen=loss_gen, loss_dis=loss_dis)
 
 
-def train(dataloader, loss, embedder, generator, discriminator, arguments, optimizer_gen, optimizer_dis):
+def train(dataloader,
+          loss_gen: GeneralLoss,
+          loss_dis: GeneralLoss,
+          embedder: GeneralEmbedder,
+          generator: GeneralGenerator,
+          discriminator: GeneralDiscriminator,
+          arguments,
+          optimizer_gen,
+          optimizer_dis):
     """
      main training function
 
+    :param loss_gen:
+    :param loss_dis:
     :param dataloader:
     :param loss:
     :param embedder:
@@ -135,11 +190,20 @@ def train(dataloader, loss, embedder, generator, discriminator, arguments, optim
 
         # run
         for epoch in range(arguments.epochs):
-            epoch_loss = training_iteration(dataloader, loss, embedder, generator, discriminator, arguments,
+            epoch_progress = training_iteration(dataloader,
+                                            loss_gen,
+                                            loss_dis,
+                                            embedder,
+                                            generator,
+                                            discriminator,
+                                            arguments,
                                             optimizer_dis,
-                                            optimizer_gen, trainer_dis, trainer_gen, epoch)
+                                            optimizer_gen,
+                                            trainer_dis,
+                                            trainer_gen,
+                                            epoch)
 
-            progress.append(epoch_loss)
+            progress += epoch_progress
 
             # write progress to pickle file (overwrite because there is no point keeping seperate versions)
             DATA_MANAGER.save_python_obj(progress, f"output/{DATA_MANAGER.stamp}/{PROGRESS_DIR}/progress_list")

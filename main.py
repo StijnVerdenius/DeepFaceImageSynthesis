@@ -10,17 +10,15 @@ import torch
 
 def main(arguments):
     # data
-    dataloader = [None, None]  # todo
+    dataloader = [None, None]  # todo @ klaus
 
     # determine input size
-    input_size = 2  # todo
+    input_size = 2  # todo @ klaus
 
     # get right device
     device = get_device(arguments.device)
 
     # get models
-    loss = find_right_model(LOSS_DIR, arguments.loss)
-
     embedder = find_right_model(EMBED_DIR, arguments.embedder,
                                 device=device,
                                 input_size=input_size,
@@ -38,21 +36,22 @@ def main(arguments):
     if (arguments.mode == "train" or arguments.mode == "finetune"):
 
         # init optimizers
-        embedder_generator_optimizer = opt.Adam(list(embedder.parameters()) + list(generator.parameters()),
-                                                arguments.learning_rate)
+        generator_optimizer = opt.Adam(generator.parameters(), arguments.learning_rate)
         discriminator_optimizer = opt.Adam(discriminator.parameters(), arguments.learning_rate)
 
-        # todo: seperate loss functions?
+        loss_gen = find_right_model(LOSS_DIR, arguments.loss_gen)
+        loss_dis = find_right_model(LOSS_DIR, arguments.loss_dis)
 
         # train
         trained_succesfully = train(dataloader,
-                                    loss,
+                                    loss_gen,
+                                    loss_dis,
                                     embedder,
                                     generator,
                                     discriminator,
                                     arguments,
                                     discriminator_optimizer,
-                                    embedder_generator_optimizer)
+                                    generator_optimizer)
 
         if (not trained_succesfully):
             pass  # todo
@@ -81,8 +80,8 @@ def parse():
     parser.add_argument('--feedback', default=False, type=bool, help='whether to plot or not during training')
     parser.add_argument('--mode', default="train", type=str, help="'train', 'test' or 'finetune'")
     parser.add_argument('--learning_rate', type=float, default=1e-4, help='Learning rate')
-    parser.add_argument('--batch_size', type=int, default=16, help='Batch size to run trainer.')
     parser.add_argument('--eval_freq', type=int, default=200, help='Frequency of evaluation on the test set')
+    parser.add_argument('--plot_freq', type=int, default=200, help='Frequency of evaluation on the test set')
 
     # test arguments
     parser.add_argument('--test_model_date', default="", type=str, help='date_stamp string for which model to load')
@@ -92,11 +91,15 @@ def parse():
     parser.add_argument('--embedding_size', default=2, type=int, help='dimensionality of latent embedding space')
     parser.add_argument('--embedder', default="InitialEmbedder", type=str, help="name of objectclass")
     parser.add_argument('--discriminator', default="InitialDiscriminator", type=str, help="name of objectclass")
-    parser.add_argument('--loss', default="GeneralLoss", type=str, help="name of objectclass")
     parser.add_argument('--generator', default="InitialGenerator", type=str, help="name of objectclass")
 
+    # loss arguments
+    parser.add_argument('--loss_gen', default="GeneralLoss", type=str, help="name of objectclass")
+    parser.add_argument('--loss_dis', default="GeneralLoss", type=str, help="name of objectclass")
+
     # data arguments
-    # todo
+    parser.add_argument('--batch_size', type=int, default=16, help='Batch size to run trainer.')
+    # todo @ klaus
 
     return parser.parse_args()
 

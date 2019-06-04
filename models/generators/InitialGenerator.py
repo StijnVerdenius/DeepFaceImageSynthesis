@@ -9,5 +9,8 @@ class InitialGenerator(GeneralGenerator):
 
         self.dummy_variable = nn.Linear(self.input_size, 10000).to(self.device)
 
+
+
     def forward(self, inp):
+
         return self.dummy_variable(inp)
