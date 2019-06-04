@@ -76,6 +76,10 @@ def load_models_and_state(discriminator: GeneralDiscriminator, generator: Genera
     embedder.load_state_dict(models["embedder"])
     generator.load_state_dict(models["generator"])
 
+    discriminator.to(DEVICE)
+    embedder.to(DEVICE)
+    generator.to(DEVICE)
+
     return discriminator, generator, embedder
 
 

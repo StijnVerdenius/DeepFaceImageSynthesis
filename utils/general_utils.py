@@ -28,3 +28,7 @@ def get_device(requested_device):
     if ("cuda" in requested_device):
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     return device
+
+
+def mean(input_list):
+    return sum(input_list) / len(input_list)

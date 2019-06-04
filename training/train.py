@@ -3,7 +3,7 @@ from models.embedders.GeneralEmbedder import GeneralEmbedder
 from models.general.statistic import Statistic
 from models.generators.GeneralGenerator import GeneralGenerator
 from models.losses.GeneralLoss import GeneralLoss
-from utils.general_utils import ensure_current_directory, setup_directories, get_device
+from utils.general_utils import ensure_current_directory, setup_directories, get_device, mean
 from utils.constants import *
 from models.general.trainer import Trainer
 from training.finetune import *
@@ -11,14 +11,16 @@ from training.meta_train import *
 from utils.model_utils import save_models
 import random
 import torch
+import numpy as np
 
 
 # todo: in this file put functions that are shared for both fine tuning and meta training
 
-def plot_some_pictures(feedback):
+def plot_some_pictures(feedback, images):
     """
     save some plots in PIC_DIR
-    :return:
+    :param images:
+
     """
 
     date_directory = DATA_MANAGER.stamp
@@ -26,133 +28,235 @@ def plot_some_pictures(feedback):
     pass  # todo: create
 
 
-def combine_real_and_fake(real, fake, device):
+def combine_real_and_fake(real, fake):
     """
     Combines a set of real and fake images along the batch dimension
     Also generates targets.
 
-    :param real:
-    :param fake:
-    :param device:
-    :return:
     """
-
 
     # random indices
     shuffle_indices = list(range(int(real.shape[0] * 2)))
     random.shuffle(shuffle_indices)
-    shuffle_indices = torch.LongTensor(shuffle_indices).to(device)
+    shuffle_indices = torch.LongTensor(shuffle_indices).to(DEVICE)
 
     # combine fake and real images
     composite = torch.cat((fake, real), dim=0).index_select(0, shuffle_indices)
 
     # combine real and fake targets
-    labels = (torch.zeros(fake.shape[0]).to(device), torch.ones(real.shape[0]).to(device))
-    ground_truth = torch.cat(labels, dim=0).index_select(0, shuffle_indices).to(device)
+    labels = (torch.zeros(fake.shape[0]).to(DEVICE), torch.ones(real.shape[0]).to(DEVICE))
+    ground_truth = torch.cat(labels, dim=0).index_select(0, shuffle_indices).to(DEVICE)
 
     return composite, ground_truth
 
 
-def training_iteration(dataloader,
-                       loss_function_gen: GeneralLoss,
-                       loss_function_dis: GeneralLoss,
-                       embedder: GeneralEmbedder,
-                       generator: GeneralGenerator,
-                       discriminator: GeneralDiscriminator,
-                       arguments,
-                       optimizer_dis,
-                       optimizer_gen,
-                       trainer_dis: Trainer,
-                       trainer_gen: Trainer,
-                       epoch_num):
+def batch_iteration(batch,
+                    landmarks,
+                    discriminator,
+                    generator,
+                    loss_function_gen,
+                    loss_function_dis,
+                    trainer_dis,
+                    trainer_gen,
+                    train=True):
     """
-    one epoch
+     inner loop of epoch iteration
 
-    :param dataloader:
-    :param loss_function:
-    :param embedder:
-    :param generator:
-    :param discriminator:
-    :param arguments:
-    :param optimizer_dis:
-    :param optimizer_gen:
-    :param trainer_dis:
-    :param trainer_gen:
-    :return:
     """
 
-    device = get_device(arguments.device)
+    # prepare input
+    batch.to(DEVICE)
+    landmarks.to(DEVICE)
+    combined_generator_input = torch.cat((batch, landmarks), dim=3)  # concatenate in the channel-dimension?
 
-    progress = []
-
-    for i, (batch, landmarks) in enumerate(dataloader):  # todo: how to split the data @ Klaus
-
-        # prepare input
-        batch.to(device)
-        landmarks.to(device)
-        combined_generator_input = torch.cat((batch, landmarks), dim=3) # concatenate in the channel-dimension?
-
+    if (train):
         # set generator to train and discriminator to evaluation
         trainer_gen.prepare_training()
         trainer_dis.prepare_evaluation()
 
-        # forward pass generator
-        fake = generator.forward(combined_generator_input)
-        loss_gen = loss_function_gen.forward(fake, discriminator)
+    # forward pass generator
+    fake = generator.forward(combined_generator_input)
+    loss_gen = loss_function_gen.forward(fake, discriminator)
 
+    if (train):
         # backward pass generator
         trainer_gen.do_backward(loss_gen)
 
-        # set generator to evaluation and discriminator to train
-        trainer_gen.prepare_evaluation()
+        # set discriminator to train
         trainer_dis.prepare_training()
 
-        # combine real and fake images
-        combined_set, labels = combine_real_and_fake(batch, fake, device)
+    # combine real and fake images
+    combined_set, labels = combine_real_and_fake(batch, fake)
 
-        # forward pass discriminator
-        predictions = discriminator.forward(combined_set)
-        loss_dis = loss_function_dis.forward(predictions, labels)
+    # forward pass discriminator
+    predictions = discriminator.forward(combined_set)
+    loss_dis = loss_function_dis.forward(predictions, labels)
 
+    if (train):
         # backward discriminator
         trainer_dis.do_backward(loss_dis)
 
+    return loss_gen.item(), loss_dis.item(), fake, predictions, labels
+
+
+def epoch_iteration(dataloader_train,
+                    dataloader_validate,
+                    loss_function_gen: GeneralLoss,
+                    loss_function_dis: GeneralLoss,
+                    embedder: GeneralEmbedder,
+                    generator: GeneralGenerator,
+                    discriminator: GeneralDiscriminator,
+                    arguments,
+                    trainer_dis: Trainer,
+                    trainer_gen: Trainer,
+                    epoch_num
+                    ):
+    """
+    one epoch implementation
+
+    """
+
+    progress = []
+
+    for i, (batch, landmarks) in enumerate(dataloader_train):  # todo: how to split the data @ Klaus
+
+        # run batch iteration
+        loss_gen, loss_dis, fake_images, _, _ = batch_iteration(batch,
+                                                                landmarks,
+                                                                discriminator,
+                                                                generator,
+                                                                loss_function_gen,
+                                                                loss_function_dis,
+                                                                trainer_dis,
+                                                                trainer_gen
+                                                                )
+
+        # calculate amount of passed batches
+        batches_passed = i + (epoch_num * len(dataloader_train))
+
         # print progress to terminal
-        batches_passed = i + (epoch_num * len(dataloader))
         if (batches_passed % arguments.eval_freq == 0):
-            statistic = log(dataloader, loss_gen.item(), loss_dis.item(), embedder, generator, discriminator, arguments)
+            # log to terminal and retrieve a statistics object
+            statistic = log(dataloader_validate,
+                            loss_gen,
+                            loss_dis,
+                            embedder,
+                            generator,
+                            discriminator,
+                            loss_function_gen,
+                            loss_function_dis,
+                            trainer_dis,
+                            trainer_gen
+                            )
+
+            # append statistic to list
             progress.append(statistic)
 
         # save a set of pictures
         if (batches_passed % arguments.plot_freq == 0):
-            plot_some_pictures(arguments.feedback)
+            plot_some_pictures(arguments.feedback, fake_images)
 
     return progress
 
 
-def log(dataloader, loss_gen, loss_dis, embedder, generator, discriminator, arguments) -> Statistic:
+def calculate_accuracy(predictions, targets):
+    """
+    Gets the accuracy for discriminator
+
+    """
+
+    actual_predictions = predictions > 0.5
+    true_positives = (actual_predictions == (targets > 0.5)).type(torch.DoubleTensor)
+    accuracy = (torch.mean(true_positives))
+
+    return accuracy.item()
+
+
+def validate(validation_set, embedder, generator, discriminator, loss_function_dis, loss_function_gen):
+    """
+    Runs a validation epoch
+
+    """
+
+    # init
+    total_loss_discriminator = []
+    total_loss_generator = []
+    total_accuracy = []
+
+    for i, (batch, landmarks) in validation_set:
+
+        # run batch iteration
+        loss_gen, loss_dis, _, predictions, actual_labels = batch_iteration(batch,
+                                                                            landmarks,
+                                                                            discriminator,
+                                                                            generator,
+                                                                            loss_function_gen,
+                                                                            loss_function_dis,
+                                                                            None,
+                                                                            None,
+                                                                            train=False
+                                                                            )
+
+        # also get accuracy
+        accuracy = calculate_accuracy(predictions, actual_labels)
+
+        # append findings to respective lists
+        total_accuracy.append(accuracy)
+        total_loss_discriminator.append(loss_dis)
+        total_loss_discriminator.append(loss_gen)
+
+    return mean(total_loss_generator), mean(total_loss_discriminator), mean(total_accuracy)
+
+
+def log(validation_set,
+        loss_gen: int,
+        loss_dis: int,
+        embedder: GeneralEmbedder,
+        generator: GeneralGenerator,
+        discriminator: GeneralDiscriminator,
+        loss_function_gen: GeneralLoss,
+        loss_function_dis: GeneralLoss,
+        trainer_dis: Trainer,
+        trainer_gen: Trainer
+        ) -> Statistic:
     """
     logs to terminal and calculate log_statistics
 
-    # todo: validation-set?
-
-    :param dataloader: validationset?
-    :param loss:
-    :param embedder:
-    :param generator:
-    :param discriminator:
-    :param arguments:
-    :return:
     """
 
-    # print in-place with 5 decimals
-    print(f"\r loss-generator: {loss_gen:0.5f}, loss-discriminator: {loss_dis:0.5f}", end='')
+    # put models in evaluation mode
+    trainer_dis.prepare_evaluation()
+    trainer_gen.prepare_evaluation()
+
+    # validate on validationset
+    loss_gen_validate, loss_dis_validate, discriminator_accuracy = validate(validation_set,
+                                                                            embedder,
+                                                                            generator,
+                                                                            discriminator,
+                                                                            loss_function_dis,
+                                                                            loss_function_gen,
+                                                                            )
+
+    # print in-place with 3 decimals
+    print(
+        f"\r",
+        f"loss-generator-train: {loss_gen:0.3f}",
+        f"loss-discriminator-train: {loss_dis:0.3f}",
+        f"loss-generator-validate: {loss_gen_validate:0.3f}",
+        f"loss-discriminator-validate: {loss_dis_validate:0.3f}",
+        f"accuracy-discriminator: {discriminator_accuracy}",
+        end='')
 
     # define training statistic
-    return Statistic(loss_gen=loss_gen, loss_dis=loss_dis)
+    return Statistic(loss_gen_train=loss_gen,
+                     loss_dis_train=loss_dis,
+                     loss_gen_val=loss_gen_validate,
+                     loss_dis_val=loss_dis_validate,
+                     dis_acc=discriminator_accuracy)
 
 
-def train(dataloader,
+def train(dataloader_train,
+          dataloader_validate,
           loss_gen: GeneralLoss,
           loss_dis: GeneralLoss,
           embedder: GeneralEmbedder,
@@ -185,23 +289,22 @@ def train(dataloader,
 
     try:
         # setup
-        trainer_gen = Trainer([embedder, generator], [optimizer_gen])
-        trainer_dis = Trainer([discriminator], optimizer_gen)
+        trainer_gen = Trainer([generator], [optimizer_gen])
+        trainer_dis = Trainer([discriminator], [optimizer_dis])
 
         # run
         for epoch in range(arguments.epochs):
-            epoch_progress = training_iteration(dataloader,
-                                            loss_gen,
-                                            loss_dis,
-                                            embedder,
-                                            generator,
-                                            discriminator,
-                                            arguments,
-                                            optimizer_dis,
-                                            optimizer_gen,
-                                            trainer_dis,
-                                            trainer_gen,
-                                            epoch)
+            epoch_progress = epoch_iteration(dataloader_train,
+                                             dataloader_validate,
+                                             loss_gen,
+                                             loss_dis,
+                                             embedder,
+                                             generator,
+                                             discriminator,
+                                             arguments,
+                                             trainer_dis,
+                                             trainer_gen,
+                                             epoch)
 
             progress += epoch_progress
 

@@ -10,26 +10,27 @@ import torch
 
 def main(arguments):
     # data
-    dataloader = [None, None]  # todo @ klaus
+    dataloader_train = [None, None]  # todo @ klaus
+    dataloader_validate = [None, None]  # todo @ klaus
 
     # determine input size
     input_size = 2  # todo @ klaus
 
     # get right device
-    device = get_device(arguments.device)
+    DEVICE = get_device(arguments.device)
 
     # get models
     embedder = find_right_model(EMBED_DIR, arguments.embedder,
-                                device=device,
+                                device=DEVICE,
                                 input_size=input_size,
                                 embedding_size=arguments.embedding_size)
 
     generator = find_right_model(GEN_DIR, arguments.generator,
-                                 device=device,
+                                 device=DEVICE,
                                  input_size=input_size)
 
     discriminator = find_right_model(DIS_DIR, arguments.discriminator,
-                                     device=device,
+                                     device=DEVICE,
                                      input_size=input_size)
 
     # train or test
@@ -43,7 +44,8 @@ def main(arguments):
         loss_dis = find_right_model(LOSS_DIR, arguments.loss_dis)
 
         # train
-        trained_succesfully = train(dataloader,
+        trained_succesfully = train(dataloader_train,
+                                    dataloader_validate,
                                     loss_gen,
                                     loss_dis,
                                     embedder,
@@ -64,7 +66,7 @@ def main(arguments):
                                                                    arguments.test_model_date)
 
         # run test
-        test(dataloader, embedder, generator, discriminator, arguments)
+        test(dataloader_validate, embedder, generator, discriminator, arguments)
 
     else:
 
