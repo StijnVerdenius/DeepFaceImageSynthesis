@@ -19,7 +19,7 @@ def plot_some_pictures(feedback):
 
     date_directory = DATA_MANAGER.stamp
 
-    pass  # todo
+    pass  # todo: do something
 
 
 def training_iteration(dataloader, loss_function, embedder, generator, discriminator, arguments, optimizer_dis,
