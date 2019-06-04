@@ -1,4 +1,5 @@
 from models.general.data_management import DataManager
+import torch
 
 PIC_DIR = "output_pictures"
 MODELS_DIR = "saved_models"
@@ -8,4 +9,5 @@ LOSS_DIR = "losses"
 EMBED_DIR = "embedders"
 GEN_DIR = "generators"
 DIS_DIR = "discriminators"
-DEVICE = ""
+IMSIZE = 100  # todo: change @ Klaus
+DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

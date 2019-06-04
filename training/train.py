@@ -3,29 +3,31 @@ from models.embedders.GeneralEmbedder import GeneralEmbedder
 from models.general.statistic import Statistic
 from models.generators.GeneralGenerator import GeneralGenerator
 from models.losses.GeneralLoss import GeneralLoss
-from utils.general_utils import ensure_current_directory, setup_directories, get_device, mean
+from utils.general_utils import ensure_current_directory, setup_directories, mean
 from utils.constants import *
 from models.general.trainer import Trainer
-from training.finetune import *
-from training.meta_train import *
 from utils.model_utils import save_models
 import random
 import torch
-import numpy as np
+from torchvision.utils import save_image
 
 
-# todo: in this file put functions that are shared for both fine tuning and meta training
-
-def plot_some_pictures(feedback, images):
+def plot_some_pictures(feedback, images, batches_done):
     """
     save some plots in PIC_DIR
-    :param images:
 
     """
 
-    date_directory = DATA_MANAGER.stamp
+    save_image(images[:25].view(-1, 3, IMSIZE, IMSIZE),
+               f'results/output/{DATA_MANAGER.stamp}/{PIC_DIR}/{batches_done}.png',
+               nrow=5, normalize=True)
 
-    pass  # todo: create
+    if (feedback):
+        # TODO: if feedback is on, run the following script from the result-image directory in terminal while it is running:
+        # watch xdg-open latests_plot.png
+        save_image(images[:25].view(-1, 3, IMSIZE, IMSIZE),
+                   f'results/output/{DATA_MANAGER.stamp}/{PIC_DIR}/latests_plot.png',
+                   nrow=5, normalize=True)
 
 
 def combine_real_and_fake(real, fake):
@@ -86,7 +88,7 @@ def batch_iteration(batch,
         trainer_dis.prepare_training()
 
     # combine real and fake
-    landmarked_fake = torch.cat((fake, landmarks), dim=3) # concatenate in the channel-dimension?
+    landmarked_fake = torch.cat((fake, landmarks), dim=3)  # concatenate in the channel-dimension?
     combined_set, labels = combine_real_and_fake(landmarked_batch, landmarked_fake)
 
     # forward pass discriminator
@@ -155,7 +157,7 @@ def epoch_iteration(dataloader_train,
 
         # save a set of pictures
         if (batches_passed % arguments.plot_freq == 0):
-            plot_some_pictures(arguments.feedback, fake_images)
+            plot_some_pictures(arguments.feedback, fake_images, batches_passed)
 
     return progress
 
@@ -185,7 +187,6 @@ def validate(validation_set, embedder, generator, discriminator, loss_function_d
     total_accuracy = []
 
     for i, (batch, landmarks) in validation_set:
-
         # run batch iteration
         loss_gen, loss_dis, _, predictions, actual_labels = batch_iteration(batch,
                                                                             landmarks,

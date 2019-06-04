@@ -10,6 +10,8 @@ types = ["discriminators", "embedders", "generators", "losses"]
 models = {x: {} for x in types}
 
 
+
+
 def _read_all_classnames():
     """
     private function that imports all class references in a dictionary

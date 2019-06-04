@@ -1,4 +1,4 @@
-from utils.general_utils import ensure_current_directory, get_device
+from utils.general_utils import ensure_current_directory
 from utils.model_utils import find_right_model, load_models_and_state
 from utils.constants import *
 import argparse
@@ -15,9 +15,6 @@ def main(arguments):
 
     # determine input size
     input_size = 2  # todo @ klaus
-
-    # get right device
-    DEVICE = get_device(arguments.device)
 
     # get models
     embedder = find_right_model(EMBED_DIR, arguments.embedder,
@@ -61,9 +58,11 @@ def main(arguments):
     elif (arguments.mode == "test"):
 
         # load in state dicts
-        discriminator, generator, embedder = load_models_and_state(discriminator, generator, embedder,
-                                                                   arguments.test_model_suffix,
-                                                                   arguments.test_model_date)
+        load_models_and_state(discriminator,
+                              generator,
+                              embedder,
+                              arguments.test_model_suffix,
+                              arguments.test_model_date)
 
         # run test
         test(dataloader_validate, embedder, generator, discriminator, arguments)

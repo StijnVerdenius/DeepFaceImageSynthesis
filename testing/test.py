@@ -1,4 +1,4 @@
-from utils.general_utils import ensure_current_directory, get_device
+from utils.general_utils import ensure_current_directory
 import numpy as np
 
 
