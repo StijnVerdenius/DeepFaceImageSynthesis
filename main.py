@@ -1,9 +1,10 @@
 from utils.general_utils import ensure_current_directory
-from utils.model_utils import find_right_model
+from utils.model_utils import find_right_model, load_models_and_state
 import argparse
 from training.train import train
 from testing.test import test
 import torch.optim as opt
+import torch
 
 # constants
 LOSS_DIR = "losses"
@@ -13,21 +14,41 @@ DIS_DIR = "discriminators"
 
 
 def main(arguments):
+    # data
+    dataloader = None  # todo
+
+    # determine input size
+    input_size = None  # todo
+
+    # get right device
+    device = torch.device("cpu")
+    if ("cuda" in arguments.device):
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
     # get models
     loss = find_right_model(LOSS_DIR, arguments.loss)
-    embedder = find_right_model(EMBED_DIR, arguments.embedder)
-    generator = find_right_model(GEN_DIR, arguments.generator)
-    discriminator = find_right_model(DIS_DIR, arguments.discriminator)
 
-    # data
-    dataloader = None # todo
+    embedder = find_right_model(EMBED_DIR, arguments.embedder,
+                                device=device,
+                                input_size=input_size,
+                                embedding_size=arguments.embedding_size)
+
+    generator = find_right_model(GEN_DIR, arguments.generator,
+                                 device=device,
+                                 input_size=input_size)
+
+    discriminator = find_right_model(DIS_DIR, arguments.discriminator,
+                                     device=device,
+                                     input_size=input_size)
+
+    print(discriminator.device)
 
     # train or test
     if (arguments.mode == "train" or arguments.mode == "finetune"):
 
         # init optimizers
         embedder_generator_optimizer = None  # todo
-        discriminator_optimizer = None # opt.Adam(discriminator.parameters(), arguments.learning_rate)?
+        discriminator_optimizer = None  # opt.Adam(discriminator.parameters(), arguments.learning_rate)?
 
         # todo: init criterions (other losses)?
 
@@ -37,7 +58,11 @@ def main(arguments):
 
     elif (arguments.mode == "test"):
 
-        test(dataloader, loss, embedder, generator, discriminator, arguments)
+        # load in state dicts
+        discriminator, generator, embedder = load_models_and_state(discriminator, generator, embedder, arguments.test_model_suffix, arguments.test_model_date)
+
+        # run test
+        test(dataloader, embedder, generator, discriminator, arguments)
 
     else:
 
@@ -49,15 +74,19 @@ def parse():
 
     # training arguments
     parser.add_argument('--epochs', default=50, type=int, help='max number of epochs')
-    parser.add_argument('--device', default="cuda", type=str, help='device')
+    parser.add_argument('--device', default="cpu", type=str, help='device')
     parser.add_argument('--feedback', default=False, type=bool, help='whether to plot or not during training')
     parser.add_argument('--mode', default="train", type=str, help="'train', 'test' or 'finetune'")
     parser.add_argument('--learning_rate', type=float, default=1e-4, help='Learning rate')
     parser.add_argument('--batch_size', type=int, default=16, help='Batch size to run trainer.')
     parser.add_argument('--eval_freq', type=int, default=200, help='Frequency of evaluation on the test set')
 
+    # test arguments
+    parser.add_argument('--test_model_date', default="", type=str, help='date_stamp string that specifies which model to load')
+    parser.add_argument('--test_model_suffix', default="", type=str, help='filename string that specifies which model to load')
+
     # model arguments
-    parser.add_argument('--e_dim', default=2, type=int, help='dimensionality of latent embedding space')
+    parser.add_argument('--embedding_size', default=2, type=int, help='dimensionality of latent embedding space')
     parser.add_argument('--embedder', default="GeneralEmbedder", type=str, help="name of objectclass")
     parser.add_argument('--discriminator', default="GeneralDiscriminator", type=str, help="name of objectclass")
     parser.add_argument('--loss', default="GeneralLoss", type=str, help="name of objectclass")

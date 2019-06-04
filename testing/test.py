@@ -3,7 +3,7 @@ from utils.general_utils import ensure_current_directory
 # todo : add inference/ testing functionality
 
 
-def test(dataloader, loss, embedder, generator, discriminator, arguments):
+def test(dataloader, embedder, generator, discriminator, arguments):
     pass
 
 def local_test():

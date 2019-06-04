@@ -85,10 +85,9 @@ def train(dataloader, loss, embedder, generator, discriminator, arguments, optim
 
         # run
         for epoch in range(arguments.epochs):
-
             epoch_loss = training_iteration(dataloader, loss, embedder, generator, discriminator, arguments,
-                                             optimizer_dis,
-                                             optimizer_gen, trainer_dis, trainer_gen)
+                                            optimizer_dis,
+                                            optimizer_gen, trainer_dis, trainer_gen)
 
             losses.append(epoch_loss)
 
@@ -105,7 +104,7 @@ def train(dataloader, loss, embedder, generator, discriminator, arguments, optim
     data_manager.save_python_obj(losses, f"output/{data_manager.stamp}/{PROGRESS_DIR}/final_losses_list")
 
 
-def setup_directories(data_manager, stamp):
+def setup_directories(data_manager: DataManager, stamp: str):
     dirs = [PIC_DIR, PROGRESS_DIR, MODELS_DIR]
     for dir_to_be in dirs:
         data_manager.create_dir(f"output/{stamp}/{dir_to_be}")
