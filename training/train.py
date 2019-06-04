@@ -67,7 +67,7 @@ def batch_iteration(batch,
     # prepare input
     batch.to(DEVICE)
     landmarks.to(DEVICE)
-    combined_generator_input = torch.cat((batch, landmarks), dim=3)  # concatenate in the channel-dimension?
+    landmarked_batch = torch.cat((batch, landmarks), dim=3)  # concatenate in the channel-dimension?
 
     if (train):
         # set generator to train and discriminator to evaluation
@@ -75,7 +75,7 @@ def batch_iteration(batch,
         trainer_dis.prepare_evaluation()
 
     # forward pass generator
-    fake = generator.forward(combined_generator_input)
+    fake = generator.forward(landmarked_batch)
     loss_gen = loss_function_gen.forward(fake, discriminator)
 
     if (train):
@@ -85,8 +85,9 @@ def batch_iteration(batch,
         # set discriminator to train
         trainer_dis.prepare_training()
 
-    # combine real and fake images
-    combined_set, labels = combine_real_and_fake(batch, fake)
+    # combine real and fake
+    landmarked_fake = torch.cat((fake, landmarks), dim=3) # concatenate in the channel-dimension?
+    combined_set, labels = combine_real_and_fake(landmarked_batch, landmarked_fake)
 
     # forward pass discriminator
     predictions = discriminator.forward(combined_set)
