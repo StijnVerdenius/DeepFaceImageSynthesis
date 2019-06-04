@@ -1,17 +1,10 @@
-from models.discriminators import *
 from models.discriminators.GeneralDiscriminator import GeneralDiscriminator
-from models.embedders import *
 from models.embedders.GeneralEmbedder import GeneralEmbedder
-from models.general.data_management import DataManager
-from models.generators import *
 from models.generators.GeneralGenerator import GeneralGenerator
-from models.losses import *
-from training.train import MODELS_DIR
+from utils.constants import *
 import importlib
 import os
-import sys
 from utils.general_utils import ensure_current_directory
-import inspect
 
 types = ["discriminators", "embedders", "generators", "losses"]
 models = {x: {} for x in types}
@@ -47,7 +40,7 @@ def find_right_model(type: str, name: str, **kwargs):
 
 
 def save_models(discriminator: GeneralDiscriminator, generator: GeneralGenerator, embedder: GeneralEmbedder,
-                suffix: str, data_manager: DataManager):
+                suffix: str):
     """
     Saves current state of models
 
@@ -61,7 +54,7 @@ def save_models(discriminator: GeneralDiscriminator, generator: GeneralGenerator
     save_dict = {"discriminator": discriminator.state_dict(), "generator": generator.state_dict(),
                  "embedder": embedder.state_dict()}
 
-    data_manager.save_python_obj(save_dict, f"results/output/{data_manager.stamp}/{MODELS_DIR}/{suffix}")
+    DATA_MANAGER.save_python_obj(save_dict, f"output/{DATA_MANAGER.stamp}/{MODELS_DIR}/{suffix}")
 
 
 def load_models_and_state(discriminator: GeneralDiscriminator, generator: GeneralGenerator, embedder: GeneralEmbedder,
@@ -77,9 +70,7 @@ def load_models_and_state(discriminator: GeneralDiscriminator, generator: Genera
     :return:
     """
 
-    data_manager = DataManager("./results/")
-
-    models = data_manager.load_python_obj(f"results/output/{stamp}/{MODELS_DIR}/{suffix}")
+    models = DATA_MANAGER.load_python_obj(f"results/output/{stamp}/{MODELS_DIR}/{suffix}")
 
     discriminator.load_state_dict(models["discriminator"])
     embedder.load_state_dict(models["embedder"])
@@ -97,8 +88,7 @@ def load_states(suffix: str, stamp: str):
     :return:
     """
 
-    data_manager = DataManager("./results/")
-    return data_manager.load_python_obj(f"results/output/{stamp}/{MODELS_DIR}/{suffix}")
+    return DATA_MANAGER.load_python_obj(f"results/output/{stamp}/{MODELS_DIR}/{suffix}")
 
 
 # needed to load in class references

@@ -6,6 +6,9 @@ from utils.general_utils import ensure_current_directory
 def test(dataloader, embedder, generator, discriminator, arguments):
     pass
 
+def validate():
+    pass
+
 def local_test():
     """ for testing something in this file specifically """
     pass

@@ -1,29 +1,22 @@
-from utils.general_utils import ensure_current_directory
+from utils.general_utils import ensure_current_directory, get_device
 from utils.model_utils import find_right_model, load_models_and_state
+from utils.constants import *
 import argparse
 from training.train import train
 from testing.test import test
 import torch.optim as opt
 import torch
 
-# constants
-LOSS_DIR = "losses"
-EMBED_DIR = "embedders"
-GEN_DIR = "generators"
-DIS_DIR = "discriminators"
-
 
 def main(arguments):
     # data
-    dataloader = None  # todo
+    dataloader = [None, None]  # todo
 
     # determine input size
-    input_size = None  # todo
+    input_size = 2  # todo
 
     # get right device
-    device = torch.device("cpu")
-    if ("cuda" in arguments.device):
-        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = get_device(arguments.device)
 
     # get models
     loss = find_right_model(LOSS_DIR, arguments.loss)
@@ -41,32 +34,42 @@ def main(arguments):
                                      device=device,
                                      input_size=input_size)
 
-    print(discriminator.device)
-
     # train or test
     if (arguments.mode == "train" or arguments.mode == "finetune"):
 
         # init optimizers
-        embedder_generator_optimizer = None  # todo
-        discriminator_optimizer = None  # opt.Adam(discriminator.parameters(), arguments.learning_rate)?
+        embedder_generator_optimizer = opt.Adam(list(embedder.parameters()) + list(generator.parameters()),
+                                                arguments.learning_rate)
+        discriminator_optimizer = opt.Adam(discriminator.parameters(), arguments.learning_rate)
 
-        # todo: init criterions (other losses)?
+        # todo: seperate loss functions?
 
         # train
-        train(dataloader, loss, embedder, generator, discriminator, arguments, discriminator_optimizer,
-              embedder_generator_optimizer)
+        trained_succesfully = train(dataloader,
+                                    loss,
+                                    embedder,
+                                    generator,
+                                    discriminator,
+                                    arguments,
+                                    discriminator_optimizer,
+                                    embedder_generator_optimizer)
+
+        if (not trained_succesfully):
+            pass  # todo
 
     elif (arguments.mode == "test"):
 
         # load in state dicts
-        discriminator, generator, embedder = load_models_and_state(discriminator, generator, embedder, arguments.test_model_suffix, arguments.test_model_date)
+        discriminator, generator, embedder = load_models_and_state(discriminator, generator, embedder,
+                                                                   arguments.test_model_suffix,
+                                                                   arguments.test_model_date)
 
         # run test
         test(dataloader, embedder, generator, discriminator, arguments)
 
     else:
 
-        raise Exception("Unrecognized mode")
+        raise Exception("Unrecognized train/test mode")
 
 
 def parse():
@@ -82,15 +85,15 @@ def parse():
     parser.add_argument('--eval_freq', type=int, default=200, help='Frequency of evaluation on the test set')
 
     # test arguments
-    parser.add_argument('--test_model_date', default="", type=str, help='date_stamp string that specifies which model to load')
-    parser.add_argument('--test_model_suffix', default="", type=str, help='filename string that specifies which model to load')
+    parser.add_argument('--test_model_date', default="", type=str, help='date_stamp string for which model to load')
+    parser.add_argument('--test_model_suffix', default="", type=str, help='filename string for which model to load')
 
     # model arguments
     parser.add_argument('--embedding_size', default=2, type=int, help='dimensionality of latent embedding space')
-    parser.add_argument('--embedder', default="GeneralEmbedder", type=str, help="name of objectclass")
-    parser.add_argument('--discriminator', default="GeneralDiscriminator", type=str, help="name of objectclass")
+    parser.add_argument('--embedder', default="InitialEmbedder", type=str, help="name of objectclass")
+    parser.add_argument('--discriminator', default="InitialDiscriminator", type=str, help="name of objectclass")
     parser.add_argument('--loss', default="GeneralLoss", type=str, help="name of objectclass")
-    parser.add_argument('--generator', default="GeneralGenerator", type=str, help="name of objectclass")
+    parser.add_argument('--generator', default="InitialGenerator", type=str, help="name of objectclass")
 
     # data arguments
     # todo
