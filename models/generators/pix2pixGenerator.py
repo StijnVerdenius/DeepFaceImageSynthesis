@@ -14,7 +14,7 @@ class pix2pixGenerator(GeneralGenerator):
         norm_layer         - normalization layer
         use_dropout (bool) - use dropout layers or not
         n_blocks (int)     - no of ResNet blocks
-        padding_type (str) - type of padding: reflect, replicate, or zero
+        padding_type (str) - type of padding: zero, replicate, or reflect
         """
         super(pix2pixGenerator).__init__(n_input, n_output, device)
 
@@ -45,22 +45,22 @@ class pix2pixGenerator(GeneralGenerator):
 
         # Add downsampling blocks
         for i in range(n_downsampling):
-            mult = 2 ** i
-            layers += [nn.Conv2d(mult, n_hidden **2 * mult * 2, kernel_size=3, stride=2, padding=1, bias=use_bias)]
-            layers += [nn.InstanceNorm2d(n_hidden * mult * 2)]
+            mult_ch = 2 ** i # set factor to update current no. of channels
+            layers += [nn.Conv2d(mult_ch, n_hidden **2 * mult_ch * 2, kernel_size=3, stride=2, padding=1, bias=use_bias)]
+            layers += [nn.InstanceNorm2d(n_hidden * mult_ch * 2)]
             layers += [nn.LeakyReLU(0.2,inplace=True)]
 
 
         # Add ResNet blocks
-        mult = 2 ** n_downsampling # get factor to update current dimensionality
+        mult_ch = 2 ** n_downsampling # set factor to update current no. of channels
         for i in range(n_blocks):
-            layers += [ResidualBlock(n_hidden * mult, padding_type=padding_type, norm_layer=nn.InstanceNorm2d, use_dropout=use_dropout, use_bias=use_bias)]
+            layers += [ResidualBlock(n_hidden * mult_ch, padding_type=padding_type, norm_layer=nn.InstanceNorm2d, use_dropout=use_dropout, use_bias=use_bias)]
 
         # Add upsampling blocks
         for i in range(n_downsampling):
-            mult = 2 ** (n_downsampling - i)
-            layers += [nn.ConvTranspose2d(n_hidden * mult, int(n_hidden * mult / 2), kernel_size=3, stride=2, padding=1, output_padding=1, bias=use_bias)]
-            layers += [nn.InstanceNorm2d(int(n_hidden * mult / 2))]
+            mult_ch = 2 ** (n_downsampling - i) # set factor to update current no. of channels
+            layers += [nn.ConvTranspose2d(n_hidden * mult_ch, int(n_hidden * mult_ch / 2), kernel_size=3, stride=2, padding=1, output_padding=1, bias=use_bias)]
+            layers += [nn.InstanceNorm2d(int(n_hidden * mult_ch / 2))]
             layers += [nn.LeakyReLU(0.2,inplace=True)]
 
         # Add output block layers

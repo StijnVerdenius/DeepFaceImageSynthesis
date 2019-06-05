@@ -4,7 +4,7 @@ from models.GeneralModel import GeneralModel
 
 class GeneralDiscriminator(GeneralModel):
 
-    def __init__(self, input_size = (1,1), device="cpu"):
-        super(GeneralDiscriminator).__init__(input_size, device)
+    def __init__(self, n_input, device="cpu"):
+        super(GeneralDiscriminator).__init__(n_input, device)
 
     # todo: add methods here that are shared for all discriminators, inheret your costum version from this object
