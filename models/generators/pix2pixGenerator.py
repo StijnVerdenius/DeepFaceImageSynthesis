@@ -16,7 +16,7 @@ class pix2pixGenerator(GeneralGenerator):
         n_blocks (int)     - no of ResNet blocks
         padding_type (str) - type of padding: reflect, replicate, or zero
         """
-        super(pix2pixGenerator).__init__()
+        super(pix2pixGenerator).__init__(n_input, n_output, device)
 
         # If normalizing layer is instance normalization, add bias
         use_bias = norm_layer == nn.InstanceNorm2d
