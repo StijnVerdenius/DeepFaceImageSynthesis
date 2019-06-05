@@ -7,3 +7,4 @@ class GeneralLoss(nn.Module):
         super().__init__()
 
     # todo: add methods here that are shared for all loss function objects, inheret your costum version from this object
+
