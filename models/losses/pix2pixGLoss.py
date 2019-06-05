@@ -1,3 +1,4 @@
+from models.losses.GeneralLoss import GeneralLoss
 import torch.nn as nn
 import torch
 

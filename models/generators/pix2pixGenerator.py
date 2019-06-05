@@ -6,7 +6,9 @@ import torch.nn as nn
 class pix2pixGenerator(GeneralGenerator):
     """ Defines the pix2pix (CycleGAN) Generator"""
 
-    def __init__(self, n_input, n_output, n_hidden, norm_layer, use_dropout = False, n_downsampling=2, n_blocks=6, padding_type = 'reflect', device="cpu"):
+
+    # CHECK DEFAULT VALUES!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    def __init__(self, n_input, n_output=2, n_hidden=2, norm_layer=nn.InstanceNorm2d, use_dropout = False, n_downsampling=2, n_blocks=6, padding_type = 'reflect', device="cpu"):
         """
         n_input (int)      - no. of channels in input images
         n_output (int)     - no. number of channels in output images
@@ -16,7 +18,7 @@ class pix2pixGenerator(GeneralGenerator):
         n_blocks (int)     - no of ResNet blocks
         padding_type (str) - type of padding: zero, replicate, or reflect
         """
-        super(pix2pixGenerator).__init__(n_input, n_output, device)
+        super(pix2pixGenerator,self).__init__(n_input, n_output, device)
 
         # If normalizing layer is instance normalization, add bias
         use_bias = norm_layer == nn.InstanceNorm2d
@@ -58,7 +60,7 @@ class pix2pixGenerator(GeneralGenerator):
 
         # Add upsampling blocks
         for i in range(n_downsampling):
-            mult_ch = 2 ** (n_downsampling - i) # set factor to update current no. of channels
+            mult_ch = 2 ** (n_downsampling - i) # set factor to update current no. of channel
             layers += [nn.ConvTranspose2d(n_hidden * mult_ch, int(n_hidden * mult_ch / 2), kernel_size=3, stride=2, padding=1, output_padding=1, bias=use_bias)]
             layers += [nn.InstanceNorm2d(int(n_hidden * mult_ch / 2))]
             layers += [nn.LeakyReLU(0.2,inplace=True)]
@@ -109,9 +111,9 @@ class ResidualBlock(nn.Module):
             residual += [nn.ReflectionPad2d(1)]
 
         # Add convolutional block
-        residual = nn.Conv2d(n_channels, n_channels, kernel_size=3, padding=pad, bias=use_bias)
-        residual += norm_layer(n_channels)
-        residual += nn.LeakyReLU(0.2,inplace=True)
+        residual += [nn.Conv2d(n_channels, n_channels, kernel_size=3, padding=pad, bias=use_bias)]
+        residual += [norm_layer(n_channels)]
+        residual += [nn.LeakyReLU(0.2,inplace=True)]
 
         # Add dropout if required
         if use_dropout:
@@ -124,8 +126,8 @@ class ResidualBlock(nn.Module):
             residual += [nn.ReflectionPad2d(1)]
 
         # Add convolutional block
-        residual = nn.Conv2d(n_channels, n_channels, kernel_size=3, padding=pad, bias=use_bias)
-        residual += norm_layer(n_channels)
+        residual += [nn.Conv2d(n_channels, n_channels, kernel_size=3, padding=pad, bias=use_bias)]
+        residual += [norm_layer(n_channels)]
 
 
         self.resBlock = nn.Sequential(*residual)

@@ -24,11 +24,11 @@ def main(arguments):
 
     generator = find_right_model(GEN_DIR, arguments.generator,
                                  device=DEVICE,
-                                 input_size=input_size)
+                                 n_input=input_size)
 
     discriminator = find_right_model(DIS_DIR, arguments.discriminator,
                                      device=DEVICE,
-                                     input_size=input_size)
+                                     n_input=input_size)
 
     # train or test
     if (arguments.mode == "train" or arguments.mode == "finetune"):
@@ -91,12 +91,12 @@ def parse():
     # model arguments
     parser.add_argument('--embedding_size', default=2, type=int, help='dimensionality of latent embedding space')
     parser.add_argument('--embedder', default="InitialEmbedder", type=str, help="name of objectclass")
-    parser.add_argument('--discriminator', default="InitialDiscriminator", type=str, help="name of objectclass")
-    parser.add_argument('--generator', default="InitialGenerator", type=str, help="name of objectclass")
+    parser.add_argument('--discriminator', default="PatchDiscriminator", type=str, help="name of objectclass") ##### SET TO PATCH GAN
+    parser.add_argument('--generator', default="pix2pixGenerator", type=str, help="name of objectclass") ########### SET TO PIX2PIX
 
     # loss arguments
-    parser.add_argument('--loss_gen', default="GeneralLoss", type=str, help="name of objectclass")
-    parser.add_argument('--loss_dis', default="GeneralLoss", type=str, help="name of objectclass")
+    parser.add_argument('--loss_gen', default="pix2pixGLoss", type=str, help="name of objectclass")  ########### SET TO PIX2PIX
+    parser.add_argument('--loss_dis', default="pix2pixGLoss", type=str, help="name of objectclass") ########### SET TO PIX2PIX
 
     # data arguments
     parser.add_argument('--batch_size', type=int, default=16, help='Batch size to run trainer.')

@@ -5,8 +5,9 @@ from models.GeneralModel import GeneralModel
 
 class GeneralGenerator(GeneralModel):
 
-    def __init__(self, n_input, n_output, device="cpu"):
-        super(GeneralGenerator).__init__(n_input, device)
+    # CHECK DEFAULT VALUES!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
+    def __init__(self, n_input=(1,1), n_output=(1,1), device="cpu"):
+        super(GeneralGenerator,self).__init__(n_input, device)
 
         self.n_output = n_output
 
