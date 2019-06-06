@@ -12,3 +12,5 @@ IMSIZE = 128
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 PREFIX_OUTPUT = "results/output"
 DATA_MANAGER = DataManager(f"./{PREFIX_OUTPUT}/")
+CODE_DIR = "codebase"
+OUTPUT_DIRS = [PIC_DIR, PROGRESS_DIR, MODELS_DIR, CODE_DIR]
