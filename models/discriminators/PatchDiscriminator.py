@@ -6,7 +6,8 @@ import torch
 class PatchDiscriminator(GeneralDiscriminator):
     """ Defines a PatchGAN discriminator"""
 
-    def __init__(self, n_channels_in=3, n_hidden=64, n_layers=3, norm_layer=nn.BatchNorm2d, use_dropout=False, device="cpu"): #havent used dropout!!!!!!!!
+    def __init__(self, n_channels_in=3, n_hidden=64, n_layers=3, norm_layer=nn.BatchNorm2d, use_dropout=False,
+                 device="cpu"):  # havent used dropout!!!!!!!!
         """
         n_channels_in (int)      - no. of channels in input images
         n_hidden (int)     - no. of filters in the last hidden layer
@@ -14,11 +15,10 @@ class PatchDiscriminator(GeneralDiscriminator):
         norm_layer         - normalization layer
         use_dropout (bool) - use dropout layers or not
         """
-        super(PatchDiscriminator,self).__init__(n_channels_in, device)
+        super(PatchDiscriminator, self).__init__(n_channels_in, device)
 
         # If normalizing layer is batch normalization, don't add bias because nn.BatchNorm2d has affine params
         use_bias = norm_layer != nn.BatchNorm2d
-
 
         # Initialize Discriminator input block
         layers = [nn.Conv2d(n_channels_in, n_hidden, kernel_size=4, stride=2, padding=1)]
@@ -29,45 +29,42 @@ class PatchDiscriminator(GeneralDiscriminator):
         mult_out = 1
 
         # Add hidden layers
-        for i in range(1,n_layers+1):
+        for i in range(1, n_layers + 1):
 
             mult_in = mult_out
             mult_out = min(2 ** i, 8)
 
             if i == n_layers:
-                layers += [nn.Conv2d(n_hidden * mult_in, n_hidden * mult_out, kernel_size=4, stride=1, padding=1, bias=use_bias)] # stride = 1
+                layers += [nn.Conv2d(n_hidden * mult_in, n_hidden * mult_out, kernel_size=4, stride=1, padding=1,
+                                     bias=use_bias)]  # stride = 1
             else:
-                layers += [nn.Conv2d(n_hidden * mult_in, n_hidden * mult_out, kernel_size=4, stride=2, padding=1, bias=use_bias)] # stride = 2
+                layers += [nn.Conv2d(n_hidden * mult_in, n_hidden * mult_out, kernel_size=4, stride=2, padding=1,
+                                     bias=use_bias)]  # stride = 2
 
             layers += [norm_layer(n_hidden * mult_out)]
             layers += [nn.LeakyReLU(0.2, inplace=True)]
-
 
         # Add output layer (1 channel prediction map)
         layers += [nn.Conv2d(n_hidden * mult_out, 1, kernel_size=4, stride=1, padding=1)]
         layers += [nn.Sigmoid()]
 
-
         # Save model
         self.model = nn.Sequential(*layers)
-
-
 
     def forward(self, x):
 
         return self.model(x).squeeze()
 
 
+if __name__ == '__main__':
+    # Test if working
 
-# # Test if working
-#
-# dummy_batch = torch.rand((10,3,28,28))
-#
-# G = PatchDiscriminator()
-#
-# score = G.forward(dummy_batch)
-#
-#
-# print(G.model[0].weight.grad)
-# print(score.shape)
-# print(score)
+    dummy_batch = torch.rand((10, 3, 28, 28))
+
+    D = PatchDiscriminator()
+
+    score = D.forward(dummy_batch)
+
+    print(D.model[0].weight.grad)
+    print(score.shape)
+    print(score)

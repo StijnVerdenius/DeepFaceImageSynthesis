@@ -98,7 +98,7 @@ def parse():
 
     # model arguments
     parser.add_argument('--embedding_size', default=2, type=int, help='dimensionality of latent embedding space')
-    parser.add_argument('--embedder', default="InitialEmbedder", type=str, help="name of objectclass")
+    parser.add_argument('--embedder', default="EmptyEmbedder", type=str, help="name of objectclass")
     parser.add_argument('--discriminator', default="PatchDiscriminator", type=str, help="name of objectclass")
     parser.add_argument('--generator', default="pix2pixGenerator", type=str, help="name of objectclass")
 
