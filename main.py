@@ -96,7 +96,7 @@ def parse():
 
     # loss arguments
     parser.add_argument('--loss_gen', default="pix2pixGLoss", type=str, help="name of objectclass")  ########### SET TO PIX2PIX
-    parser.add_argument('--loss_dis', default="pix2pixGLoss", type=str, help="name of objectclass") ########### SET TO PIX2PIX
+    parser.add_argument('--loss_dis', default="pix2pixDLoss", type=str, help="name of objectclass") ########### SET TO PIX2PIX
 
     # data arguments
     parser.add_argument('--batch_size', type=int, default=16, help='Batch size to run trainer.')

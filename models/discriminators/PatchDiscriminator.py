@@ -5,7 +5,7 @@ import torch.nn as nn
 class PatchDiscriminator(GeneralDiscriminator):
     """ Defines a PatchGAN discriminator"""
 
-    def __init__(self, n_input, n_hidden=64, n_layers=3, norm_layer=nn.BatchNorm2d, use_dropout=False, device="cpu"): #havent used dropout!!!!!!!!
+    def __init__(self, n_input, n_hidden=64, n_layers=3, norm_layer=nn.BatchNorm2d, use_dropout=False, device="cpu"):
         """
         n_input (int)      - no. of channels in input images
         n_hidden (int)     - no. of filters in the last hidden layer
@@ -38,6 +38,8 @@ class PatchDiscriminator(GeneralDiscriminator):
             else:
                 layers += [nn.Conv2d(n_hidden * mult_in, n_hidden * mult_out, kernel_size=4, stride=2, padding=1, bias=use_bias)] # stride = 2
 
+            layers += [nn.Dropout(int(use_dropout) * 0.33)]
+
             layers += [norm_layer(n_hidden * mult_out)]
             layers += [nn.LeakyReLU(0.2, inplace=True)]
 
@@ -48,6 +50,8 @@ class PatchDiscriminator(GeneralDiscriminator):
 
         # Save model
         self.model = nn.Sequential(*layers)
+
+        # todo: scalar output?
 
 
 
