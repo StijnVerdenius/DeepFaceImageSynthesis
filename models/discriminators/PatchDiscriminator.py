@@ -58,16 +58,17 @@ class PatchDiscriminator(GeneralDiscriminator):
         return self.model(x).squeeze()
 
 
+if __name__ == '__main__':
 
-# # Test if working
-#
-# dummy_batch = torch.rand((10,3,28,28))
-#
-# G = PatchDiscriminator()
-#
-# score = G.forward(dummy_batch)
-#
-#
-# print(G.model[0].weight.grad)
-# print(score.shape)
-# print(score)
+    # Test if working
+
+    dummy_batch = torch.rand((10,3,28,28))
+
+    G = PatchDiscriminator()
+
+    score = G.forward(dummy_batch)
+
+
+    print(G.model[0].weight.grad)
+    print(score.shape)
+    print(score)

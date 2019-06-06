@@ -40,24 +40,26 @@ class PixelDiscriminator(GeneralDiscriminator):
         return self.model(x)
 
 
-# # Test if working
-#
-# dummy_batch = torch.rand((10,3,28,28))
-#
-# G = PixelDiscriminator()
-#
-# score = G.forward(dummy_batch)
-#
-# get_loss = DLoss()
-#
-# target = torch.rand((10,1,28,28))
-#
-# loss = get_loss.forward(score, target)
-#
-# loss.backward()
-#
-# print(loss)
-#
-#
-# # print(score)
+if __name__ == '__main__':
+
+    # Test if working
+
+    dummy_batch = torch.rand((10,3,28,28))
+
+    G = PixelDiscriminator()
+
+    score = G.forward(dummy_batch)
+
+    get_loss = DLoss()
+
+    target = torch.rand((10,1,28,28))
+
+    loss = get_loss.forward(score, target)
+
+    loss.backward()
+
+    print(loss)
+
+
+    # print(score)
 

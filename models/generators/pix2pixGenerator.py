@@ -9,7 +9,7 @@ class pix2pixGenerator(GeneralGenerator):
 
 
     # CHECK DEFAULT VALUES!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    def __init__(self, n_channels_in=3, n_channels_out=3, n_hidden=64, norm_layer=nn.InstanceNorm2d, use_dropout = False, n_downsampling=2, n_blocks=6, padding_type ='reflect', device="cpu"):
+    def __init__(self, n_channels_in=71, n_channels_out=3, n_hidden=64, norm_layer=nn.InstanceNorm2d, use_dropout = False, n_downsampling=2, n_blocks=6, padding_type ='reflect', device="cpu"):
         """
         n_channels_in (int)      - no. of channels in input images
         n_channels_out (int)     - no. number of channels in output images
@@ -140,23 +140,24 @@ class ResidualBlock(nn.Module):
 
 
 
+if __name__ == '__main__':
 
-# # Test if working
-#
-# dummy_batch = torch.rand((10,3,28,28))
-#
-# G = pix2pixGenerator()
-# D = PatchDiscriminator()
-#
-# gen_imgs = G.forward(dummy_batch)
-#
-#
-# get_loss = GLoss()
-#
-# loss = get_loss.forward(gen_imgs,D)
-#
-# loss.backward()
-#
-# print(G.model[1].weight.grad)
-#
-# print(loss.item())
+    # Test if working
+
+    dummy_batch = torch.rand((10,71,28,28))
+
+    G = pix2pixGenerator()
+    D = PatchDiscriminator()
+
+    gen_imgs = G.forward(dummy_batch)
+
+
+    get_loss = GLoss()
+
+    loss = get_loss.forward(gen_imgs,D)
+
+    loss.backward()
+
+
+
+    print(loss.item())
