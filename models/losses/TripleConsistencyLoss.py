@@ -22,7 +22,7 @@ class TripleConsistencyLoss(GeneralLoss):
 
         indirect_output = generator.forward(torch.cat((in_between_output, target_landmarks), dim=1))
 
-        norm = torch.sum((direct_output- indirect_output).pow(2), dim=(1,2,3)) # todo: revisit correctness
+        norm = torch.sum((indirect_output-direct_output).pow(2), dim=(1,2,3)) # todo: revisit correctness
 
         return norm.mean()
 
@@ -31,9 +31,10 @@ if __name__ == '__main__':
 
     z = TripleConsistencyLoss()
 
-    testinput = torch.randn((20, 3, 28, 28))
-    landm = torch.randn((20, 68, 28, 28))
+    testinput = torch.rand((20, 3, 28, 28))
+    landm = torch.rand((20, 68, 28, 28))
+    landm1 = torch.rand((20, 68, 28, 28))
 
-    bana = z.forward(testinput, landm, landm,  pix2pixGenerator())
+    bana = z.forward(testinput, landm, landm1,  pix2pixGenerator())
 
     print(bana.shape, bana)
