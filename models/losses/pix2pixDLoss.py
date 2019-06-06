@@ -10,6 +10,6 @@ class pix2pixDLoss(GeneralLoss):
 
     def forward(self,predictions, labels):
 
-        loss = nn.BCEWithLogitsLoss(predictions, labels) ##CHECK
+        loss = nn.BCELoss() ##CHECK
 
-        return loss
+        return loss(predictions,labels)
