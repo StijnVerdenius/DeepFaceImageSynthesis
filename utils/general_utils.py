@@ -1,7 +1,6 @@
 import os
 
 from utils.constants import *
-import torch
 
 
 def ensure_current_directory():
@@ -19,7 +18,7 @@ def setup_directories():
     stamp = DATA_MANAGER.date_stamp()
     dirs = [PIC_DIR, PROGRESS_DIR, MODELS_DIR]
     for dir_to_be in dirs:
-        DATA_MANAGER.create_dir(f"output/{stamp}/{dir_to_be}")
+        DATA_MANAGER.create_dir(f"{stamp}/{dir_to_be}")
 
 
 def mean(input_list):

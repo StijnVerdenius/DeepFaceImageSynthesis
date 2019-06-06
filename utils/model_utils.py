@@ -9,9 +9,6 @@ from utils.general_utils import ensure_current_directory
 types = ["discriminators", "embedders", "generators", "losses"]
 models = {x: {} for x in types}
 
-
-
-
 def _read_all_classnames():
     """
     private function that imports all class references in a dictionary
@@ -56,7 +53,7 @@ def save_models(discriminator: GeneralDiscriminator, generator: GeneralGenerator
     save_dict = {"discriminator": discriminator.state_dict(), "generator": generator.state_dict(),
                  "embedder": embedder.state_dict()}
 
-    DATA_MANAGER.save_python_obj(save_dict, f"output/{DATA_MANAGER.stamp}/{MODELS_DIR}/{suffix}")
+    DATA_MANAGER.save_python_obj(save_dict, f"{DATA_MANAGER.stamp}/{MODELS_DIR}/{suffix}")
 
 
 def load_models_and_state(discriminator: GeneralDiscriminator, generator: GeneralGenerator, embedder: GeneralEmbedder,
@@ -72,7 +69,7 @@ def load_models_and_state(discriminator: GeneralDiscriminator, generator: Genera
     :return:
     """
 
-    models = DATA_MANAGER.load_python_obj(f"results/output/{stamp}/{MODELS_DIR}/{suffix}")
+    models = DATA_MANAGER.load_python_obj(f"{stamp}/{MODELS_DIR}/{suffix}")
 
     discriminator.load_state_dict(models["discriminator"])
     embedder.load_state_dict(models["embedder"])
@@ -94,7 +91,7 @@ def load_states(suffix: str, stamp: str):
     :return:
     """
 
-    return DATA_MANAGER.load_python_obj(f"results/output/{stamp}/{MODELS_DIR}/{suffix}")
+    return DATA_MANAGER.load_python_obj(f"{stamp}/{MODELS_DIR}/{suffix}")
 
 
 # needed to load in class references
