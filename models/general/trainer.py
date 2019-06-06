@@ -1,7 +1,5 @@
 class Trainer:
 
-    # todo: implement functions in here that are the same for each model that needs training
-
     def __init__(self, models, optimizers):
         self.models = models
         self.optimizers = optimizers

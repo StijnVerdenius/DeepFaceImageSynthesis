@@ -2,7 +2,7 @@ from utils.general_utils import ensure_current_directory
 from utils.model_utils import find_right_model, load_models_and_state
 from utils.constants import *
 import argparse
-from training.train import train
+from training.train import TrainingProcess
 from testing.test import test
 import torch.optim as opt
 import torch
@@ -36,22 +36,29 @@ def main(arguments):
         # init optimizers
         generator_optimizer = opt.Adam(generator.parameters(), arguments.learning_rate)
         discriminator_optimizer = opt.Adam(discriminator.parameters(), arguments.learning_rate)
+        embedder_optimizer = None  # todo
 
+        # define loss functions
         loss_gen = find_right_model(LOSS_DIR, arguments.loss_gen)
         loss_dis = find_right_model(LOSS_DIR, arguments.loss_dis)
 
-        # train
-        trained_succesfully = train(dataloader_train,
-                                    dataloader_validate,
-                                    loss_gen,
-                                    loss_dis,
-                                    embedder,
-                                    generator,
-                                    discriminator,
-                                    arguments,
-                                    discriminator_optimizer,
-                                    generator_optimizer)
+        # define process
+        train_progress = TrainingProcess(generator,
+                                         discriminator,
+                                         embedder,
+                                         dataloader_train,
+                                         dataloader_validate,
+                                         generator_optimizer,
+                                         discriminator_optimizer,
+                                         embedder_optimizer,
+                                         loss_gen,
+                                         loss_dis,
+                                         arguments)
 
+        # train
+        trained_succesfully = train_progress.train()
+
+        # handle failure
         if (not trained_succesfully):
             pass  # todo
 
@@ -81,8 +88,9 @@ def parse():
     parser.add_argument('--feedback', default=False, type=bool, help='whether to plot or not during training')
     parser.add_argument('--mode', default="train", type=str, help="'train', 'test' or 'finetune'")
     parser.add_argument('--learning_rate', type=float, default=1e-4, help='Learning rate')
-    parser.add_argument('--eval_freq', type=int, default=200, help='Frequency of evaluation on the test set')
-    parser.add_argument('--plot_freq', type=int, default=200, help='Frequency of evaluation on the test set')
+    parser.add_argument('--eval_freq', type=int, default=200, help='Frequency (batch-wise) of evaluation')
+    parser.add_argument('--plot_freq', type=int, default=200, help='Frequency (batch-wise) of plotting pictures')
+    parser.add_argument('--saving_freq', type=int, default=200, help='Frequency (epoch-wise) of saving models')
 
     # test arguments
     parser.add_argument('--test_model_date', default="", type=str, help='date_stamp string for which model to load')
@@ -91,12 +99,12 @@ def parse():
     # model arguments
     parser.add_argument('--embedding_size', default=2, type=int, help='dimensionality of latent embedding space')
     parser.add_argument('--embedder', default="InitialEmbedder", type=str, help="name of objectclass")
-    parser.add_argument('--discriminator', default="PatchDiscriminator", type=str, help="name of objectclass") ##### SET TO PATCH GAN
-    parser.add_argument('--generator', default="pix2pixGenerator", type=str, help="name of objectclass") ########### SET TO PIX2PIX
+    parser.add_argument('--discriminator', default="PatchDiscriminator", type=str, help="name of objectclass")
+    parser.add_argument('--generator', default="pix2pixGenerator", type=str, help="name of objectclass")
 
     # loss arguments
-    parser.add_argument('--loss_gen', default="pix2pixGLoss", type=str, help="name of objectclass")  ########### SET TO PIX2PIX
-    parser.add_argument('--loss_dis', default="pix2pixGLoss", type=str, help="name of objectclass") ########### SET TO PIX2PIX
+    parser.add_argument('--loss_gen', default="pix2pixGLoss", type=str, help="name of objectclass")
+    parser.add_argument('--loss_dis', default="pix2pixDLoss", type=str, help="name of objectclass")
 
     # data arguments
     parser.add_argument('--batch_size', type=int, default=16, help='Batch size to run trainer.')

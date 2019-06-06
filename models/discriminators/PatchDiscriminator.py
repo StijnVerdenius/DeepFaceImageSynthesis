@@ -67,5 +67,7 @@ class PatchDiscriminator(GeneralDiscriminator):
 #
 # score = G.forward(dummy_batch)
 #
+#
+# print(G.model[0].weight.grad)
 # print(score.shape)
 # print(score)
