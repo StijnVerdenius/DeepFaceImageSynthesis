@@ -19,16 +19,16 @@ def main(arguments):
     # get models
     embedder = find_right_model(EMBED_DIR, arguments.embedder,
                                 device=DEVICE,
-                                n_input=input_size,
-                                n_output=arguments.embedding_size)
+                                n_channels_in=input_size,
+                                n_channels_out=arguments.embedding_size)
 
     generator = find_right_model(GEN_DIR, arguments.generator,
                                  device=DEVICE,
-                                 n_input=input_size)
+                                 n_channels_in=input_size)
 
     discriminator = find_right_model(DIS_DIR, arguments.discriminator,
                                      device=DEVICE,
-                                     n_input=input_size)
+                                     n_channels_in=input_size)
 
     # train or test
     if (arguments.mode == "train" or arguments.mode == "finetune"):
