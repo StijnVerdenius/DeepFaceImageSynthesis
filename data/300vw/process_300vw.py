@@ -89,6 +89,8 @@ def _plot(
     plt.figure()
     plt.imshow(image)
     plt.axis('off')
+    plt.ion()
+    plt.show()
 
     if points is not None:
         cmap = plt.get_cmap('gnuplot')
@@ -104,7 +106,8 @@ def _plot(
         ax = plt.gca()
         ax.add_patch(rect)
 
-    plt.show()
+    plt.draw()
+    plt.pause(0.001)
 
 
 def _load_pts_file(file_path: Path) -> np.ndarray:
@@ -195,7 +198,7 @@ def _rescale_points(
     return points
 
 
-def process_temp(all_videos: List[Path]) -> None:
+def process_temp_folder(all_videos: List[Path]) -> None:
     for video_input_path in tqdm(all_videos, desc='video'):
         video_output_path = output_path / video_input_path.stem
         annotations_output_dir = video_output_path / 'annotations'
@@ -244,13 +247,23 @@ def process_temp(all_videos: List[Path]) -> None:
 def main() -> None:
     all_videos = sorted([p for p in input_path.iterdir() if p.is_dir()])
 
+    print('Counting images...')
     n_images_per_video = count_images(all_videos)
     n_images = sum(n_images_per_video)
     print(f'n images: {n_images}')
 
+    print('Visualizing extraction process...')
     visualize('001', '000001')
+
+    print('Extracting frames from videos...')
     extract_frames(all_videos, n_images_per_video)
-    process_temp(all_videos)
+
+    print('Extracting faces')
+    process_temp_folder(all_videos)
+
+    print('Done.')
+    # use input because the plots will disappear once the program exits
+    input('Press [enter] to exit.')
 
 
 if __name__ == '__main__':
