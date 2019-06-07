@@ -29,14 +29,20 @@ class TotalGeneratorLoss(GeneralLoss):
                 discriminator):
         """ combined loss function from the tiple-cons paper """
 
-        loss_pp = self.pp.forward(imgs, generated_imgs)
-        loss_triple = self.trip.forward(imgs, in_between_landmarks, target_landmarks, generator)
-        loss_adv = self.adv(generated_imgs, discriminator)
-        loss_self = self.self(imgs, landmarks_real, target_landmarks, generator)
-        loss_pix = self.pix(imgs, target_landmarks, generator)
+        loss_pp, save_pp = self.pp.forward(imgs, generated_imgs)
+        loss_triple, save_triple = self.trip.forward(imgs, in_between_landmarks, target_landmarks, generator)
+        loss_adv, save_adv = self.adv(generated_imgs, discriminator)
+        loss_self, save_self = self.self(imgs, landmarks_real, target_landmarks, generator)
+        loss_pix, save_pix = self.pix(imgs, target_landmarks, generator)
 
-        return loss_pp + loss_adv + loss_triple + loss_pix + loss_self
+        # get total loss
+        total =  loss_pp + loss_adv + loss_triple + loss_pix + loss_self
 
+        # merge dicts
+        merged = {**save_adv, **save_pix, **save_pp, **save_self, **save_triple}
+
+        # return
+        return total, merged
 
 if __name__ == '__main__':
     z = TotalGeneratorLoss()

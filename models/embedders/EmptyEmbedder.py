@@ -4,12 +4,12 @@ from models.embedders.GeneralEmbedder import GeneralEmbedder
 import torch.nn as nn
 
 
-class EmptyEmbedder():
+class EmptyEmbedder(GeneralEmbedder):
     """ for running without embedder """
 
     def __init__(self, **kwargs):
+        super().__init__()
         print("Note: Running without embedder")
-        pass
 
     @staticmethod
     def forward(_):

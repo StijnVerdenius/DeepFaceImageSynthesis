@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader
 from models.discriminators.GeneralDiscriminator import GeneralDiscriminator
 from models.embedders.GeneralEmbedder import GeneralEmbedder
 from models.generators.GeneralGenerator import GeneralGenerator
-from models.losses import GeneralLoss
+from models.losses.GeneralLoss import GeneralLoss
 from utils.general_utils import *
 from utils.model_utils import find_right_model, load_models_and_state
 from utils.constants import *
@@ -14,40 +14,36 @@ import torch.optim as opt
 import torch
 
 
-def load_data(keyword: str) -> DataLoader: # todo @ klaus
+def load_data(keyword: str) -> DataLoader:  # todo @ klaus
 
-    if (keyword=="train"):
+    if (keyword == "train"):
         pass
-    elif(keyword=="validate"):
+    elif (keyword == "validate"):
         pass
     else:
         raise Exception(f"{keyword} is not a valid dataset")
 
-    return [None, None]
+    return [(torch.randn((36, INPUT_CHANNELS, IMSIZE, IMSIZE)), torch.randn((36, INPUT_CHANNELS, IMSIZE, IMSIZE)))]
 
 
 def main(arguments):
-
     # data
     dataloader_train = load_data("train")
     dataloader_validate = load_data("validate")
 
-    # determine input size
-    input_size = 2  # todo @ klaus
-
     # get models
     embedder = find_right_model(EMBED_DIR, arguments.embedder,
                                 device=DEVICE,
-                                n_channels_in=input_size,
+                                n_channels_in=INPUT_SIZE,
                                 n_channels_out=arguments.embedding_size)
 
     generator = find_right_model(GEN_DIR, arguments.generator,
                                  device=DEVICE,
-                                 n_channels_in=input_size)
+                                 n_channels_in=INPUT_SIZE)
 
     discriminator = find_right_model(DIS_DIR, arguments.discriminator,
                                      device=DEVICE,
-                                     n_channels_in=input_size)
+                                     n_channels_in=INPUT_SIZE)
 
     # assertions
     assert_type(GeneralGenerator, generator)
@@ -106,6 +102,7 @@ def main(arguments):
 
         raise Exception(f"Unrecognized train/test mode?: {arguments.mode}")
 
+
 def parse():
     parser = argparse.ArgumentParser()
 
@@ -126,12 +123,12 @@ def parse():
     # model arguments
     parser.add_argument('--embedding_size', default=2, type=int, help='dimensionality of latent embedding space')
     parser.add_argument('--embedder', default="EmptyEmbedder", type=str, help="name of objectclass")
-    parser.add_argument('--discriminator', default="PatchDiscriminator", type=str, help="name of objectclass")
-    parser.add_argument('--generator', default="pix2pixGenerator", type=str, help="name of objectclass")
+    parser.add_argument('--discriminator', default="PixelDiscriminator", type=str, help="name of objectclass")
+    parser.add_argument('--generator', default="ResnetGenerator", type=str, help="name of objectclass")
 
     # loss arguments
-    parser.add_argument('--loss_gen', default="pix2pixGLoss", type=str, help="name of objectclass")
-    parser.add_argument('--loss_dis', default="pix2pixDLoss", type=str, help="name of objectclass")
+    parser.add_argument('--loss_gen', default="NonSaturatingGLoss", type=str, help="name of objectclass")
+    parser.add_argument('--loss_dis', default="DefaultDLoss", type=str, help="name of objectclass")
 
     # hyperparams
     parser.add_argument('--weight_advloss', default=1, type=int, help="name of objectclass")
@@ -139,7 +136,7 @@ def parse():
     parser.add_argument('--weight_pploss', default=1, type=int, help="name of objectclass")
 
     # data arguments
-    parser.add_argument('--batch_size', type=int, default=16, help='Batch size to run trainer.')
+    parser.add_argument('--batch_size', type=int, default=36, help='Batch size to run trainer.')
     # todo @ klaus
 
     return parser.parse_args()

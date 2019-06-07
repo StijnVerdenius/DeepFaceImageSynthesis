@@ -17,7 +17,9 @@ class GeneralLoss(nn.Module):
 
         loss = self.custom_forward(*input)
 
-        return self.weight * loss
+        output = self.weight * loss
+
+        return output, {self.__class__.__name__: output.item()}
 
     def custom_forward(self, *input):
         """
