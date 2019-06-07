@@ -3,7 +3,7 @@ from models.embedders.GeneralEmbedder import GeneralEmbedder
 from models.general.statistic import Statistic
 from models.generators.GeneralGenerator import GeneralGenerator
 from models.losses.GeneralLoss import GeneralLoss
-from utils.general_utils import ensure_current_directory, setup_directories, mean
+from utils.general_utils import ensure_current_directory, setup_directories, mean, save_codebase_of_run
 from utils.constants import *
 from models.general.trainer import Trainer
 from utils.model_utils import save_models
@@ -187,21 +187,12 @@ class TrainingProcess:
         """
          main training function
 
-        :param loss_gen:
-        :param loss_dis:
-        :param dataloader:
-        :param loss:
-        :param embedder:
-        :param generator:
-        :param discriminator:
-        :param arguments:
-        :param optimizer_gen:
-        :param optimizer_dis:
         :return:
         """
 
         # setup data output directories:
         setup_directories()
+        save_codebase_of_run(self.arguments)
 
         # data gathering
         progress = []

@@ -11,7 +11,7 @@ class PixelLoss(GeneralLoss):
 
     # todo: add methods here that are shared for all generators, inheret your costum version from this object
 
-    def forward(self, image, target_ls, generator):
+    def forward(self, image: torch.Tensor, target_ls: torch.Tensor, generator: GeneralGenerator):
 
         # Concatanate input image with target landmark channels
         input = torch.cat((image, target_ls), 1)

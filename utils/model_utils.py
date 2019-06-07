@@ -94,6 +94,31 @@ def load_states(suffix: str, stamp: str):
     return DATA_MANAGER.load_python_obj(f"{stamp}/{MODELS_DIR}/{suffix}")
 
 
+def L1_distance(tensor1, tensor2, batch_dim=0):
+
+    #get number of dimensions
+    n_dims = len(tensor1.shape)
+
+    #get dims to sum over
+    dims = tuple([n for n in n_dims if n != batch_dim])
+
+    distance = torch.sum(torch.abs(tensor1-tensor2), dim=dims)
+
+    return distance
+
+def L2_distance(tensor1, tensor2, batch_dim=0):
+
+    #get number of dimensions
+    n_dims = len(tensor1.shape)
+
+    #get dims to sum over
+    dims = tuple([n for n in n_dims if n != batch_dim])
+
+    distance = torch.sqrt(torch.sum((tensor1-tensor2).pow(2), dim=dims))
+
+    return distance
+
+
 # needed to load in class references
 _read_all_classnames()
 
