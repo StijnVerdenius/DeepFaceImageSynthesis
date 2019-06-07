@@ -6,7 +6,7 @@ from models.generators.pix2pixGenerator import pix2pixGenerator as G
 
 class ConsistencyLoss(GeneralLoss):
 
-    def __init__(self, weight=1):
+    def __init__(self, weight=1, **kwargs):
         super(ConsistencyLoss, self).__init__(weight)
 
     # todo: add methods here that are shared for all generators, inheret your costum version from this object
@@ -26,9 +26,10 @@ class ConsistencyLoss(GeneralLoss):
         gen_img_2 = generator.forward(input2)
 
         # Get L1**2 distance between generated approx. and original input img
-        loss = torch.sum(torch.abs(gen_img_2-image), dim=(1,2,3)).pow(2).mean() # CHECK AGAIN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        loss = torch.sum(torch.abs(gen_img_2-image), dim=(1,2,3)).pow(2).mean() # CHECK AGAIN!!!!!!!!!
 
         return loss
+
 
 
 if __name__ == '__main__':

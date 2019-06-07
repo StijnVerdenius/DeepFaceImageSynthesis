@@ -2,12 +2,11 @@ from models.losses.GeneralLoss import GeneralLoss
 import torch.nn as nn
 import torch
 from models.generators.pix2pixGenerator import pix2pixGenerator as G
-from models.generators.GeneralGenerator import GeneralGenerator
 
 
 class PixelLoss(GeneralLoss):
 
-    def __init__(self, weight=1):
+    def __init__(self, weight=1, **kwargs):
         super(PixelLoss,self).__init__(weight)
 
     # todo: add methods here that are shared for all generators, inheret your costum version from this object

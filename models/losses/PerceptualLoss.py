@@ -5,6 +5,7 @@ import torch.nn as nn
 import torch
 from typing import Tuple
 from utils.constants import *
+from utils.model_utils import *
 
 
 class PerceptualLoss(GeneralLoss):
@@ -22,7 +23,7 @@ class PerceptualLoss(GeneralLoss):
         # reconstruction loss
         l1_part = 0
         for real, fake in zip(real_feats, fake_feats):
-            l1_part += torch.sum(torch.abs(real - fake))  # todo: change to l1 norm from utils
+            l1_part += L1_distance(real, fake)
 
         # style loss
         frobenius = self.frobenius_norm(self.gram_matrix(real_feats[2]), self.gram_matrix(fake_feats[2]))
@@ -31,7 +32,8 @@ class PerceptualLoss(GeneralLoss):
 
     def frobenius_norm(self, batch_1: torch.Tensor, batch_2: torch.Tensor):
         """ forbenius norm (just normal norm?)"""
-        return torch.norm((batch_1-batch_2))  # todo: revisit
+
+        return torch.norm((batch_1 - batch_2))  # todo: revisit
 
     def gram_matrix(self, batch: torch.Tensor):
         """ calculates gram matrix """

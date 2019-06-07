@@ -17,7 +17,7 @@ class EmptyEmbedder():
 
     @staticmethod
     def parameters():
-        return None
+        return [torch.LongTensor([])]
 
     @staticmethod
     def state_dict():
