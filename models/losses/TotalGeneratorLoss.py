@@ -6,6 +6,8 @@ from models.losses.GeneralLoss import GeneralLoss
 from models.losses.PerceptualLoss import PerceptualLoss
 from models.losses.TripleConsistencyLoss import TripleConsistencyLoss
 from models.losses.pix2pixGLoss import pix2pixGLoss
+from models.losses.ConsistencyLoss import ConsistencyLoss
+from models.losses.PixelLoss import PixelLoss
 
 
 class TotalGeneratorLoss(GeneralLoss):
@@ -15,6 +17,10 @@ class TotalGeneratorLoss(GeneralLoss):
         self.pp = PerceptualLoss(pp_weight)
         self.adv = pix2pixGLoss(adv_weight)
         self.trip = TripleConsistencyLoss(trip_weight)
+        self.self = ConsistencyLoss(self_weight)
+        self.pix = PixelLoss(pix_weight)
+
+        #NEED TO ADD ID LOSS
 
         # todo: add @ elias
 
@@ -24,6 +30,9 @@ class TotalGeneratorLoss(GeneralLoss):
         loss_pp = self.pp.forward(imgs, generated_imgs)
         loss_triple = self.trip.forward(imgs, in_between_landmarks, target_landmarks, generator)
         loss_adv = self.adv(generated_imgs, discriminator)
+        loss_self = self.self(imgs,landmarks_real, target_landmarks, generator)
+        loss.pix = self.pix(imgs, target_landmarks, generator)
+
 
         return loss_pp + loss_adv + loss_triple # todo: add @elias
 

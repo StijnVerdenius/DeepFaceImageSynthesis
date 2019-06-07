@@ -6,12 +6,12 @@ from models.generators.pix2pixGenerator import pix2pixGenerator as G
 
 class ConsistencyLoss(GeneralLoss):
 
-    def __init__(self):
-        super(ConsistencyLoss).__init__()
+    def __init__(self, weight=1):
+        super(ConsistencyLoss, self).__init__(weight)
 
     # todo: add methods here that are shared for all generators, inheret your costum version from this object
 
-    def forward(self, image, image_ls, target_ls, generator):
+    def custom_forward(self, image, image_ls, target_ls, generator):
 
         # Concatanate input image with target landmark channels
         input = torch.cat((image, target_ls), 1)
@@ -29,7 +29,6 @@ class ConsistencyLoss(GeneralLoss):
         loss = torch.sum(torch.abs(gen_img_2-image), dim=(1,2,3)).pow(2).mean() # CHECK AGAIN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         return loss
-
 
 
 if __name__ == '__main__':

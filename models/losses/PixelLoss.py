@@ -2,16 +2,17 @@ from models.losses.GeneralLoss import GeneralLoss
 import torch.nn as nn
 import torch
 from models.generators.pix2pixGenerator import pix2pixGenerator as G
+from models.generators.GeneralGenerator import GeneralGenerator
 
 
 class PixelLoss(GeneralLoss):
 
-    def __init__(self):
-        super(PixelLoss).__init__()
+    def __init__(self, weight=1):
+        super(PixelLoss,self).__init__(weight)
 
     # todo: add methods here that are shared for all generators, inheret your costum version from this object
 
-    def forward(self, image: torch.Tensor, target_ls: torch.Tensor, generator: GeneralGenerator):
+    def custom_forward(self, image: torch.Tensor, target_ls: torch.Tensor, generator: GeneralGenerator):
 
         # Concatanate input image with target landmark channels
         input = torch.cat((image, target_ls), 1)
