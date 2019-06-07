@@ -9,23 +9,21 @@ import numpy as np
 from matplotlib import patches
 from tqdm import tqdm
 
-input_path = Path('/media/klaus/Ondrag/dev/datasets/300VW_Dataset_2015_12_14')
-temp_path = Path('/media/klaus/Ondrag/dev/datasets/300VW_Dataset_2015_12_14_temp')
-output_path = Path(
-    '/media/klaus/Ondrag/dev/datasets/300VW_Dataset_2015_12_14_processed'
-)
-n_videos = 114
-n_points = 68
-padding = 0
-expand_ratio = 0.5
-image_quality = 100
-output_height, output_width = 128, 128
+from utils import constants, personal_constants
+
+OUTPUT_HEIGHT, OUTPUT_WIDTH = constants.IMSIZE, constants.IMSIZE
 
 
 def count_images(all_videos: List[Path]) -> List[int]:
-    assert len(all_videos) == n_videos
+    assert len(all_videos) == constants.DATASET_300VW_N_VIDEOS
     n_images_per_video = [
-        len(list((video_path / 'annot').glob('*.pts')))
+        len(
+            list(
+                (
+                    video_path / constants.DATASET_300VW_ANNOTATIONS_INPUT_FOLDER_NAME
+                ).glob(f'*.{constants.DATASET_300VW_ANNOTATIONS_INPUT_FILE_EXTENSION}')
+            )
+        )
         for video_path in tqdm(all_videos, desc='video')
     ]
     return n_images_per_video
@@ -35,7 +33,11 @@ def extract_frames(all_videos: List[Path], n_images_per_video: List[int]) -> Non
     for video_input_path, n_images_in_video in tqdm(
         list(zip(all_videos, n_images_per_video)), desc='video'
     ):
-        frames_output_dir = temp_path / video_input_path.stem / 'images'
+        frames_output_dir = (
+            personal_constants.DATASET_300VW_TEMP_PATH
+            / video_input_path.stem
+            / constants.DATASET_300VW_TEMP_IMAGES_FOLDER_NAME
+        )
         if (
             frames_output_dir.exists()
             and len(list(frames_output_dir.iterdir())) == n_images_in_video
@@ -43,25 +45,38 @@ def extract_frames(all_videos: List[Path], n_images_per_video: List[int]) -> Non
             continue
 
         frames_output_dir.mkdir(exist_ok=True, parents=True)
-        avi_path = video_input_path / 'vid.avi'
+        avi_path = video_input_path / constants.DATASET_300VW_VIDEO_FILE_NAME
         video = cv2.VideoCapture(str(avi_path))
 
         counter = 1
         success, image = video.read()
         while success == 1:
-            frame_output_path = frames_output_dir / f'{counter:06d}.jpg'
+            frame_output_path = (
+                frames_output_dir
+                / f'{counter:06d}.{constants.DATASET_300VW_OUTPUT_IMAGES_EXTENSION}'
+            )
             cv2.imwrite(
                 str(frame_output_path),
                 image,
-                [int(cv2.IMWRITE_JPEG_QUALITY), image_quality],
+                [int(cv2.IMWRITE_JPEG_QUALITY), constants.DATASET_300VW_IMAGE_QUALITY],
             )
             counter += 1
             success, image = video.read()
 
 
 def visualize(video_id: str, frame_id: str) -> None:
-    annotation_input_path = input_path / video_id / 'annot' / f'{frame_id}.pts'
-    frame_input_path = temp_path / video_id / 'images' / f'{frame_id}.jpg'
+    annotation_input_path = (
+        personal_constants.DATASET_300VW_RAW_PATH
+        / video_id
+        / constants.DATASET_300VW_ANNOTATIONS_INPUT_FOLDER_NAME
+        / f'{frame_id}.{constants.DATASET_300VW_ANNOTATIONS_INPUT_FILE_EXTENSION}'
+    )
+    frame_input_path = (
+        personal_constants.DATASET_300VW_TEMP_PATH
+        / video_id
+        / constants.DATASET_300VW_TEMP_IMAGES_FOLDER_NAME
+        / f'{frame_id}.{constants.DATASET_300VW_TEMP_IMAGES_EXTENSION}'
+    )
     image = cv2.imread(str(frame_input_path))
     image_points = _load_pts_file(annotation_input_path)
     image_box = _points_to_box(image_points, image.shape)
@@ -115,7 +130,7 @@ def _load_pts_file(file_path: Path) -> np.ndarray:
         lines = file.readlines()
 
     assert lines[0].strip().startswith('version: 1'), str(file_path)
-    assert lines[1] == f'n_points: {n_points}\n', str(file_path)
+    assert lines[1] == f'n_points: {constants.DATASET_300VW_N_POINTS}\n', str(file_path)
 
     lines = [l.strip() for l in lines]
     # remove
@@ -128,7 +143,7 @@ def _load_pts_file(file_path: Path) -> np.ndarray:
     lines = lines[:-1]
     points = [[float(x) for x in p.split()] for p in lines]
     points = np.asarray(points)
-    assert points.shape == (n_points, 2)
+    assert points.shape == (constants.DATASET_300VW_N_POINTS, 2)
     return points
 
 
@@ -141,14 +156,14 @@ def _points_to_box(
         points[:, 0].max(),
         points[:, 1].max(),
     ]
-    x1, y1 = [t - padding for t in (x1, y1)]
-    x2, y2 = [t + padding for t in (x2, y2)]
+    x1, y1 = [t - constants.DATASET_300VW_PADDING for t in (x1, y1)]
+    x2, y2 = [t + constants.DATASET_300VW_PADDING for t in (x2, y2)]
     box_height, box_width = y2 - y1 + 1, x2 - x1 + 1
     assert box_height > 1 and box_width > 1
 
-    if expand_ratio is not None:
-        box_height *= expand_ratio
-        box_width *= expand_ratio
+    if constants.DATASET_300VW_EXPAND_RATIO is not None:
+        box_height *= constants.DATASET_300VW_EXPAND_RATIO
+        box_width *= constants.DATASET_300VW_EXPAND_RATIO
         x1, y1 = [math.floor(t - s) for t, s in zip((x1, y1), (box_width, box_height))]
         x2, y2 = [math.ceil(t + s) for t, s in zip((x2, y2), (box_width, box_height))]
 
@@ -180,9 +195,9 @@ def _offset_points(
 def _rescale_image(image: np.ndarray) -> np.ndarray:
     _, _, n_channels = image.shape
     image = cv2.resize(
-        image, dsize=(output_width, output_height), interpolation=cv2.INTER_CUBIC
+        image, dsize=(OUTPUT_WIDTH, OUTPUT_HEIGHT), interpolation=cv2.INTER_CUBIC
     )
-    assert image.shape == (output_height, output_width, n_channels)
+    assert image.shape == (OUTPUT_HEIGHT, OUTPUT_WIDTH, n_channels)
     return image
 
 
@@ -191,8 +206,8 @@ def _rescale_points(
 ) -> np.ndarray:
     height, width, n_channels = image_shape
     points = copy.copy(points)
-    height_factor = 1 / height * output_height
-    width_factor = 1 / width * output_width
+    height_factor = 1 / height * OUTPUT_HEIGHT
+    width_factor = 1 / width * OUTPUT_WIDTH
     points[:, 0] *= width_factor
     points[:, 1] *= height_factor
     return points
@@ -200,29 +215,48 @@ def _rescale_points(
 
 def process_temp_folder(all_videos: List[Path]) -> None:
     for video_input_path in tqdm(all_videos, desc='video'):
-        video_output_path = output_path / video_input_path.stem
-        annotations_output_dir = video_output_path / 'annotations'
+        video_output_path = (
+            personal_constants.DATASET_300VW_OUTPUT_PATH / video_input_path.stem
+        )
+        annotations_output_dir = (
+            video_output_path / constants.DATASET_300VW_ANNOTATIONS_OUTPUT_FOLDER_NAME
+        )
         annotations_output_dir.mkdir(exist_ok=True, parents=True)
-        frames_output_dir = video_output_path / 'images'
+        frames_output_dir = (
+            video_output_path / constants.DATASET_300VW_OUTPUT_IMAGES_FOLDER_NAME
+        )
         frames_output_dir.mkdir(exist_ok=True, parents=True)
 
         for annotation_input_path in tqdm(
-            sorted(list((video_input_path / 'annot').glob('*.pts'))),
+            sorted(
+                list(
+                    (
+                        video_input_path
+                        / constants.DATASET_300VW_ANNOTATIONS_INPUT_FOLDER_NAME
+                    ).glob(
+                        f'*.{constants.DATASET_300VW_ANNOTATIONS_INPUT_FILE_EXTENSION}'
+                    )
+                )
+            ),
             desc='frame',
             leave=False,
         ):
-            frame_output_path = frames_output_dir / f'{annotation_input_path.stem}.jpg'
+            frame_output_path = (
+                frames_output_dir
+                / f'{annotation_input_path.stem}.{constants.DATASET_300VW_OUTPUT_IMAGES_EXTENSION}'
+            )
             annotation_output_path = (
-                annotations_output_dir / f'{annotation_input_path.stem}.txt'
+                annotations_output_dir
+                / f'{annotation_input_path.stem}.{constants.DATASET_300VW_ANNOTATIONS_OUTPUT_FILE_EXTENSION}'
             )
             if frame_output_path.exists() and annotation_output_path.exists():
                 continue
 
             frame_input_path = (
-                temp_path
+                personal_constants.DATASET_300VW_TEMP_PATH
                 / video_input_path.stem
-                / 'images'
-                / f'{annotation_input_path.stem}.jpg'
+                / constants.DATASET_300VW_TEMP_IMAGES_FOLDER_NAME
+                / f'{annotation_input_path.stem}.{constants.DATASET_300VW_TEMP_IMAGES_EXTENSION}'
             )
             image = cv2.imread(str(frame_input_path))
             image_points = _load_pts_file(annotation_input_path)
@@ -236,7 +270,10 @@ def process_temp_folder(all_videos: List[Path]) -> None:
                 cv2.imwrite(
                     str(frame_output_path),
                     output,
-                    [int(cv2.IMWRITE_JPEG_QUALITY), image_quality],
+                    [
+                        int(cv2.IMWRITE_JPEG_QUALITY),
+                        constants.DATASET_300VW_IMAGE_QUALITY,
+                    ],
                 )
 
             if not annotation_output_path.exists():
@@ -245,7 +282,9 @@ def process_temp_folder(all_videos: List[Path]) -> None:
 
 
 def main() -> None:
-    all_videos = sorted([p for p in input_path.iterdir() if p.is_dir()])
+    all_videos = sorted(
+        [p for p in personal_constants.DATASET_300VW_RAW_PATH.iterdir() if p.is_dir()]
+    )
 
     print('Counting images...')
     n_images_per_video = count_images(all_videos)
