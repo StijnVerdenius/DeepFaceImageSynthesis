@@ -2,6 +2,7 @@ from models.discriminators.GeneralDiscriminator import GeneralDiscriminator
 import torch.nn as nn
 import torch
 from models.losses.DefaultDLoss import DefaultDLoss as DLoss
+from utils.constants import IMSIZE
 
 
 class PixelDiscriminator(GeneralDiscriminator):
@@ -37,16 +38,16 @@ class PixelDiscriminator(GeneralDiscriminator):
         self.model = nn.Sequential(*layers)
 
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor):
 
-        return self.model(x)
+        return self.model.forward(x).view(-1, IMSIZE*IMSIZE).mean(dim=1)
 
 
 if __name__ == '__main__':
 
     # Test if working
 
-    dummy_batch = torch.rand((10,3,28,28))
+    dummy_batch = torch.rand((10,3,128,128))
 
     G = PixelDiscriminator()
 
@@ -54,7 +55,7 @@ if __name__ == '__main__':
 
     get_loss = DLoss()
 
-    target = torch.rand((10,1,28,28))
+    target = torch.rand((10))
 
     loss = get_loss.forward(score, target)
 

@@ -4,8 +4,8 @@ import torch.nn as nn
 class GeneralLoss(nn.Module):
 
     def __init__(self, weight=1):
-        self.weight = weight  # hyperparameter
         super(GeneralLoss, self).__init__()
+        self.weight = weight  # hyperparameter
 
     def forward(self, *input):
         """
