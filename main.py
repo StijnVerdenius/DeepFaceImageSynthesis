@@ -1,4 +1,10 @@
-from utils.general_utils import ensure_current_directory
+from torch.utils.data import DataLoader
+
+from models.discriminators.GeneralDiscriminator import GeneralDiscriminator
+from models.embedders.GeneralEmbedder import GeneralEmbedder
+from models.generators.GeneralGenerator import GeneralGenerator
+from models.losses import GeneralLoss
+from utils.general_utils import *
 from utils.model_utils import find_right_model, load_models_and_state
 from utils.constants import *
 import argparse
@@ -8,10 +14,23 @@ import torch.optim as opt
 import torch
 
 
+def load_data(keyword: str) -> DataLoader: # todo @ klaus
+
+    if (keyword=="train"):
+        pass
+    elif(keyword=="validate"):
+        pass
+    else:
+        raise Exception(f"{keyword} is not a valid dataset")
+
+    return [None, None]
+
+
 def main(arguments):
+
     # data
-    dataloader_train = [None, None]  # todo @ klaus
-    dataloader_validate = [None, None]  # todo @ klaus
+    dataloader_train = load_data("train")
+    dataloader_validate = load_data("validate")
 
     # determine input size
     input_size = 2  # todo @ klaus
@@ -19,16 +38,21 @@ def main(arguments):
     # get models
     embedder = find_right_model(EMBED_DIR, arguments.embedder,
                                 device=DEVICE,
-                                n_input=input_size,
-                                n_output=arguments.embedding_size)
+                                n_channels_in=input_size,
+                                n_channels_out=arguments.embedding_size)
 
     generator = find_right_model(GEN_DIR, arguments.generator,
                                  device=DEVICE,
-                                 n_input=input_size)
+                                 n_channels_in=input_size)
 
     discriminator = find_right_model(DIS_DIR, arguments.discriminator,
                                      device=DEVICE,
-                                     n_input=input_size)
+                                     n_channels_in=input_size)
+
+    # assertions
+    assert_type(GeneralGenerator, generator)
+    assert_type(GeneralDiscriminator, discriminator)
+    assert_type(GeneralEmbedder, embedder)
 
     # train or test
     if (arguments.mode == "train" or arguments.mode == "finetune"):
@@ -36,11 +60,15 @@ def main(arguments):
         # init optimizers
         generator_optimizer = opt.Adam(generator.parameters(), arguments.learning_rate)
         discriminator_optimizer = opt.Adam(discriminator.parameters(), arguments.learning_rate)
-        embedder_optimizer = None  # todo
+        embedder_optimizer = opt.Adam(embedder.parameters(), arguments.learning_rate)
 
         # define loss functions
-        loss_gen = find_right_model(LOSS_DIR, arguments.loss_gen)
+        loss_gen = find_right_model(LOSS_DIR, arguments.loss_gen, weight=arguments.weight_advloss)
         loss_dis = find_right_model(LOSS_DIR, arguments.loss_dis)
+
+        # assertions
+        assert_type(GeneralLoss, loss_dis)
+        assert_type(GeneralLoss, loss_gen)
 
         # define process
         train_progress = TrainingProcess(generator,
@@ -76,8 +104,7 @@ def main(arguments):
 
     else:
 
-        raise Exception("Unrecognized train/test mode")
-
+        raise Exception(f"Unrecognized train/test mode?: {arguments.mode}")
 
 def parse():
     parser = argparse.ArgumentParser()
@@ -98,13 +125,18 @@ def parse():
 
     # model arguments
     parser.add_argument('--embedding_size', default=2, type=int, help='dimensionality of latent embedding space')
-    parser.add_argument('--embedder', default="InitialEmbedder", type=str, help="name of objectclass")
+    parser.add_argument('--embedder', default="EmptyEmbedder", type=str, help="name of objectclass")
     parser.add_argument('--discriminator', default="PatchDiscriminator", type=str, help="name of objectclass")
     parser.add_argument('--generator', default="pix2pixGenerator", type=str, help="name of objectclass")
 
     # loss arguments
     parser.add_argument('--loss_gen', default="pix2pixGLoss", type=str, help="name of objectclass")
     parser.add_argument('--loss_dis', default="pix2pixDLoss", type=str, help="name of objectclass")
+
+    # hyperparams
+    parser.add_argument('--weight_advloss', default=1, type=int, help="name of objectclass")
+    parser.add_argument('--weight_triploss', default=1, type=int, help="name of objectclass")
+    parser.add_argument('--weight_pploss', default=1, type=int, help="name of objectclass")
 
     # data arguments
     parser.add_argument('--batch_size', type=int, default=16, help='Batch size to run trainer.')

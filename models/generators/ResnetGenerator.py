@@ -1,23 +1,26 @@
 from models.generators.GeneralGenerator import GeneralGenerator
 import torch.nn as nn
+import torch
+from models.losses.NonSaturatingGLoss import NonSaturatingGLoss as GLoss
+from models.discriminators.PatchDiscriminator import PatchDiscriminator
 
 
-class pix2pixGenerator(GeneralGenerator):
+class ResnetGenerator(GeneralGenerator):
     """ Defines the pix2pix (CycleGAN) Generator"""
 
-    # CHECK DEFAULT VALUES!!
-    def __init__(self, n_input, n_output=2, n_hidden=2, norm_layer=nn.InstanceNorm2d, use_dropout=False,
-                 n_downsampling=2, n_blocks=6, padding_type='reflect', device="cpu"):
+    # CHECK DEFAULT VALUES!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    def __init__(self, n_channels_in=71, n_channels_out=3, n_hidden=64, norm_layer=nn.InstanceNorm2d, use_dropout=False,
+                 n_downsampling=2, n_blocks=6, padding_type='reflect', device="cpu", **kwargs):
         """
-        n_input (int)      - no. of channels in input images
-        n_output (int)     - no. number of channels in output images
+        n_channels_in (int)      - no. of channels in input images
+        n_channels_out (int)     - no. number of channels in output images
         n_hidden (int)     - no. of filters in the last hidden layer
         norm_layer         - normalization layer
         use_dropout (bool) - use dropout layers or not
         n_blocks (int)     - no of ResNet blocks
         padding_type (str) - type of padding: zero, replicate, or reflect
         """
-        super(pix2pixGenerator, self).__init__(n_input, n_output, device)
+        super(ResnetGenerator, self).__init__(n_channels_in, n_channels_out, device)
 
         # If normalizing layer is instance normalization, add bias
         use_bias = norm_layer == nn.InstanceNorm2d
@@ -39,15 +42,15 @@ class pix2pixGenerator(GeneralGenerator):
             raise NotImplementedError('Padding is not implemented! (padding type not zero, replicate or reflect)')
 
         # Add input block layers
-        layers += [nn.Conv2d(n_input, n_hidden, kernel_size=7, padding=pad, bias=use_bias)]
+        layers += [nn.Conv2d(n_channels_in, n_hidden, kernel_size=7, padding=pad, bias=use_bias)]
         layers += [nn.InstanceNorm2d(n_hidden)]
         layers += [nn.LeakyReLU(0.2, inplace=True)]
 
         # Add downsampling blocks
         for i in range(n_downsampling):
             mult_ch = 2 ** i  # set factor to update current no. of channels
-            layers += [
-                nn.Conv2d(mult_ch, n_hidden ** 2 * mult_ch * 2, kernel_size=3, stride=2, padding=1, bias=use_bias)]
+            layers += [nn.Conv2d(n_hidden * mult_ch, n_hidden * mult_ch * 2, kernel_size=3, stride=2, padding=1,
+                                 bias=use_bias)]
             layers += [nn.InstanceNorm2d(n_hidden * mult_ch * 2)]
             layers += [nn.LeakyReLU(0.2, inplace=True)]
 
@@ -71,7 +74,7 @@ class pix2pixGenerator(GeneralGenerator):
             layers += [nn.ReflectionPad2d(3)]
         elif padding_type == 'reflect':
             layers += [nn.ReflectionPad2d(3)]
-        layers += [nn.Conv2d(n_hidden, n_output, kernel_size=7, padding=pad)]
+        layers += [nn.Conv2d(n_hidden, n_channels_out, kernel_size=7, padding=pad)]
         layers += [nn.Tanh()]
 
         # Save model
@@ -133,3 +136,22 @@ class ResidualBlock(nn.Module):
     def forward(self, x):
         residual = self.resBlock(x)
         return x + residual  # add skip connections
+
+
+if __name__ == '__main__':
+    # Test if working
+
+    dummy_batch = torch.rand((10, 71, 28, 28))
+
+    G = ResnetGenerator()
+    D = PatchDiscriminator()
+
+    gen_imgs = G.forward(dummy_batch)
+
+    get_loss = GLoss(1)
+
+    loss = get_loss.forward(gen_imgs, D)
+
+    loss.backward()
+
+    print(loss.item())

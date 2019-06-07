@@ -3,7 +3,7 @@ from models.embedders.GeneralEmbedder import GeneralEmbedder
 from models.general.statistic import Statistic
 from models.generators.GeneralGenerator import GeneralGenerator
 from models.losses.GeneralLoss import GeneralLoss
-from utils.general_utils import ensure_current_directory, setup_directories, mean
+from utils.general_utils import *
 from utils.constants import *
 from models.general.trainer import Trainer
 from utils.model_utils import save_models
@@ -30,15 +30,21 @@ class TrainingProcess:
                  loss_dis: GeneralLoss,
                  arguments):
 
-        # default fields
+        # models
         self.generator = generator
         self.discriminator = discriminator
         self.embedder = embedder
+
+        # data
         self.dataloader_train = dataloader_train
         self.dataloader_validation = dataloader_validation
+
+        # optimizers
         self.optimizer_gen = optimizer_gen
         self.optimizer_dis = optimizer_dis
         self.optimizer_emb = optimizer_emb
+
+        # loss functions
         self.loss_gen = loss_gen
         self.loss_dis = loss_dis
         self.arguments = arguments
@@ -52,6 +58,22 @@ class TrainingProcess:
         self.combined_batch_size = 2 * arguments.batch_size
         self.shuffle_indices = list(range(int(self.combined_batch_size)))
 
+        # assert type
+        assert_type(GeneralGenerator, generator)
+        assert_type(GeneralEmbedder, embedder)
+        assert_type(GeneralDiscriminator, discriminator)
+        assert_type(GeneralLoss, loss_dis)
+        assert_type(GeneralLoss, loss_gen)
+
+        # assert nonzero
+        assert_non_empty(arguments)
+        assert_non_empty(optimizer_dis)
+        assert_non_empty(optimizer_emb)
+        assert_non_empty(optimizer_gen)
+        assert_non_empty(self.shuffle_indices)
+        assert_non_empty(dataloader_train)
+        assert_non_empty(dataloader_validation)
+
     def batch_iteration(self, batch: torch.Tensor, landmarks: torch.Tensor, train=True) \
             -> Tuple[int, int, torch.Tensor, torch.Tensor, torch.Tensor]:
         """
@@ -62,7 +84,7 @@ class TrainingProcess:
         # prepare input
         batch.to(DEVICE)
         landmarks.to(DEVICE)
-        landmarked_batch = torch.cat((batch, landmarks), dim=1)  # concatenate in the channel-dimension?
+        landmarked_batch = torch.cat((batch, landmarks), dim=CHANNEL_DIM)
 
         if (train):
             # set generator to train and discriminator to evaluation
@@ -81,7 +103,7 @@ class TrainingProcess:
             self.trainer_dis.prepare_training()
 
         # combine real and fake
-        landmarked_fake = torch.cat((fake, landmarks), dim=1)  # concatenate in the channel-dimension?
+        landmarked_fake = torch.cat((fake, landmarks), dim=CHANNEL_DIM)
         combined_set, labels = combine_real_and_fake(self.shuffle_indices, landmarked_batch, landmarked_fake)
 
         # forward pass discriminator
@@ -111,6 +133,10 @@ class TrainingProcess:
             # run batch iteration
             loss_gen, loss_dis, fake_images, _, _ = self.batch_iteration(batch, landmarks)
 
+            # assertions
+            assert_type(int, loss_gen)
+            assert_type(int, loss_dis)
+
             # calculate amount of passed batches
             batches_passed = i + (epoch_num * len(self.dataloader_train))
 
@@ -118,6 +144,9 @@ class TrainingProcess:
             if (batches_passed % self.arguments.eval_freq == 0):
                 # log to terminal and retrieve a statistics object
                 statistic = self.log(loss_gen, loss_dis)
+
+                # assert type
+                assert_type(Statistic, statistic)
 
                 # append statistic to list
                 progress.append(statistic)
@@ -145,6 +174,11 @@ class TrainingProcess:
 
             # also get accuracy
             accuracy = calculate_accuracy(predictions, actual_labels)
+
+            # assertions
+            assert_type(int, loss_gen)
+            assert_type(int, loss_dis)
+            assert_type(int, accuracy)
 
             # append findings to respective lists
             total_accuracy.append(accuracy)
@@ -187,21 +221,12 @@ class TrainingProcess:
         """
          main training function
 
-        :param loss_gen:
-        :param loss_dis:
-        :param dataloader:
-        :param loss:
-        :param embedder:
-        :param generator:
-        :param discriminator:
-        :param arguments:
-        :param optimizer_gen:
-        :param optimizer_dis:
         :return:
         """
 
         # setup data output directories:
         setup_directories()
+        save_codebase_of_run(self.arguments)
 
         # data gathering
         progress = []
@@ -220,7 +245,7 @@ class TrainingProcess:
                 DATA_MANAGER.save_python_obj(progress, f"{DATA_MANAGER.stamp}/{PROGRESS_DIR}/progress_list")
 
                 # write models if needed (don't save the first one
-                if (epoch +1  % self.arguments.saving_freq == 0):
+                if (epoch + 1 % self.arguments.saving_freq == 0):
                     save_models(self.discriminator, self.generator, self.embedder, f"Models_at_epoch_{epoch}")
 
         except KeyboardInterrupt:
