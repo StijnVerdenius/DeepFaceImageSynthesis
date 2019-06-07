@@ -2,10 +2,10 @@ from models.losses.GeneralLoss import GeneralLoss
 import torch.nn as nn
 import torch
 
-class pix2pixDLoss(GeneralLoss):
+class DefaultDLoss(GeneralLoss):
 
     def __init__(self, **kwargs):
-        super(pix2pixDLoss).__init__()
+        super(DefaultDLoss).__init__()
 
 
     def custom_forward(self,predictions, labels):

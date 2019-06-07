@@ -1,7 +1,7 @@
 from models.discriminators.GeneralDiscriminator import GeneralDiscriminator
 import torch.nn as nn
 import torch
-from models.losses.pix2pixDLoss import pix2pixDLoss as DLoss
+from models.losses.DefaultDLoss import DefaultDLoss as DLoss
 
 
 class PixelDiscriminator(GeneralDiscriminator):

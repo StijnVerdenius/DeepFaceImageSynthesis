@@ -5,7 +5,8 @@ import torch.nn as nn
 import torch
 from typing import Tuple
 from utils.constants import *
-from utils.model_utils import *
+# from utils.model_utils import
+from utils.training_helpers import L1_distance
 
 
 class PerceptualLoss(GeneralLoss):
@@ -23,7 +24,7 @@ class PerceptualLoss(GeneralLoss):
         # reconstruction loss
         l1_part = 0
         for real, fake in zip(real_feats, fake_feats):
-            l1_part += L1_distance(real, fake)
+            l1_part += L1_distance(real, fake).mean()
 
         # style loss
         frobenius = self.frobenius_norm(self.gram_matrix(real_feats[2]), self.gram_matrix(fake_feats[2]))

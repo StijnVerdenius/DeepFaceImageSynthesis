@@ -1,7 +1,7 @@
 from models.generators.GeneralGenerator import GeneralGenerator
 import torch.nn as nn
 import torch
-from models.losses.pix2pixGLoss import pix2pixGLoss as GLoss
+from models.losses.NonSaturatingGLoss import NonSaturatingGLoss as GLoss
 from models.discriminators.PatchDiscriminator import PatchDiscriminator
 
 class pix2pixGenerator(GeneralGenerator):

@@ -3,15 +3,15 @@ import torch.nn as nn
 import torch
 from models.generators.pix2pixGenerator import pix2pixGenerator as G
 from utils.constants import CHANNEL_DIM
-from utils.model_utils import *
+from utils.training_helpers import L1_distance
 
 
 class ConsistencyLoss(GeneralLoss):
 
-    def __init__(self, **kwargs):
-        super(ConsistencyLoss).__init__()
+    def __init__(self, weight=1, **kwargs):
+        super(ConsistencyLoss, self).__init__(weight)
 
-    def forward(self, image, image_ls, target_ls, generator):
+    def custom_forward(self, image, image_ls, target_ls, generator):
         # Concatanate input image with target landmark channels
         input = torch.cat((image, target_ls), 1)
 

@@ -3,14 +3,15 @@ from models.losses.GeneralLoss import GeneralLoss
 import torch.nn as nn
 import torch
 from models.generators.pix2pixGenerator import pix2pixGenerator as G
-from utils.model_utils import *
+from utils.training_helpers import L2_distance, CHANNEL_DIM
+
 
 class PixelLoss(GeneralLoss):
 
-    def __init__(self, **kwargs):
-        super(PixelLoss).__init__()
+    def __init__(self, weight=1, **kwargs):
+        super(PixelLoss,self).__init__(weight)
 
-    def forward(self, image: torch.Tensor, target_ls: torch.Tensor, generator: GeneralGenerator):
+    def custom_forward(self, image: torch.Tensor, target_ls: torch.Tensor, generator: GeneralGenerator):
 
         # Concatanate input image with target landmark channels
         input = torch.cat((image, target_ls), CHANNEL_DIM)
@@ -19,9 +20,11 @@ class PixelLoss(GeneralLoss):
         gen_img = generator.forward(input)
 
         # Get L2 **2 distance between generated approx. and original input img
-        loss = L2_distance(gen_img, image).pow(2) # todo: squaring and square rooting?
+        loss = L2_distance(gen_img, image).pow(2).mean() # todo: squaring and square rooting?
 
         return loss
+
+
 
 if __name__ == '__main__':
 
