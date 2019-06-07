@@ -15,7 +15,6 @@ INNER_LOOP_DESCRIPTION = 'frame'
 
 
 def count_images(all_videos: List[Path]) -> List[int]:
-    assert len(all_videos) == constants.DATASET_300VW_N_VIDEOS
     n_images_per_video = [
         len(
             list(
@@ -289,6 +288,7 @@ def main() -> None:
     all_videos = sorted(
         [p for p in personal_constants.DATASET_300VW_RAW_PATH.iterdir() if p.is_dir()]
     )
+    assert len(all_videos) == constants.DATASET_300VW_N_VIDEOS
     print(f'n videos: {len(all_videos)}')
     all_videos = all_videos[: constants.DATASET_300VW_LIMIT_N_VIDEOS]
     print(f'Taking first n videos: {len(all_videos)}')
