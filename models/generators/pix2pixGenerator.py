@@ -9,7 +9,7 @@ class pix2pixGenerator(GeneralGenerator):
 
 
     # CHECK DEFAULT VALUES!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    def __init__(self, n_channels_in=71, n_channels_out=3, n_hidden=64, norm_layer=nn.InstanceNorm2d, use_dropout = False, n_downsampling=2, n_blocks=6, padding_type ='reflect', device="cpu"):
+    def __init__(self, n_channels_in=71, n_channels_out=3, n_hidden=64, norm_layer=nn.InstanceNorm2d, use_dropout = False, n_downsampling=2, n_blocks=6, padding_type ='reflect', device="cpu", **kwargs):
         """
         n_channels_in (int)      - no. of channels in input images
         n_channels_out (int)     - no. number of channels in output images
@@ -152,7 +152,7 @@ if __name__ == '__main__':
     gen_imgs = G.forward(dummy_batch)
 
 
-    get_loss = GLoss()
+    get_loss = GLoss(1)
 
     loss = get_loss.forward(gen_imgs,D)
 

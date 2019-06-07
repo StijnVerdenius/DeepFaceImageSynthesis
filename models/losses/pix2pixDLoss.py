@@ -4,11 +4,11 @@ import torch
 
 class pix2pixDLoss(GeneralLoss):
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         super(pix2pixDLoss).__init__()
 
 
-    def forward(self,predictions, labels):
+    def custom_forward(self,predictions, labels):
 
         loss = nn.BCELoss() ##CHECK
 

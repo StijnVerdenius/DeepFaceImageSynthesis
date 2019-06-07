@@ -7,10 +7,10 @@ import torch
 
 class TripleConsistencyLoss(GeneralLoss):
 
-    def __init__(self):
-        super(TripleConsistencyLoss).__init__()
+    def __init__(self, weight, **kwargs):
+        super(TripleConsistencyLoss, self).__init__(weight=weight)
 
-    def forward(self,
+    def custom_forward(self,
                 batch: torch.Tensor,
                 in_between_landmarks: torch.Tensor,
                 target_landmarks: torch.Tensor,
@@ -29,7 +29,7 @@ class TripleConsistencyLoss(GeneralLoss):
 
 if __name__ == '__main__':
 
-    z = TripleConsistencyLoss()
+    z = TripleConsistencyLoss(1)
 
     testinput = torch.rand((20, 3, 28, 28))
     landm = torch.rand((20, 68, 28, 28))
