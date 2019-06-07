@@ -11,30 +11,33 @@ from tqdm import tqdm
 
 from utils import constants, personal_constants
 
+OUTER_LOOP_DESCRIPTION = 'video'
+INNER_LOOP_DESCRIPTION = 'frame'
+
 
 def count_images(all_videos: List[Path]) -> List[int]:
     assert len(all_videos) == constants.DATASET_300VW_N_VIDEOS
     n_images_per_video = [
         len(
             list(
-                (
-                    video_path / constants.DATASET_300VW_ANNOTATIONS_INPUT_FOLDER_NAME
-                ).glob(f'*.{constants.DATASET_300VW_ANNOTATIONS_INPUT_FILE_EXTENSION}')
+                (video_path / constants.DATASET_300VW_ANNOTATIONS_INPUT_FOLDER).glob(
+                    f'*.{constants.DATASET_300VW_ANNOTATIONS_INPUT_EXTENSION}'
+                )
             )
         )
-        for video_path in tqdm(all_videos, desc='video')
+        for video_path in tqdm(all_videos, desc=OUTER_LOOP_DESCRIPTION)
     ]
     return n_images_per_video
 
 
 def extract_frames(all_videos: List[Path], n_images_per_video: List[int]) -> None:
     for video_input_path, n_images_in_video in tqdm(
-        list(zip(all_videos, n_images_per_video)), desc='video'
+        list(zip(all_videos, n_images_per_video)), desc=OUTER_LOOP_DESCRIPTION
     ):
         frames_output_dir = (
             personal_constants.DATASET_300VW_TEMP_PATH
             / video_input_path.stem
-            / constants.DATASET_300VW_TEMP_IMAGES_FOLDER_NAME
+            / constants.DATASET_300VW_IMAGES_TEMP_FOLDER
         )
         if (
             frames_output_dir.exists()
@@ -51,7 +54,7 @@ def extract_frames(all_videos: List[Path], n_images_per_video: List[int]) -> Non
         while success == 1:
             frame_output_path = (
                 frames_output_dir
-                / f'{counter:06d}.{constants.DATASET_300VW_OUTPUT_IMAGES_EXTENSION}'
+                / f'{counter:06d}.{constants.DATASET_300VW_IMAGES_OUTPUT_EXTENSION}'
             )
             cv2.imwrite(
                 str(frame_output_path),
@@ -66,14 +69,14 @@ def visualize(video_id: str, frame_id: str) -> None:
     annotation_input_path = (
         personal_constants.DATASET_300VW_RAW_PATH
         / video_id
-        / constants.DATASET_300VW_ANNOTATIONS_INPUT_FOLDER_NAME
-        / f'{frame_id}.{constants.DATASET_300VW_ANNOTATIONS_INPUT_FILE_EXTENSION}'
+        / constants.DATASET_300VW_ANNOTATIONS_INPUT_FOLDER
+        / f'{frame_id}.{constants.DATASET_300VW_ANNOTATIONS_INPUT_EXTENSION}'
     )
     frame_input_path = (
         personal_constants.DATASET_300VW_TEMP_PATH
         / video_id
-        / constants.DATASET_300VW_TEMP_IMAGES_FOLDER_NAME
-        / f'{frame_id}.{constants.DATASET_300VW_TEMP_IMAGES_EXTENSION}'
+        / constants.DATASET_300VW_IMAGES_TEMP_FOLDER
+        / f'{frame_id}.{constants.DATASET_300VW_IMAGES_TEMP_EXTENSION}'
     )
     image = cv2.imread(str(frame_input_path))
     image_points = _load_pts_file(annotation_input_path)
@@ -214,16 +217,16 @@ def _rescale_points(
 
 
 def process_temp_folder(all_videos: List[Path]) -> None:
-    for video_input_path in tqdm(all_videos, desc='video'):
+    for video_input_path in tqdm(all_videos, desc=OUTER_LOOP_DESCRIPTION):
         video_output_path = (
             personal_constants.DATASET_300VW_OUTPUT_PATH / video_input_path.stem
         )
         annotations_output_dir = (
-            video_output_path / constants.DATASET_300VW_ANNOTATIONS_OUTPUT_FOLDER_NAME
+            video_output_path / constants.DATASET_300VW_ANNOTATIONS_OUTPUT_FOLDER
         )
         annotations_output_dir.mkdir(exist_ok=True, parents=True)
         frames_output_dir = (
-            video_output_path / constants.DATASET_300VW_OUTPUT_IMAGES_FOLDER_NAME
+            video_output_path / constants.DATASET_300VW_IMAGES_OUTPUT_FOLDER
         )
         frames_output_dir.mkdir(exist_ok=True, parents=True)
 
@@ -232,22 +235,20 @@ def process_temp_folder(all_videos: List[Path]) -> None:
                 list(
                     (
                         video_input_path
-                        / constants.DATASET_300VW_ANNOTATIONS_INPUT_FOLDER_NAME
-                    ).glob(
-                        f'*.{constants.DATASET_300VW_ANNOTATIONS_INPUT_FILE_EXTENSION}'
-                    )
+                        / constants.DATASET_300VW_ANNOTATIONS_INPUT_FOLDER
+                    ).glob(f'*.{constants.DATASET_300VW_ANNOTATIONS_INPUT_EXTENSION}')
                 )
             ),
-            desc='frame',
+            desc=INNER_LOOP_DESCRIPTION,
             leave=False,
         ):
             frame_output_path = (
                 frames_output_dir
-                / f'{annotation_input_path.stem}.{constants.DATASET_300VW_OUTPUT_IMAGES_EXTENSION}'
+                / f'{annotation_input_path.stem}.{constants.DATASET_300VW_IMAGES_OUTPUT_EXTENSION}'
             )
             annotation_output_path = (
                 annotations_output_dir
-                / f'{annotation_input_path.stem}.{constants.DATASET_300VW_ANNOTATIONS_OUTPUT_FILE_EXTENSION}'
+                / f'{annotation_input_path.stem}.{constants.DATASET_300VW_ANNOTATIONS_OUTPUT_EXTENSION}'
             )
             if frame_output_path.exists() and annotation_output_path.exists():
                 continue
@@ -255,8 +256,8 @@ def process_temp_folder(all_videos: List[Path]) -> None:
             frame_input_path = (
                 personal_constants.DATASET_300VW_TEMP_PATH
                 / video_input_path.stem
-                / constants.DATASET_300VW_TEMP_IMAGES_FOLDER_NAME
-                / f'{annotation_input_path.stem}.{constants.DATASET_300VW_TEMP_IMAGES_EXTENSION}'
+                / constants.DATASET_300VW_IMAGES_TEMP_FOLDER
+                / f'{annotation_input_path.stem}.{constants.DATASET_300VW_IMAGES_TEMP_EXTENSION}'
             )
             image = cv2.imread(str(frame_input_path))
             image_points = _load_pts_file(annotation_input_path)
@@ -286,7 +287,7 @@ def main() -> None:
         [p for p in personal_constants.DATASET_300VW_RAW_PATH.iterdir() if p.is_dir()]
     )
     print(f'n videos: {len(all_videos)}')
-    all_videos = all_videos[:constants.DATASET_300VW_LIMIT_N_VIDEOS]
+    all_videos = all_videos[: constants.DATASET_300VW_LIMIT_N_VIDEOS]
     print(f'Taking first n videos: {len(all_videos)}')
 
     print('Counting images...')
