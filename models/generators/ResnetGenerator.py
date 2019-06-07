@@ -4,12 +4,13 @@ import torch
 from models.losses.NonSaturatingGLoss import NonSaturatingGLoss as GLoss
 from models.discriminators.PatchDiscriminator import PatchDiscriminator
 
+
 class ResnetGenerator(GeneralGenerator):
     """ Defines the pix2pix (CycleGAN) Generator"""
 
-
     # CHECK DEFAULT VALUES!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    def __init__(self, n_channels_in=71, n_channels_out=3, n_hidden=64, norm_layer=nn.InstanceNorm2d, use_dropout = False, n_downsampling=2, n_blocks=6, padding_type ='reflect', device="cpu", **kwargs):
+    def __init__(self, n_channels_in=71, n_channels_out=3, n_hidden=64, norm_layer=nn.InstanceNorm2d, use_dropout=False,
+                 n_downsampling=2, n_blocks=6, padding_type='reflect', device="cpu", **kwargs):
         """
         n_channels_in (int)      - no. of channels in input images
         n_channels_out (int)     - no. number of channels in output images
@@ -43,28 +44,30 @@ class ResnetGenerator(GeneralGenerator):
         # Add input block layers
         layers += [nn.Conv2d(n_channels_in, n_hidden, kernel_size=7, padding=pad, bias=use_bias)]
         layers += [nn.InstanceNorm2d(n_hidden)]
-        layers += [nn.LeakyReLU(0.2,inplace=True)]
-
+        layers += [nn.LeakyReLU(0.2, inplace=True)]
 
         # Add downsampling blocks
         for i in range(n_downsampling):
-            mult_ch = 2 ** i # set factor to update current no. of channels
-            layers += [nn.Conv2d(n_hidden * mult_ch, n_hidden * mult_ch * 2, kernel_size=3, stride=2, padding=1, bias=use_bias)]
+            mult_ch = 2 ** i  # set factor to update current no. of channels
+            layers += [nn.Conv2d(n_hidden * mult_ch, n_hidden * mult_ch * 2, kernel_size=3, stride=2, padding=1,
+                                 bias=use_bias)]
             layers += [nn.InstanceNorm2d(n_hidden * mult_ch * 2)]
-            layers += [nn.LeakyReLU(0.2,inplace=True)]
+            layers += [nn.LeakyReLU(0.2, inplace=True)]
 
         # Add ResNet blocks
-        mult_ch = 2 ** n_downsampling # set factor to update current no. of channels
+        mult_ch = 2 ** n_downsampling  # set factor to update current no. of channels
         for i in range(n_blocks):
-            layers += [ResidualBlock(n_hidden * mult_ch, padding_type=padding_type, norm_layer=nn.InstanceNorm2d, use_dropout=use_dropout, use_bias=use_bias)]
+            layers += [ResidualBlock(n_hidden * mult_ch, padding_type=padding_type, norm_layer=nn.InstanceNorm2d,
+                                     use_dropout=use_dropout, use_bias=use_bias)]
 
         # Add upsampling blocks
         for i in range(n_downsampling):
-            mult_ch = 2 ** (n_downsampling - i) # set factor to update current no. of channel
-            layers += [nn.ConvTranspose2d(n_hidden * mult_ch, int(n_hidden * mult_ch / 2), kernel_size=3, stride=2, padding=1, output_padding=1, bias=use_bias)]
+            mult_ch = 2 ** (n_downsampling - i)  # set factor to update current no. of channel
+            layers += [
+                nn.ConvTranspose2d(n_hidden * mult_ch, int(n_hidden * mult_ch / 2), kernel_size=3, stride=2, padding=1,
+                                   output_padding=1, bias=use_bias)]
             layers += [nn.InstanceNorm2d(int(n_hidden * mult_ch / 2))]
-            layers += [nn.LeakyReLU(0.2,inplace=True)]
-
+            layers += [nn.LeakyReLU(0.2, inplace=True)]
 
         # Add output block layers
         if padding_type == 'replicate':
@@ -74,10 +77,8 @@ class ResnetGenerator(GeneralGenerator):
         layers += [nn.Conv2d(n_hidden, n_channels_out, kernel_size=7, padding=pad)]
         layers += [nn.Tanh()]
 
-
         # Save model
         self.model = nn.Sequential(*layers)
-
 
     def forward(self, x):
 
@@ -114,7 +115,7 @@ class ResidualBlock(nn.Module):
         # Add convolutional block
         residual += [nn.Conv2d(n_channels, n_channels, kernel_size=3, padding=pad, bias=use_bias)]
         residual += [norm_layer(n_channels)]
-        residual += [nn.LeakyReLU(0.2,inplace=True)]
+        residual += [nn.LeakyReLU(0.2, inplace=True)]
 
         # Add dropout if required
         if use_dropout:
@@ -130,34 +131,27 @@ class ResidualBlock(nn.Module):
         residual += [nn.Conv2d(n_channels, n_channels, kernel_size=3, padding=pad, bias=use_bias)]
         residual += [norm_layer(n_channels)]
 
-
         self.resBlock = nn.Sequential(*residual)
-
 
     def forward(self, x):
         residual = self.resBlock(x)
-        return x + residual # add skip connections
-
+        return x + residual  # add skip connections
 
 
 if __name__ == '__main__':
-
     # Test if working
 
-    dummy_batch = torch.rand((10,71,28,28))
+    dummy_batch = torch.rand((10, 71, 28, 28))
 
     G = ResnetGenerator()
     D = PatchDiscriminator()
 
     gen_imgs = G.forward(dummy_batch)
 
-
     get_loss = GLoss(1)
 
-    loss = get_loss.forward(gen_imgs,D)
+    loss = get_loss.forward(gen_imgs, D)
 
     loss.backward()
-
-
 
     print(loss.item())
