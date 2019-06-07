@@ -1,3 +1,4 @@
+from models.generators import GeneralGenerator
 from models.losses.GeneralLoss import GeneralLoss
 import torch.nn as nn
 import torch
@@ -6,10 +7,8 @@ from models.generators.pix2pixGenerator import pix2pixGenerator as G
 
 class PixelLoss(GeneralLoss):
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         super(PixelLoss).__init__()
-
-    # todo: add methods here that are shared for all generators, inheret your costum version from this object
 
     def forward(self, image: torch.Tensor, target_ls: torch.Tensor, generator: GeneralGenerator):
 
@@ -23,8 +22,6 @@ class PixelLoss(GeneralLoss):
         loss = torch.sum((gen_img-image).pow(2), dim=(1,2,3)).mean() # CHECK AGAIN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         return loss
-
-
 
 if __name__ == '__main__':
 

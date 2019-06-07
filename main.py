@@ -1,3 +1,5 @@
+from torch.utils.data import DataLoader
+
 from utils.general_utils import ensure_current_directory
 from utils.model_utils import find_right_model, load_models_and_state
 from utils.constants import *
@@ -8,10 +10,23 @@ import torch.optim as opt
 import torch
 
 
+def load_data(keyword: str) -> DataLoader: # todo @ klaus
+
+    if (keyword=="train"):
+        pass
+    elif(keyword=="validate"):
+        pass
+    else:
+        raise Exception(f"{keyword} is not a valid dataset")
+
+    return [None, None]
+
+
 def main(arguments):
+
     # data
-    dataloader_train = [None, None]  # todo @ klaus
-    dataloader_validate = [None, None]  # todo @ klaus
+    dataloader_train = load_data("train")
+    dataloader_validate = load_data("validate")
 
     # determine input size
     input_size = 2  # todo @ klaus
@@ -36,7 +51,7 @@ def main(arguments):
         # init optimizers
         generator_optimizer = opt.Adam(generator.parameters(), arguments.learning_rate)
         discriminator_optimizer = opt.Adam(discriminator.parameters(), arguments.learning_rate)
-        embedder_optimizer = None  # todo
+        embedder_optimizer = opt.Adam(embedder.parameters(), arguments.learning_rate)
 
         # define loss functions
         loss_gen = find_right_model(LOSS_DIR, arguments.loss_gen, weight=arguments.weight_advloss)
@@ -76,7 +91,7 @@ def main(arguments):
 
     else:
 
-        raise Exception("Unrecognized train/test mode")
+        raise Exception(f"Unrecognized train/test mode?: {arguments.mode}")
 
 
 def parse():
