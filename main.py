@@ -1,6 +1,10 @@
 from torch.utils.data import DataLoader
 
-from utils.general_utils import ensure_current_directory
+from models.discriminators.GeneralDiscriminator import GeneralDiscriminator
+from models.embedders.GeneralEmbedder import GeneralEmbedder
+from models.generators.GeneralGenerator import GeneralGenerator
+from models.losses import GeneralLoss
+from utils.general_utils import *
 from utils.model_utils import find_right_model, load_models_and_state
 from utils.constants import *
 import argparse
@@ -45,6 +49,11 @@ def main(arguments):
                                      device=DEVICE,
                                      n_channels_in=input_size)
 
+    # assertions
+    assert_type(GeneralGenerator, generator)
+    assert_type(GeneralDiscriminator, discriminator)
+    assert_type(GeneralEmbedder, embedder)
+
     # train or test
     if (arguments.mode == "train" or arguments.mode == "finetune"):
 
@@ -56,6 +65,10 @@ def main(arguments):
         # define loss functions
         loss_gen = find_right_model(LOSS_DIR, arguments.loss_gen, weight=arguments.weight_advloss)
         loss_dis = find_right_model(LOSS_DIR, arguments.loss_dis)
+
+        # assertions
+        assert_type(GeneralLoss, loss_dis)
+        assert_type(GeneralLoss, loss_gen)
 
         # define process
         train_progress = TrainingProcess(generator,
@@ -92,7 +105,6 @@ def main(arguments):
     else:
 
         raise Exception(f"Unrecognized train/test mode?: {arguments.mode}")
-
 
 def parse():
     parser = argparse.ArgumentParser()

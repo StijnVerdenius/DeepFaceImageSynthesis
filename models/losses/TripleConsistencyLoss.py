@@ -3,7 +3,7 @@ from models.generators.pix2pixGenerator import pix2pixGenerator
 from models.losses.GeneralLoss import GeneralLoss
 import torch.nn as nn
 import torch
-
+from utils.model_utils import CHANNEL_DIM, L2_distance, L1_distance
 
 class TripleConsistencyLoss(GeneralLoss):
 
@@ -16,13 +16,14 @@ class TripleConsistencyLoss(GeneralLoss):
                 target_landmarks: torch.Tensor,
                 generator: GeneralGenerator):
 
-        direct_output = generator.forward(torch.cat((batch, target_landmarks), dim=1))
+        direct_output = generator.forward(torch.cat((batch, target_landmarks), dim=CHANNEL_DIM))
 
-        in_between_output = generator.forward(torch.cat((batch, in_between_landmarks), dim=1))
+        in_between_output = generator.forward(torch.cat((batch, in_between_landmarks), dim=CHANNEL_DIM))
 
-        indirect_output = generator.forward(torch.cat((in_between_output, target_landmarks), dim=1))
+        indirect_output = generator.forward(torch.cat((in_between_output, target_landmarks), dim=CHANNEL_DIM))
 
-        norm = torch.sum((indirect_output-direct_output).pow(2), dim=(1,2,3)) # todo: revisit correctness
+        # l1 norm (todo: squared?)
+        norm = L1_distance(indirect_output, direct_output).pow(2)  #torch.sum((indirect_output-direct_output).pow(2), dim=(1,2,3)) # todo: revisit correctness
 
         return norm.mean()
 

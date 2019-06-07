@@ -17,3 +17,4 @@ CODE_DIR = "codebase"
 OUTPUT_DIRS = [PIC_DIR, PROGRESS_DIR, MODELS_DIR, CODE_DIR]
 VGG = vgg.vgg19(pretrained=True)
 VGG.eval()
+CHANNEL_DIM = 1

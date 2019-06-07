@@ -3,7 +3,7 @@ from models.losses.GeneralLoss import GeneralLoss
 import torch.nn as nn
 import torch
 from models.generators.pix2pixGenerator import pix2pixGenerator as G
-
+from utils.model_utils import *
 
 class PixelLoss(GeneralLoss):
 
@@ -13,13 +13,13 @@ class PixelLoss(GeneralLoss):
     def forward(self, image: torch.Tensor, target_ls: torch.Tensor, generator: GeneralGenerator):
 
         # Concatanate input image with target landmark channels
-        input = torch.cat((image, target_ls), 1)
+        input = torch.cat((image, target_ls), CHANNEL_DIM)
 
         # Generate conditioned img
         gen_img = generator.forward(input)
 
         # Get L2 **2 distance between generated approx. and original input img
-        loss = torch.sum((gen_img-image).pow(2), dim=(1,2,3)).mean() # CHECK AGAIN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        loss = L2_distance(gen_img, image).pow(2) # todo: squaring and square rooting?
 
         return loss
 
