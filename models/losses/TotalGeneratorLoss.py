@@ -12,7 +12,8 @@ from models.losses.PixelLoss import PixelLoss
 
 class TotalGeneratorLoss(GeneralLoss):
 
-    def __init__(self, pp_weight=10, adv_weight=1, trip_weight=100, id_weight=1, self_weight = 100, pix_weight = 10, **kwargs):
+    def __init__(self, pp_weight=10, adv_weight=1, trip_weight=100, id_weight=1, self_weight=100, pix_weight=10,
+                 **kwargs):
         super().__init__()
         self.pp = PerceptualLoss(pp_weight)
         self.adv = pix2pixGLoss(adv_weight)
@@ -20,21 +21,23 @@ class TotalGeneratorLoss(GeneralLoss):
         self.self = ConsistencyLoss(self_weight)
         self.pix = PixelLoss(pix_weight)
 
-        #NEED TO ADD ID LOSS
+        # NEED TO ADD ID LOSS
 
         # todo: add @ elias
 
-    def forward(self, imgs, generated_imgs, landmarks_real, in_between_landmarks, target_landmarks, generator, discriminator):
+    def forward(self, imgs, generated_imgs, landmarks_real, in_between_landmarks, target_landmarks, generator,
+                discriminator):
         """ combined loss function from the tiple-cons paper """
 
         loss_pp = self.pp.forward(imgs, generated_imgs)
         loss_triple = self.trip.forward(imgs, in_between_landmarks, target_landmarks, generator)
         loss_adv = self.adv(generated_imgs, discriminator)
-        loss_self = self.self(imgs,landmarks_real, target_landmarks, generator)
-        loss.pix = self.pix(imgs, target_landmarks, generator)
+        loss_self = self.self(imgs, landmarks_real, target_landmarks, generator)
+        loss_pix = self.pix(imgs, target_landmarks, generator)
 
 
-        return loss_pp + loss_adv + loss_triple # todo: add @elias
+
+        return loss_pp + loss_adv + loss_triple + loss_pix + loss_self
 
 
 if __name__ == '__main__':
@@ -49,9 +52,7 @@ if __name__ == '__main__':
     G = pix2pixGenerator()
     D = PatchDiscriminator()
 
-    bana = z.forward(testinput, testgenerated, test_landmarks_real, test_landmarks_in_between, test_landmarks_targets, G, D)
+    bana = z.forward(testinput, testgenerated, test_landmarks_real, test_landmarks_in_between, test_landmarks_targets,
+                     G, D)
 
     print(bana.shape, bana)
-
-
-

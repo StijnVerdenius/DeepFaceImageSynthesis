@@ -1,6 +1,7 @@
 from typing import Tuple
 
 import torch
+from torch import __init__
 from torchvision.utils import save_image
 from utils.constants import *
 import random
@@ -56,3 +57,27 @@ def combine_real_and_fake(indices, real: torch.Tensor, fake: torch.Tensor) -> Tu
     ground_truth = torch.cat(labels, dim=0).index_select(0, shuffle_indices_local).to(DEVICE)
 
     return composite, ground_truth
+
+
+def L2_distance(tensor1, tensor2, batch_dim=0):
+    # get number of dimensions
+    n_dims = len(tensor1.shape)
+
+    # get dims to sum over
+    dims = tuple([n for n in n_dims if n != batch_dim])
+
+    distance = torch.sqrt(torch.sum((tensor1 - tensor2).pow(2), dim=dims))
+
+    return distance
+
+
+def L1_distance(tensor1, tensor2, batch_dim=0):
+    # get number of dimensions
+    n_dims = len(tensor1.shape)
+
+    # get dims to sum over
+    dims = tuple([n for n in range(n_dims) if n != batch_dim])
+
+    distance = torch.sum(torch.abs(tensor1 - tensor2), dim=dims)
+
+    return distance
