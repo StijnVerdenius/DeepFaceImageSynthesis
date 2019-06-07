@@ -1,5 +1,5 @@
 from models.generators.GeneralGenerator import GeneralGenerator
-from models.generators.pix2pixGenerator import pix2pixGenerator
+from models.generators.ResnetGenerator import ResnetGenerator
 from models.losses.GeneralLoss import GeneralLoss
 import torch.nn as nn
 import torch
@@ -36,6 +36,6 @@ if __name__ == '__main__':
     landm = torch.rand((20, 68, 28, 28))
     landm1 = torch.rand((20, 68, 28, 28))
 
-    bana = z.forward(testinput, landm, landm1,  pix2pixGenerator())
+    bana = z.forward(testinput, landm, landm1, ResnetGenerator())
 
     print(bana.shape, bana)

@@ -1,7 +1,7 @@
 import torch
 
 from models.discriminators.PatchDiscriminator import PatchDiscriminator
-from models.generators.pix2pixGenerator import pix2pixGenerator
+from models.generators.ResnetGenerator import ResnetGenerator
 from models.losses.GeneralLoss import GeneralLoss
 from models.losses.PerceptualLoss import PerceptualLoss
 from models.losses.TripleConsistencyLoss import TripleConsistencyLoss
@@ -47,7 +47,7 @@ if __name__ == '__main__':
     test_landmarks_in_between = torch.rand((20, 68, 28, 28))
     test_landmarks_targets = torch.rand((20, 68, 28, 28))
 
-    G = pix2pixGenerator()
+    G = ResnetGenerator()
     D = PatchDiscriminator()
 
     bana = z.forward(testinput, testgenerated, test_landmarks_real, test_landmarks_in_between, test_landmarks_targets,

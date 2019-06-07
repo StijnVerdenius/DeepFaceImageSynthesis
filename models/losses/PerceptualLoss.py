@@ -1,5 +1,5 @@
 from models.generators.GeneralGenerator import GeneralGenerator
-from models.generators.pix2pixGenerator import pix2pixGenerator
+from models.generators.ResnetGenerator import ResnetGenerator
 from models.losses.GeneralLoss import GeneralLoss
 import torch.nn as nn
 import torch

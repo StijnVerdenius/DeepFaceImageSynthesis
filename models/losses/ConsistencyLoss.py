@@ -1,7 +1,7 @@
 from models.losses.GeneralLoss import GeneralLoss
 import torch.nn as nn
 import torch
-from models.generators.pix2pixGenerator import pix2pixGenerator as G
+from models.generators.ResnetGenerator import ResnetGenerator as G
 from utils.constants import CHANNEL_DIM
 from utils.training_helpers import L1_distance
 

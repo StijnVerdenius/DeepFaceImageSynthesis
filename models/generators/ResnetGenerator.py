@@ -4,7 +4,7 @@ import torch
 from models.losses.NonSaturatingGLoss import NonSaturatingGLoss as GLoss
 from models.discriminators.PatchDiscriminator import PatchDiscriminator
 
-class pix2pixGenerator(GeneralGenerator):
+class ResnetGenerator(GeneralGenerator):
     """ Defines the pix2pix (CycleGAN) Generator"""
 
 
@@ -19,7 +19,7 @@ class pix2pixGenerator(GeneralGenerator):
         n_blocks (int)     - no of ResNet blocks
         padding_type (str) - type of padding: zero, replicate, or reflect
         """
-        super(pix2pixGenerator,self).__init__(n_channels_in, n_channels_out, device)
+        super(ResnetGenerator, self).__init__(n_channels_in, n_channels_out, device)
 
         # If normalizing layer is instance normalization, add bias
         use_bias = norm_layer == nn.InstanceNorm2d
@@ -146,7 +146,7 @@ if __name__ == '__main__':
 
     dummy_batch = torch.rand((10,71,28,28))
 
-    G = pix2pixGenerator()
+    G = ResnetGenerator()
     D = PatchDiscriminator()
 
     gen_imgs = G.forward(dummy_batch)
