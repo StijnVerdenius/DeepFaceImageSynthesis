@@ -7,7 +7,7 @@ import torch
 
 class TripleConsistencyLoss(GeneralLoss):
 
-    def __init__(self, weight):
+    def __init__(self, weight, **kwargs):
         super(TripleConsistencyLoss, self).__init__(weight=weight)
 
     def custom_forward(self,

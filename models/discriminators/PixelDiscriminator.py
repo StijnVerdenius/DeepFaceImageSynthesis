@@ -7,7 +7,7 @@ from models.losses.pix2pixDLoss import pix2pixDLoss as DLoss
 class PixelDiscriminator(GeneralDiscriminator):
     """ Defines a PixelGAN discriminator"""
 
-    def __init__(self, n_channels_in=3, n_hidden=64, norm_layer=nn.BatchNorm2d, use_dropout=False, device="cpu"): #havent used dropout!!!!!!!!
+    def __init__(self, n_channels_in=3, n_hidden=64, norm_layer=nn.BatchNorm2d, use_dropout=False, device="cpu", **kwargs): #havent used dropout!!!!!!!!
         """
         n_input (int)      - no. of channels in input images
         n_hidden (int)     - no. of filters in the last hidden layer

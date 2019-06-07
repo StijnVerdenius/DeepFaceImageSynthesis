@@ -5,7 +5,7 @@ import torch
 
 class pix2pixGLoss(GeneralLoss):
 
-    def __init__(self, weight):
+    def __init__(self, weight, **kwargs):
         super(pix2pixGLoss, self).__init__(weight=weight)
 
     # todo: add methods here that are shared for all generators, inheret your costum version from this object

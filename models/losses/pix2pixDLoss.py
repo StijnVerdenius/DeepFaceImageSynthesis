@@ -4,7 +4,7 @@ import torch
 
 class pix2pixDLoss(GeneralLoss):
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         super(pix2pixDLoss).__init__()
 
 

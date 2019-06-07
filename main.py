@@ -39,7 +39,7 @@ def main(arguments):
         embedder_optimizer = None  # todo
 
         # define loss functions
-        loss_gen = find_right_model(LOSS_DIR, arguments.loss_gen)
+        loss_gen = find_right_model(LOSS_DIR, arguments.loss_gen, weight=arguments.weight_advloss)
         loss_dis = find_right_model(LOSS_DIR, arguments.loss_dis)
 
         # define process

@@ -9,7 +9,7 @@ from utils.constants import *
 
 class PerceptualLoss(GeneralLoss):
 
-    def __init__(self, weight, feature_selection=(3, 8, 15, 24)):
+    def __init__(self, weight, feature_selection=(3, 8, 15, 24), **kwargs):
         self.feature_selection = feature_selection
         super(PerceptualLoss, self).__init__(weight=weight)
 

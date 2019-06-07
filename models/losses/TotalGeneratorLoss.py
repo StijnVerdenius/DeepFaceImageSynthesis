@@ -10,7 +10,7 @@ from models.losses.pix2pixGLoss import pix2pixGLoss
 
 class TotalGeneratorLoss(GeneralLoss):
 
-    def __init__(self, pp_weight=10, adv_weight=1, trip_weight=100, id_weight=1, self_weight = 100, pix_weight = 10):
+    def __init__(self, pp_weight=10, adv_weight=1, trip_weight=100, id_weight=1, self_weight = 100, pix_weight = 10, **kwargs):
         super().__init__()
         self.pp = PerceptualLoss(pp_weight)
         self.adv = pix2pixGLoss(adv_weight)
