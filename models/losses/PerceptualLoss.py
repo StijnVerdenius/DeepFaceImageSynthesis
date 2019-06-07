@@ -9,11 +9,11 @@ from utils.constants import *
 
 class PerceptualLoss(GeneralLoss):
 
-    def __init__(self, feature_selection=(3, 8, 15, 24)):
+    def __init__(self, weight, feature_selection=(3, 8, 15, 24)):
         self.feature_selection = feature_selection
-        super(PerceptualLoss).__init__()
+        super(PerceptualLoss, self).__init__(weight=weight)
 
-    def forward(self, batch: torch.Tensor, generated_images: torch.Tensor, ):
+    def custom_forward(self, batch: torch.Tensor, generated_images: torch.Tensor):
         """ forward pass """
 
         # get vgg feats
@@ -22,7 +22,6 @@ class PerceptualLoss(GeneralLoss):
         # reconstruction loss
         l1_part = 0
         for real, fake in zip(real_feats, fake_feats):
-            print(real.shape, fake.shape)
             l1_part += torch.sum(torch.abs(real - fake))  # todo: change to l1 norm from utils
 
         # style loss
@@ -80,7 +79,7 @@ class PerceptualLoss(GeneralLoss):
 
 
 if __name__ == '__main__':
-    z = PerceptualLoss()
+    z = PerceptualLoss(1)
 
     testinput = torch.rand((20, 3, 28, 28))
     testinput_2 = torch.rand((20, 3, 28, 28))

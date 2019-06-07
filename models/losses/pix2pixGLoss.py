@@ -5,12 +5,12 @@ import torch
 
 class pix2pixGLoss(GeneralLoss):
 
-    def __init__(self):
-        super(pix2pixGLoss).__init__()
+    def __init__(self, weight):
+        super(pix2pixGLoss, self).__init__(weight=weight)
 
     # todo: add methods here that are shared for all generators, inheret your costum version from this object
 
-    def forward(self, fake, discriminator):
+    def custom_forward(self, fake, discriminator):
         loss = -1 * torch.mean(torch.log(discriminator.forward(fake)))  # CHECKK
 
         return loss

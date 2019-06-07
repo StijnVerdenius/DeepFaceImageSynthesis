@@ -8,7 +8,7 @@ class pix2pixDLoss(GeneralLoss):
         super(pix2pixDLoss).__init__()
 
 
-    def forward(self,predictions, labels):
+    def custom_forward(self,predictions, labels):
 
         loss = nn.BCELoss() ##CHECK
 

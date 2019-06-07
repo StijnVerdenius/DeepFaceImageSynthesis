@@ -106,6 +106,11 @@ def parse():
     parser.add_argument('--loss_gen', default="pix2pixGLoss", type=str, help="name of objectclass")
     parser.add_argument('--loss_dis', default="pix2pixDLoss", type=str, help="name of objectclass")
 
+    # hyperparams
+    parser.add_argument('--weight_advloss', default=1, type=int, help="name of objectclass")
+    parser.add_argument('--weight_triploss', default=1, type=int, help="name of objectclass")
+    parser.add_argument('--weight_pploss', default=1, type=int, help="name of objectclass")
+
     # data arguments
     parser.add_argument('--batch_size', type=int, default=16, help='Batch size to run trainer.')
     # todo @ klaus

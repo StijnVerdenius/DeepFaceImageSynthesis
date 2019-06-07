@@ -146,13 +146,13 @@ if __name__ == '__main__':
 
     dummy_batch = torch.rand((10,3,28,28))
 
-    D = pix2pixGenerator()
+    G = pix2pixGenerator()
     D = PatchDiscriminator()
 
-    gen_imgs = D.forward(dummy_batch)
+    gen_imgs = G.forward(dummy_batch)
 
 
-    get_loss = GLoss()
+    get_loss = GLoss(1)
 
     loss = get_loss.forward(gen_imgs,D)
 
