@@ -1,5 +1,4 @@
 import copy
-import math
 from pathlib import Path
 from typing import List, Tuple
 
@@ -79,6 +78,7 @@ def visualize(video_id: str, frame_id: str) -> None:
         / f'{frame_id}.{constants.DATASET_300VW_IMAGES_TEMP_EXTENSION}'
     )
     image = cv2.imread(str(frame_input_path))
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     image_points = _load_pts_file(annotation_input_path)
     image_box = _points_to_box(image_points, image.shape)
 
@@ -88,14 +88,11 @@ def visualize(video_id: str, frame_id: str) -> None:
     output = _rescale_image(extraction)
     output_points = _rescale_points(extraction_points, extraction.shape)
 
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    _plot(image)
-    _plot(image, image_points)
-    _plot(image, image_points, image_box)
-    extraction = cv2.cvtColor(extraction, cv2.COLOR_BGR2RGB)
-    _plot(extraction)
-    _plot(extraction, extraction_points)
-    output = cv2.cvtColor(output, cv2.COLOR_BGR2RGB)
+    # _plot(image)
+    # _plot(image, image_points)
+    # _plot(image, image_points, image_box)
+    # _plot(extraction)
+    # _plot(extraction, extraction_points)
     _plot(output, output_points)
 
 
@@ -112,7 +109,7 @@ def _plot(
         cmap = plt.get_cmap('gnuplot')
         colors = [cmap(i) for i in np.linspace(0, 1, len(points))]
         for index, c in zip(range(len(points)), colors):
-            plt.plot([points[index, 0]], [points[index, 1]], 'x', color=c)
+            plt.plot([points[index, 0]], [points[index, 1]], 'o', color=c, markersize=1)
 
     if box is not None:
         x1, y1, x2, y2 = box
@@ -150,29 +147,35 @@ def _load_pts_file(file_path: Path) -> np.ndarray:
 
 def _points_to_box(
     points: np.ndarray, image_size: Tuple[int, int, int]
-) -> Tuple[float, float, float, float]:
+) -> Tuple[int, int, int, int]:
     x1, y1, x2, y2 = [
         points[:, 0].min(),
         points[:, 1].min(),
         points[:, 0].max(),
         points[:, 1].max(),
     ]
+
     x1, y1 = [t - constants.DATASET_300VW_PADDING for t in (x1, y1)]
     x2, y2 = [t + constants.DATASET_300VW_PADDING for t in (x2, y2)]
+
     box_height, box_width = y2 - y1 + 1, x2 - x1 + 1
     assert box_height > 1 and box_width > 1
+    box_radius = box_height if box_height > box_width else box_width
+    box_radius /= 2
+    box_radius *= constants.DATASET_300VW_EXPAND_RATIO
 
-    if constants.DATASET_300VW_EXPAND_RATIO is not None:
-        box_height *= constants.DATASET_300VW_EXPAND_RATIO
-        box_width *= constants.DATASET_300VW_EXPAND_RATIO
-        x1, y1 = [math.floor(t - s) for t, s in zip((x1, y1), (box_width, box_height))]
-        x2, y2 = [math.ceil(t + s) for t, s in zip((x2, y2), (box_width, box_height))]
-
-    image_height, image_width, _ = image_size
     # landmarks can be out of image, but that's okay, we'll still export them.
-    x1, y1 = [t if t >= 0 else 0 for t in (x1, y1)]
-    x2, y2 = [t if t < m else m for t, m in zip((x2, y2), (image_width, image_height))]
-    assert x1 <= x2 and y1 <= y2
+    image_height, image_width, _ = image_size
+    center_x, center_y = (x1 + x2) // 2, (y1 + y2) // 2
+    box_radius = min(
+        box_radius, center_x, center_y, image_width - center_x, image_height - center_y
+    )
+    x1, y1 = [t - box_radius for t in (center_x, center_y)]
+    x2, y2 = [t + box_radius for t in (center_x, center_y)]
+    x1, y1, x2, y2 = [int(t) for t in (x1, y1, x2, y2)]
+
+    assert abs((x2 - x1) - (y2 - y1)) == 0
+    assert 0 <= x1 <= x2 <= image_width and 0 <= y1 <= y2 <= image_height
 
     return x1, y1, x2, y2
 
@@ -295,8 +298,9 @@ def main() -> None:
     n_images = sum(n_images_per_video)
     print(f'n images: {n_images}')
 
-    print('Visualizing extraction process...')
-    visualize('001', '000001')
+    # print('Visualizing extraction process...')
+    # visualize('001', '000001')
+    # visualize('007', '000020')
 
     print('Extracting frames from videos...')
     extract_frames(all_videos, n_images_per_video)
@@ -306,7 +310,7 @@ def main() -> None:
 
     print('Done.')
     # use input because the plots will disappear once the program exits
-    input('Press [enter] to exit.')
+    # input('Press [enter] to exit.')
 
 
 if __name__ == '__main__':
