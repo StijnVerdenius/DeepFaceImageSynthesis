@@ -14,7 +14,6 @@ from typing import List, Dict, Tuple
 from torch.utils.data import DataLoader
 from torch.optim import Optimizer
 
-
 class TrainingProcess:
 
     def __init__(self,
@@ -75,7 +74,7 @@ class TrainingProcess:
         assert_non_empty(dataloader_validation)
 
     def batch_iteration(self, batch: torch.Tensor, landmarks: torch.Tensor, train=True) \
-            -> Tuple[int, int, torch.Tensor, torch.Tensor, torch.Tensor]:
+            -> Tuple[Dict, Dict, torch.Tensor, torch.Tensor, torch.Tensor]:
         """
          inner loop of epoch iteration
 
@@ -93,7 +92,8 @@ class TrainingProcess:
 
         # forward pass generator
         fake = self.generator.forward(landmarked_batch)
-        loss_gen, loss_gen_saving = self.loss_gen.forward(fake, self.discriminator)
+        landmarked_fake = torch.cat((fake, landmarks), dim=CHANNEL_DIM)
+        loss_gen, loss_gen_saving = self.loss_gen.forward(landmarked_fake, self.discriminator)
 
         if (train):
             # backward pass generator
@@ -101,13 +101,13 @@ class TrainingProcess:
 
             # set discriminator to train
             self.trainer_dis.prepare_training()
+            self.trainer_gen.prepare_evaluation()
 
         # combine real and fake
-        landmarked_fake = torch.cat((fake, landmarks), dim=CHANNEL_DIM)
-        combined_set, labels = combine_real_and_fake(self.shuffle_indices, landmarked_batch, landmarked_fake)
+        combined_set, labels = combine_real_and_fake(self.shuffle_indices, landmarked_batch.detach(), landmarked_fake.detach())
 
         # forward pass discriminator
-        predictions = self.discriminator.forward(combined_set)
+        predictions = self.discriminator.forward(combined_set.detach())
         loss_dis, loss_dis_saving = self.loss_dis.forward(predictions, labels)
 
         if (train):
@@ -134,16 +134,21 @@ class TrainingProcess:
             loss_gen, loss_dis, fake_images, _, _ = self.batch_iteration(batch, landmarks)
 
             # assertions
-            assert_type(int, loss_gen)
-            assert_type(int, loss_dis)
+            assert_type(dict, loss_gen)
+            assert_type(dict, loss_dis)
 
             # calculate amount of passed batches
             batches_passed = i + (epoch_num * len(self.dataloader_train))
 
             # print progress to terminal
             if (batches_passed % self.arguments.eval_freq == 0):
+
+                # convert dicts to ints
+                loss_gen_actual = sum(loss_gen.values())
+                loss_dis_actual = sum(loss_dis.values())
+
                 # log to terminal and retrieve a statistics object
-                statistic = self.log(loss_gen, loss_dis)
+                statistic = self.log(loss_gen_actual, loss_dis_actual)
 
                 # assert type
                 assert_type(Statistic, statistic)
@@ -157,7 +162,7 @@ class TrainingProcess:
 
         return progress
 
-    def validate(self) -> Tuple[int, int, int]:
+    def validate(self) -> Tuple[float, float, float]:
         """
         Runs a validation epoch
 
@@ -168,22 +173,26 @@ class TrainingProcess:
         total_loss_generator = []
         total_accuracy = []
 
-        for i, (batch, landmarks) in self.dataloader_validation:  # todo: how to split? @klaus
+        for i, (batch, landmarks) in enumerate(self.dataloader_validation):  # todo: how to split? @klaus
             # run batch iteration
             loss_gen, loss_dis, _, predictions, actual_labels = self.batch_iteration(batch, landmarks, train=False)
 
             # also get accuracy
             accuracy = calculate_accuracy(predictions, actual_labels)
 
+            # convert dicts to ints
+            loss_gen_actual = sum(loss_gen.values())
+            loss_dis_actual = sum(loss_dis.values())
+
             # assertions
-            assert_type(int, loss_gen)
-            assert_type(int, loss_dis)
-            assert_type(int, accuracy)
+            assert_type(float, loss_gen_actual)
+            assert_type(float, loss_dis_actual)
+            assert_type(float, accuracy)
 
             # append findings to respective lists
             total_accuracy.append(accuracy)
-            total_loss_discriminator.append(loss_dis)
-            total_loss_discriminator.append(loss_gen)
+            total_loss_generator.append(loss_gen_actual)
+            total_loss_discriminator.append(loss_dis_actual)
 
         return mean(total_loss_generator), mean(total_loss_discriminator), mean(total_accuracy)
 
@@ -242,7 +251,7 @@ class TrainingProcess:
                 progress += epoch_progress
 
                 # write progress to pickle file (overwrite because there is no point keeping seperate versions)
-                DATA_MANAGER.save_python_obj(progress, f"{DATA_MANAGER.stamp}/{PROGRESS_DIR}/progress_list")
+                DATA_MANAGER.save_python_obj(progress, f"{DATA_MANAGER.stamp}/{PROGRESS_DIR}/progress_list", print_success=False)
 
                 # write models if needed (don't save the first one
                 if (epoch + 1 % self.arguments.saving_freq == 0):

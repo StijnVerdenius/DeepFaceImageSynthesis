@@ -23,7 +23,7 @@ def load_data(keyword: str) -> DataLoader:  # todo @ klaus
     else:
         raise Exception(f"{keyword} is not a valid dataset")
 
-    return [(torch.randn((36, INPUT_CHANNELS, IMSIZE, IMSIZE)), torch.randn((36, INPUT_CHANNELS, IMSIZE, IMSIZE)))]
+    return [(torch.randn((TEST_BATCH_SIZE, INPUT_CHANNELS, IMSIZE, IMSIZE)), torch.randn((TEST_BATCH_SIZE, INPUT_LANDMARK_CHANNELS, IMSIZE, IMSIZE)))]
 
 
 def main(arguments):
@@ -112,9 +112,9 @@ def parse():
     parser.add_argument('--feedback', default=False, type=bool, help='whether to plot or not during training')
     parser.add_argument('--mode', default="train", type=str, help="'train', 'test' or 'finetune'")
     parser.add_argument('--learning_rate', type=float, default=1e-4, help='Learning rate')
-    parser.add_argument('--eval_freq', type=int, default=200, help='Frequency (batch-wise) of evaluation')
+    parser.add_argument('--eval_freq', type=int, default=1, help='Frequency (batch-wise) of evaluation')
     parser.add_argument('--plot_freq', type=int, default=200, help='Frequency (batch-wise) of plotting pictures')
-    parser.add_argument('--saving_freq', type=int, default=200, help='Frequency (epoch-wise) of saving models')
+    parser.add_argument('--saving_freq', type=int, default=20000, help='Frequency (epoch-wise) of saving models')
 
     # test arguments
     parser.add_argument('--test_model_date', default="", type=str, help='date_stamp string for which model to load')
@@ -136,7 +136,7 @@ def parse():
     parser.add_argument('--weight_pploss', default=1, type=int, help="name of objectclass")
 
     # data arguments
-    parser.add_argument('--batch_size', type=int, default=36, help='Batch size to run trainer.')
+    parser.add_argument('--batch_size', type=int, default=TEST_BATCH_SIZE, help='Batch size to run trainer.')
     # todo @ klaus
 
     return parser.parse_args()
