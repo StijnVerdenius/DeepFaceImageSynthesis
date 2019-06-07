@@ -11,8 +11,6 @@ from tqdm import tqdm
 
 from utils import constants, personal_constants
 
-OUTPUT_HEIGHT, OUTPUT_WIDTH = constants.IMSIZE, constants.IMSIZE
-
 
 def count_images(all_videos: List[Path]) -> List[int]:
     assert len(all_videos) == constants.DATASET_300VW_N_VIDEOS
@@ -193,11 +191,13 @@ def _offset_points(
 
 
 def _rescale_image(image: np.ndarray) -> np.ndarray:
+    output_width, output_height = constants.IMSIZE, constants.IMSIZE
     _, _, n_channels = image.shape
     image = cv2.resize(
-        image, dsize=(OUTPUT_WIDTH, OUTPUT_HEIGHT), interpolation=cv2.INTER_CUBIC
+        image, dsize=(output_width, output_height), interpolation=cv2.INTER_CUBIC
     )
-    assert image.shape == (OUTPUT_HEIGHT, OUTPUT_WIDTH, n_channels)
+    # notice that the order is swapped
+    assert image.shape == (output_height, output_width, n_channels)
     return image
 
 
@@ -206,8 +206,8 @@ def _rescale_points(
 ) -> np.ndarray:
     height, width, n_channels = image_shape
     points = copy.copy(points)
-    height_factor = 1 / height * OUTPUT_HEIGHT
-    width_factor = 1 / width * OUTPUT_WIDTH
+    height_factor = 1 / height * constants.IMSIZE
+    width_factor = 1 / width * constants.IMSIZE
     points[:, 0] *= width_factor
     points[:, 1] *= height_factor
     return points
