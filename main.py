@@ -12,38 +12,57 @@ from training.train import TrainingProcess
 from testing.test import test
 import torch.optim as opt
 import torch
+from data.Dataset300VW import X300VWDataset
+import numpy as np
 
 
-def load_data(keyword: str) -> DataLoader:  # todo @ klaus
+def dummy_batch(batch_size, channels):
+    return np.random.normal(0, 1, (batch_size, channels, IMSIZE, IMSIZE))
+
+
+def load_data(keyword: str, batch_size: int) -> DataLoader:  # todo @ klaus
+
+    data = None
 
     if (keyword == "train"):
-        pass
+        DataLoader(X300VWDataset())
     elif (keyword == "validate"):
-        pass
+        DataLoader(X300VWDataset())
+    elif (keyword == "debug"):
+        data = [(dummy_batch(batch_size, INPUT_CHANNELS), dummy_batch(batch_size, INPUT_LANDMARK_CHANNELS)) for _ in
+                range(5)]
     else:
         raise Exception(f"{keyword} is not a valid dataset")
 
-    return [(torch.randn((TEST_BATCH_SIZE, INPUT_CHANNELS, IMSIZE, IMSIZE)), torch.randn((TEST_BATCH_SIZE, INPUT_LANDMARK_CHANNELS, IMSIZE, IMSIZE)))]
+    print(f"finished loading {keyword} of length: {len(data)}")
+
+    return data
 
 
 def main(arguments):
+
+    # to measure the time needed
+    pr = None
+    if (arguments.timing):
+        pr = start_timing()
+
     # data
-    dataloader_train = load_data("train")
-    dataloader_validate = load_data("validate")
+    dataloader_train = load_data("debug", arguments.batch_size)
+    dataloader_validate = load_data("debug", arguments.batch_size)
 
     # get models
     embedder = find_right_model(EMBED_DIR, arguments.embedder,
                                 device=DEVICE,
                                 n_channels_in=INPUT_SIZE,
-                                n_channels_out=arguments.embedding_size)
+                                n_channels_out=arguments.embedding_size).to(DEVICE)
 
     generator = find_right_model(GEN_DIR, arguments.generator,
                                  device=DEVICE,
-                                 n_channels_in=INPUT_SIZE)
+                                 n_channels_in=INPUT_SIZE).to(DEVICE)
 
     discriminator = find_right_model(DIS_DIR, arguments.discriminator,
                                      device=DEVICE,
-                                     n_channels_in=INPUT_SIZE)
+                                     n_channels_in=INPUT_SIZE).to(DEVICE)
 
     # assertions
     assert_type(GeneralGenerator, generator)
@@ -102,19 +121,25 @@ def main(arguments):
 
         raise Exception(f"Unrecognized train/test mode?: {arguments.mode}")
 
+    if (arguments.timing):
+        stop_timing(pr)
+
 
 def parse():
     parser = argparse.ArgumentParser()
 
     # training arguments
-    parser.add_argument('--epochs', default=50, type=int, help='max number of epochs')
+    parser.add_argument('--epochs', default=5, type=int, help='max number of epochs')
     parser.add_argument('--device', default="cpu", type=str, help='device')
     parser.add_argument('--feedback', default=False, type=bool, help='whether to plot or not during training')
     parser.add_argument('--mode', default="train", type=str, help="'train', 'test' or 'finetune'")
     parser.add_argument('--learning_rate', type=float, default=1e-4, help='Learning rate')
-    parser.add_argument('--eval_freq', type=int, default=1, help='Frequency (batch-wise) of evaluation')
-    parser.add_argument('--plot_freq', type=int, default=200, help='Frequency (batch-wise) of plotting pictures')
-    parser.add_argument('--saving_freq', type=int, default=20000, help='Frequency (epoch-wise) of saving models')
+    parser.add_argument('--eval_freq', type=int, default=5, help='Frequency (batch-wise) of evaluation')
+    parser.add_argument('--plot_freq', type=int, default=5, help='Frequency (batch-wise) of plotting pictures')
+    parser.add_argument('--saving_freq', type=int, default=100, help='Frequency (epoch-wise) of saving models')
+
+    # debug
+    parser.add_argument('--timing', type=bool, default=True, help='are we measuring efficiency?')
 
     # test arguments
     parser.add_argument('--test_model_date', default="", type=str, help='date_stamp string for which model to load')
@@ -149,7 +174,8 @@ def manipulate_defaults_for_own_test(args):
     :return:
     """
 
-    args.epochs = 100  # etc..
+    # args.epochs = 5  # etc..
+    pass
 
 
 if __name__ == '__main__':

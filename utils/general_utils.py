@@ -1,6 +1,6 @@
 import inspect
 import os
-
+import cProfile, pstats, io
 from utils.constants import *
 
 
@@ -70,3 +70,17 @@ def assert_non_empty(content):
 def mean(input_list):
     assert_type(list, input_list)
     return sum(input_list) / len(input_list)
+
+
+def start_timing():
+    pr = cProfile.Profile()
+    pr.enable()
+    return pr
+
+def stop_timing(pr):
+    pr.disable()
+    s = io.StringIO()
+    sortby = 'cumulative'
+    ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
+    ps.print_stats()
+    print(s.getvalue())

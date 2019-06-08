@@ -7,12 +7,12 @@ from utils.general_utils import *
 from utils.constants import *
 from models.general.trainer import Trainer
 from utils.model_utils import save_models
-import random
-import torch
 from utils.training_helpers import *
 from typing import List, Dict, Tuple
 from torch.utils.data import DataLoader
 from torch.optim import Optimizer
+import numpy as np
+from datetime import datetime
 
 class TrainingProcess:
 
@@ -73,7 +73,7 @@ class TrainingProcess:
         assert_non_empty(dataloader_train)
         assert_non_empty(dataloader_validation)
 
-    def batch_iteration(self, batch: torch.Tensor, landmarks: torch.Tensor, train=True) \
+    def batch_iteration(self, batch: np.array, landmarks: np.array, train=True) \
             -> Tuple[Dict, Dict, torch.Tensor, torch.Tensor, torch.Tensor]:
         """
          inner loop of epoch iteration
@@ -81,8 +81,8 @@ class TrainingProcess:
         """
 
         # prepare input
-        batch.to(DEVICE)
-        landmarks.to(DEVICE)
+        batch = torch.from_numpy(batch).float().to(DEVICE)
+        landmarks = torch.from_numpy(landmarks).float().to(DEVICE)
         landmarked_batch = torch.cat((batch, landmarks), dim=CHANNEL_DIM)
 
         if (train):
@@ -104,7 +104,8 @@ class TrainingProcess:
             self.trainer_gen.prepare_evaluation()
 
         # combine real and fake
-        combined_set, labels = combine_real_and_fake(self.shuffle_indices, landmarked_batch.detach(), landmarked_fake.detach())
+        combined_set, labels = combine_real_and_fake(self.shuffle_indices, landmarked_batch.detach(),
+                                                     landmarked_fake.detach())
 
         # forward pass discriminator
         predictions = self.discriminator.forward(combined_set.detach())
@@ -142,13 +143,12 @@ class TrainingProcess:
 
             # print progress to terminal
             if (batches_passed % self.arguments.eval_freq == 0):
-
                 # convert dicts to ints
                 loss_gen_actual = sum(loss_gen.values())
                 loss_dis_actual = sum(loss_dis.values())
 
                 # log to terminal and retrieve a statistics object
-                statistic = self.log(loss_gen_actual, loss_dis_actual)
+                statistic = self.log(loss_gen_actual, loss_dis_actual, loss_gen, loss_dis, batches_passed)
 
                 # assert type
                 assert_type(Statistic, statistic)
@@ -196,7 +196,8 @@ class TrainingProcess:
 
         return mean(total_loss_generator), mean(total_loss_discriminator), mean(total_accuracy)
 
-    def log(self, loss_gen: int, loss_dis: int) -> Statistic:
+    def log(self, loss_gen: float, loss_dis: float, loss_gen_dict: Dict, loss_dis_dict: Dict,
+            batches_passed: int) -> Statistic:
         """
         logs to terminal and calculate log_statistics
 
@@ -209,22 +210,23 @@ class TrainingProcess:
         # validate on validationset
         loss_gen_validate, loss_dis_validate, discriminator_accuracy = self.validate()
 
-        # print in-place with 3 decimals
-        print(
-            f"\r",
-            f"loss-generator-train: {loss_gen:0.3f}",
-            f"loss-discriminator-train: {loss_dis:0.3f}",
-            f"loss-generator-validate: {loss_gen_validate:0.3f}",
-            f"loss-discriminator-validate: {loss_dis_validate:0.3f}",
-            f"accuracy-discriminator: {discriminator_accuracy}",
-            end='')
-
-        # define training statistic
-        return Statistic(loss_gen_train=loss_gen,
+        stat = Statistic(loss_gen_train=loss_gen,
                          loss_dis_train=loss_dis,
                          loss_gen_val=loss_gen_validate,
                          loss_dis_val=loss_dis_validate,
+                         loss_gen_train_dict=loss_gen_dict,
+                         loss_dis_train_dict=loss_dis_dict,
                          dis_acc=discriminator_accuracy)
+
+        # print in-place with 3 decimals
+        print(
+            f"\r",
+            f"batch: {batches_passed}",
+            f"|\t {stat}",
+            end='')
+
+        # define training statistic
+        return stat
 
     def train(self) -> bool:
         """
@@ -242,8 +244,13 @@ class TrainingProcess:
 
         try:
 
+            print(f"{PRINTCOLOR_BOLD}Started training with the following config:{PRINTCOLOR_END}\n{self.arguments}")
+
             # run
             for epoch in range(self.arguments.epochs):
+
+                print(f"\n\n{PRINTCOLOR_BOLD}Starting epoch{PRINTCOLOR_END} {epoch} at {str(datetime.now())}")
+
                 # do epoch
                 epoch_progress = self.epoch_iteration(epoch)
 
@@ -251,7 +258,8 @@ class TrainingProcess:
                 progress += epoch_progress
 
                 # write progress to pickle file (overwrite because there is no point keeping seperate versions)
-                DATA_MANAGER.save_python_obj(progress, f"{DATA_MANAGER.stamp}/{PROGRESS_DIR}/progress_list", print_success=False)
+                DATA_MANAGER.save_python_obj(progress, f"{DATA_MANAGER.stamp}/{PROGRESS_DIR}/progress_list",
+                                             print_success=False)
 
                 # write models if needed (don't save the first one
                 if (epoch + 1 % self.arguments.saving_freq == 0):
