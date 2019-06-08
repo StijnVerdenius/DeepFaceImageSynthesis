@@ -49,6 +49,9 @@ class X300VWDataset(Dataset):
         )
         image = cv2.imread(str(frame_input_path))
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        image = image.astype(float)
+        image = (image / 255) * 2 - 1
+        assert -1 <= image.min() <= image.max() <= 1
 
         annotation_input_path = (
             self._all_videos[video_index]
@@ -78,6 +81,8 @@ def _test():
         assert image.shape == (constants.IMSIZE, constants.IMSIZE, 3)
         assert landmarks.shape == (constants.DATASET_300VW_N_LANDMARKS, 2)
         print(index, image.shape, landmarks.shape)
+        image = ((image + 1) / 2) * 255
+        image = image.astype('uint8')
         plot(image, landmarks)
     input('Press [enter] to exit.')
 
