@@ -19,6 +19,7 @@ import torch.optim as opt
 import torch
 from data.Dataset300VW import X300VWDataset
 import numpy as np
+import sys
 
 torch.backends.cudnn.benchmark = True
 
@@ -156,7 +157,7 @@ def parse():
     # model arguments
     parser.add_argument('--embedding_size', default=2, type=int, help='dimensionality of latent embedding space')
     parser.add_argument('--embedder', default="EmptyEmbedder", type=str, help="name of objectclass")
-    parser.add_argument('--discriminator', default="PixelDiscriminator", type=str, help="name of objectclass")
+    parser.add_argument('--discriminator', default="PatchDiscriminator", type=str, help="name of objectclass")
     parser.add_argument('--generator', default="ResnetGenerator", type=str, help="name of objectclass")
 
     # loss arguments
@@ -187,6 +188,7 @@ def manipulate_defaults_for_own_test(args):
 
 
 if __name__ == '__main__':
+    print("cuda_version" , torch.version.cuda, "pytorch version", torch.__version__, "python version", sys.version)
     ensure_current_directory()
     args = parse()
     manipulate_defaults_for_own_test(args)

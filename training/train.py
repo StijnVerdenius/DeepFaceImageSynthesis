@@ -178,6 +178,7 @@ class TrainingProcess:
 
             # print progress to terminal
             if (batches_passed % self.arguments.eval_freq == 0):
+
                 # convert dicts to ints
                 loss_gen_actual = sum(loss_gen.values())
                 loss_dis_actual = sum(loss_dis.values())
