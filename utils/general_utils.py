@@ -68,4 +68,5 @@ def assert_non_empty(content):
 
 
 def mean(input_list):
+    assert_type(list, input_list)
     return sum(input_list) / len(input_list)

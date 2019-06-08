@@ -93,7 +93,7 @@ class TrainingProcess:
 
         # forward pass generator
         fake = self.generator.forward(landmarked_batch)
-        loss_gen = self.loss_gen.forward(fake, self.discriminator)
+        loss_gen, loss_gen_saving = self.loss_gen.forward(fake, self.discriminator)
 
         if (train):
             # backward pass generator
@@ -108,7 +108,7 @@ class TrainingProcess:
 
         # forward pass discriminator
         predictions = self.discriminator.forward(combined_set)
-        loss_dis = self.loss_dis.forward(predictions, labels)
+        loss_dis, loss_dis_saving = self.loss_dis.forward(predictions, labels)
 
         if (train):
             # backward discriminator
@@ -118,7 +118,7 @@ class TrainingProcess:
         predictions.detach()
         labels.detach()
 
-        return loss_gen.item(), loss_dis.item(), fake, predictions, labels
+        return loss_gen_saving, loss_dis_saving, fake, predictions, labels
 
     def epoch_iteration(self, epoch_num: int) -> List[Statistic]:
         """

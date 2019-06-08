@@ -5,7 +5,7 @@ import torch
 class DefaultDLoss(GeneralLoss):
 
     def __init__(self, **kwargs):
-        super(DefaultDLoss).__init__()
+        super(DefaultDLoss, self).__init__()
 
 
     def custom_forward(self,predictions, labels):
