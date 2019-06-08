@@ -286,6 +286,10 @@ class TrainingProcess:
                 if (epoch + 1 % self.arguments.saving_freq == 0):
                     save_models(self.discriminator, self.generator, self.embedder, f"Models_at_epoch_{epoch}")
 
+                # flush prints
+                sys.stdout.flush()
+
+
         except KeyboardInterrupt:
             print("Killed by user")
             save_models(self.discriminator, self.generator, self.embedder, f"KILLED_at_epoch_{epoch}")
@@ -294,6 +298,9 @@ class TrainingProcess:
             print(e)
             save_models(self.discriminator, self.generator, self.embedder, f"CRASH_at_epoch_{epoch}")
             raise e
+
+        # flush prints
+        sys.stdout.flush()
 
         # example last save
         save_models(self.discriminator, self.generator, self.embedder, "finished")

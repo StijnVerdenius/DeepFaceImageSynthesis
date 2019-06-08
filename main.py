@@ -46,6 +46,8 @@ def main(arguments):
     if (arguments.timing):
         pr = start_timing()
 
+    print(f"Device used = {DEVICE}")
+
     # data
     dataloader_train = load_data("train", arguments.batch_size)
     dataloader_validate = load_data("validate", arguments.batch_size)
