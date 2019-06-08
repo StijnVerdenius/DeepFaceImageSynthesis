@@ -150,7 +150,7 @@ if __name__ == '__main__':
 
     get_loss = GLoss(1)
 
-    loss = get_loss.forward(gen_imgs, D)
+    loss = get_loss.forward(gen_imgs, D)[0]
 
     loss.backward()
 

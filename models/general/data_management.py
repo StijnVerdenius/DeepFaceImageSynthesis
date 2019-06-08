@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 import os
 
+
 class DataManager:
 
     def __init__(self, directory):
@@ -12,13 +13,15 @@ class DataManager:
         self.directory = directory
         self.stamp = ""
 
-    def save_python_obj(self, obj, name):
+    def save_python_obj(self, obj, name, print_success=True):
         """ Saves python object to disk in pickle """
 
         try:
             with open(self.directory + name + ".pickle", 'wb') as handle:
                 pickle.dump(obj, handle, protocol=-1)
-            print("Saved {}".format(name))
+
+                if (print_success):
+                    print("Saved {}".format(name))
         except Exception as e:
             print(e)
             print("Failed saving {}, continue anyway".format(name))
@@ -81,4 +84,4 @@ class DataManager:
         return self.stamp
 
     def create_dir(self, name):
-        os.makedirs(self.directory+name, exist_ok=True)
+        os.makedirs(self.directory + name, exist_ok=True)
