@@ -62,21 +62,21 @@ def visualize(video_id: str, frame_id: str) -> None:
     )
     image = cv2.imread(str(frame_input_path))
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    image_points = _load_pts_file(annotation_input_path)
-    image_box = _points_to_box(image_points, image.shape)
+    image_landmarks = _load_pts_file(annotation_input_path)
+    image_box = _landmarks_to_box(image_landmarks, image.shape)
 
     extraction = _extract(image, image_box)
-    extraction_points = _offset_points(image_points, image_box)
+    extraction_landmarks = _offset_landmarks(image_landmarks, image_box)
 
     output = _rescale_image(extraction)
-    output_points = _rescale_points(extraction_points, extraction.shape)
+    output_landmarks = _rescale_landmarks(extraction_landmarks, extraction.shape)
 
     # plot(image)
-    # plot(image, image_points)
-    # plot(image, image_points, image_box)
+    # plot(image, image_landmarks)
+    # plot(image, image_landmarks, image_box)
     # plot(extraction)
-    # plot(extraction, extraction_points)
-    plot(output, output_points)
+    # plot(extraction, extraction_landmarks)
+    plot(output, output_landmarks)
 
 
 def _load_pts_file(file_path: Path) -> np.ndarray:
@@ -84,31 +84,31 @@ def _load_pts_file(file_path: Path) -> np.ndarray:
         lines = file.readlines()
 
     assert lines[0].strip().startswith('version: 1'), str(file_path)
-    assert lines[1] == f'n_points: {constants.DATASET_300VW_N_POINTS}\n', str(file_path)
+    assert lines[1] == f'n_points: {constants.DATASET_300VW_N_LANDMARKS}\n', str(file_path)
 
     lines = [l.strip() for l in lines]
     # remove
     # version: 1
-    # n_points: 68
+    # n_landmarks: 68
     # {
     lines = lines[3:]
     # remove
     # }
     lines = lines[:-1]
-    points = [[float(x) for x in p.split()] for p in lines]
-    points = np.asarray(points)
-    assert points.shape == (constants.DATASET_300VW_N_POINTS, 2)
-    return points
+    landmarks = [[float(x) for x in p.split()] for p in lines]
+    landmarks = np.asarray(landmarks)
+    assert landmarks.shape == (constants.DATASET_300VW_N_LANDMARKS, 2)
+    return landmarks
 
 
-def _points_to_box(
-    points: np.ndarray, image_size: Tuple[int, int, int]
+def _landmarks_to_box(
+    landmarks: np.ndarray, image_size: Tuple[int, int, int]
 ) -> Tuple[int, int, int, int]:
     x1, y1, x2, y2 = [
-        points[:, 0].min(),
-        points[:, 1].min(),
-        points[:, 0].max(),
-        points[:, 1].max(),
+        landmarks[:, 0].min(),
+        landmarks[:, 1].min(),
+        landmarks[:, 0].max(),
+        landmarks[:, 1].max(),
     ]
 
     x1, y1 = [t - constants.DATASET_300VW_PADDING for t in (x1, y1)]
@@ -142,14 +142,14 @@ def _extract(image: np.ndarray, box: Tuple[float, float, float, float]) -> np.nd
     return extraction
 
 
-def _offset_points(
-    points: np.ndarray, box: Tuple[float, float, float, float]
+def _offset_landmarks(
+    landmarks: np.ndarray, box: Tuple[float, float, float, float]
 ) -> np.ndarray:
     x1, y1, x2, y2 = box
-    points = copy.copy(points)
-    points[:, 0] -= x1
-    points[:, 1] -= y1
-    return points
+    landmarks = copy.copy(landmarks)
+    landmarks[:, 0] -= x1
+    landmarks[:, 1] -= y1
+    return landmarks
 
 
 def _rescale_image(image: np.ndarray) -> np.ndarray:
@@ -163,16 +163,16 @@ def _rescale_image(image: np.ndarray) -> np.ndarray:
     return image
 
 
-def _rescale_points(
-    points: np.ndarray, image_shape: Tuple[int, int, int]
+def _rescale_landmarks(
+    landmarks: np.ndarray, image_shape: Tuple[int, int, int]
 ) -> np.ndarray:
     height, width, n_channels = image_shape
-    points = copy.copy(points)
+    landmarks = copy.copy(landmarks)
     height_factor = 1 / height * constants.IMSIZE
     width_factor = 1 / width * constants.IMSIZE
-    points[:, 0] *= width_factor
-    points[:, 1] *= height_factor
-    return points
+    landmarks[:, 0] *= width_factor
+    landmarks[:, 1] *= height_factor
+    return landmarks
 
 
 def process_temp_folder(all_videos: List[Path]) -> None:
@@ -221,11 +221,11 @@ def process_temp_folder(all_videos: List[Path]) -> None:
                 / f'{annotation_input_path.stem}.{constants.DATASET_300VW_IMAGES_TEMP_EXTENSION}'
             )
             image = cv2.imread(str(frame_input_path))
-            image_points = _load_pts_file(annotation_input_path)
-            image_box = _points_to_box(image_points, image.shape)
+            image_landmarks = _load_pts_file(annotation_input_path)
+            image_box = _landmarks_to_box(image_landmarks, image.shape)
 
             extraction = _extract(image, image_box)
-            extraction_points = _offset_points(image_points, image_box)
+            extraction_landmarks = _offset_landmarks(image_landmarks, image_box)
 
             if not frame_output_path.exists():
                 output = _rescale_image(extraction)
@@ -239,8 +239,8 @@ def process_temp_folder(all_videos: List[Path]) -> None:
                 )
 
             if not annotation_output_path.exists():
-                output_points = _rescale_points(extraction_points, extraction.shape)
-                np.savetxt(str(annotation_output_path), output_points)
+                output_landmarks = _rescale_landmarks(extraction_landmarks, extraction.shape)
+                np.savetxt(str(annotation_output_path), output_landmarks)
 
 
 def main() -> None:
