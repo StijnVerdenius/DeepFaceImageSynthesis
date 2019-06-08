@@ -87,6 +87,6 @@ if __name__ == '__main__':
     testinput = torch.rand((20, 3, 28, 28))
     testinput_2 = torch.rand((20, 3, 28, 28))
 
-    bana = z.forward(testinput, testinput_2)
+    bana = z.forward(testinput, testinput_2)[0]
 
     print(bana.shape, bana)

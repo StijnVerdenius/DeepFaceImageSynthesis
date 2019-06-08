@@ -9,6 +9,8 @@ from models.losses.NonSaturatingGLoss import NonSaturatingGLoss
 from models.losses.ConsistencyLoss import ConsistencyLoss
 from models.losses.PixelLoss import PixelLoss
 
+from typing import Tuple, Dict
+
 
 class TotalGeneratorLoss(GeneralLoss):
 

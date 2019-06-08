@@ -19,10 +19,10 @@ export PYTHONIOENCODING=utf8
 
 echo "copy directory"
 mkdir $TMPDIR/lgpu0386
-cp -r $HOME/Deep_Learning $TMPDIR/lgpu0386
+cp -r $HOME/DeepFakes $TMPDIR/lgpu0386
 
 echo "cd inwards"
-cd $TMPDIR/lgpu0386/Deep_Learning/assignment_3/code/
+cd $TMPDIR/lgpu0386/DeepFakes
 
 echo "activate env"
 source activate dl
@@ -30,10 +30,9 @@ source activate dl
 echo " ------ Job is started ------- "
 echo " "
 
-srun python3 a3_gan_template.py
+srun python3 main.py
 
-cp -r $TMPDIR/lgpu0386/Deep_Learning/assignment_3/code/results $HOME/Deep_Learning/assignment_3
-cp -r $TMPDIR/lgpu0386/Deep_Learning/assignment_3/code/images $HOME/Deep_Learning/assignment_3
+cp -r $TMPDIR/lgpu0386/DeepFakes/results $HOME/DeepFakes/results
 
 echo " "
 echo " ------ Job is finished -------"

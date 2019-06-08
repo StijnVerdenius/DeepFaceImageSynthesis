@@ -35,7 +35,7 @@ class MetaTrain(TrainingProcess):
     def new_method_example(self):
         print(self.costum_field)  # example new method
 
-    def batch_iteration(self, batch: torch.Tensor, landmarks: torch.Tensor, train=True):
+    def batch_iteration(self, image_1: torch.Tensor, landmarks_1: torch.Tensor, train=True):
         # example overriding parent method
 
         return 1, 1, None, None, None

@@ -14,6 +14,7 @@ from torch.optim import Optimizer
 import numpy as np
 from datetime import datetime
 
+
 class TrainingProcess:
 
     def __init__(self,
@@ -73,7 +74,14 @@ class TrainingProcess:
         assert_non_empty(dataloader_train)
         assert_non_empty(dataloader_validation)
 
-    def batch_iteration(self, batch: torch.Tensor, landmarks: torch.Tensor, train=True) \
+    def batch_iteration(self,
+                        image_1: torch.Tensor,
+                        image_2: torch.Tensor,
+                        image_3: torch.Tensor,
+                        landmarks_1: torch.Tensor,
+                        landmarks_2: torch.Tensor,
+                        landmarks_3: torch.Tensor,
+                        train=True) \
             -> Tuple[Dict, Dict, torch.Tensor, torch.Tensor, torch.Tensor]:
         """
          inner loop of epoch iteration
@@ -81,9 +89,14 @@ class TrainingProcess:
         """
 
         # prepare input
-        batch.to(DEVICE)
-        landmarks.to(DEVICE)
-        landmarked_batch = torch.cat((batch, landmarks), dim=CHANNEL_DIM)
+        image_1.to(DEVICE)
+        image_2.to(DEVICE)
+        # image_3.to(DEVICE)
+        landmarks_1.to(DEVICE)
+        landmarks_2.to(DEVICE)
+        # landmarks_3.to(DEVICE)
+        target_landmarked_batch = torch.cat((image_1, landmarks_2), dim=CHANNEL_DIM)
+        truth_landmarked_batch = torch.cat((image_2, landmarks_2), dim=CHANNEL_DIM)
 
         if (train):
             # set generator to train and discriminator to evaluation
@@ -91,8 +104,8 @@ class TrainingProcess:
             self.trainer_dis.prepare_evaluation()
 
         # forward pass generator
-        fake = self.generator.forward(landmarked_batch)
-        landmarked_fake = torch.cat((fake, landmarks), dim=CHANNEL_DIM)
+        fake = self.generator.forward(target_landmarked_batch)
+        landmarked_fake = torch.cat((fake, landmarks_2), dim=CHANNEL_DIM)
         loss_gen, loss_gen_saving = self.loss_gen.forward(landmarked_fake, self.discriminator)
 
         if (train):
@@ -104,7 +117,7 @@ class TrainingProcess:
             self.trainer_gen.prepare_evaluation()
 
         # combine real and fake
-        combined_set, labels = combine_real_and_fake(self.shuffle_indices, landmarked_batch.detach(),
+        combined_set, labels = combine_real_and_fake(self.shuffle_indices, truth_landmarked_batch.detach(),
                                                      landmarked_fake.detach())
 
         # forward pass discriminator
@@ -129,13 +142,14 @@ class TrainingProcess:
 
         progress = []
 
-        for i, batch in enumerate(self.dataloader_train):  # todo: how to split the data @ Klaus
+        for i, batch in enumerate(self.dataloader_train):
 
-            images = batch["image"]
-            landmarks = batch["landmarks"]
+            image_1, image_2, image_3 = batch["image"]
+            landmarks_1, landmarks_2, landmarks_3 = batch["landmarks"]
 
             # run batch iteration
-            loss_gen, loss_dis, fake_images, _, _ = self.batch_iteration(images, landmarks)
+            loss_gen, loss_dis, fake_images, _, _ = self.batch_iteration(image_1, image_2, image_3, landmarks_1,
+                                                                         landmarks_2, landmarks_3)
 
             # assertions
             assert_type(dict, loss_gen)
@@ -176,9 +190,16 @@ class TrainingProcess:
         total_loss_generator = []
         total_accuracy = []
 
-        for i, (batch, landmarks) in enumerate(self.dataloader_validation):  # todo: how to split? @klaus
+        for i, batch in enumerate(self.dataloader_validation):  # todo: how to split? @klaus
+
+            # extract data
+            image_1, image_2, image_3 = batch["image"]
+            landmarks_1, landmarks_2, landmarks_3 = batch["landmarks"]
+
             # run batch iteration
-            loss_gen, loss_dis, _, predictions, actual_labels = self.batch_iteration(batch, landmarks, train=False)
+            loss_gen, loss_dis, _, predictions, actual_labels = self.batch_iteration(image_1, image_2, image_3,
+                                                                                     landmarks_1, landmarks_2,
+                                                                                     landmarks_3, train=False)
 
             # also get accuracy
             accuracy = calculate_accuracy(predictions, actual_labels)
