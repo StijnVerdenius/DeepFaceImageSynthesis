@@ -20,6 +20,7 @@ import torch
 from data.Dataset300VW import X300VWDataset
 import numpy as np
 
+torch.backends.cudnn.benchmark = True
 
 def dummy_batch(batch_size, channels):
     return np.random.normal(0, 1, (batch_size, channels, IMSIZE, IMSIZE))
@@ -155,7 +156,7 @@ def parse():
     # model arguments
     parser.add_argument('--embedding_size', default=2, type=int, help='dimensionality of latent embedding space')
     parser.add_argument('--embedder', default="EmptyEmbedder", type=str, help="name of objectclass")
-    parser.add_argument('--discriminator', default="PatchDiscriminator", type=str, help="name of objectclass")
+    parser.add_argument('--discriminator', default="PixelDiscriminator", type=str, help="name of objectclass")
     parser.add_argument('--generator', default="ResnetGenerator", type=str, help="name of objectclass")
 
     # loss arguments
