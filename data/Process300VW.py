@@ -3,34 +3,18 @@ from pathlib import Path
 from typing import List, Tuple
 
 import cv2
-import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib import patches
 from tqdm import tqdm
 
 from utils import constants, personal_constants
 
-OUTER_LOOP_DESCRIPTION = 'video'
-INNER_LOOP_DESCRIPTION = 'frame'
-
-
-def count_images(all_videos: List[Path]) -> List[int]:
-    n_images_per_video = [
-        len(
-            list(
-                (video_path / constants.DATASET_300VW_ANNOTATIONS_INPUT_FOLDER).glob(
-                    f'*.{constants.DATASET_300VW_ANNOTATIONS_INPUT_EXTENSION}'
-                )
-            )
-        )
-        for video_path in tqdm(all_videos, desc=OUTER_LOOP_DESCRIPTION)
-    ]
-    return n_images_per_video
+from . import all_video_paths, count_images, plot
 
 
 def extract_frames(all_videos: List[Path], n_images_per_video: List[int]) -> None:
     for video_input_path, n_images_in_video in tqdm(
-        list(zip(all_videos, n_images_per_video)), desc=OUTER_LOOP_DESCRIPTION
+        list(zip(all_videos, n_images_per_video)),
+        desc=constants.DATASET_300VW_OUTER_LOOP_DESCRIPTION,
     ):
         frames_output_dir = (
             personal_constants.DATASET_300VW_TEMP_PATH
@@ -50,9 +34,9 @@ def extract_frames(all_videos: List[Path], n_images_per_video: List[int]) -> Non
         counter = 1
         success, image = video.read()
         while success == 1:
-            frame_output_path = (
-                frames_output_dir
-                / f'{counter:06d}.{constants.DATASET_300VW_IMAGES_OUTPUT_EXTENSION}'
+            frame_output_path = frames_output_dir / (
+                f'{counter:{constants.DATASET_300VW_NUMBER_FORMAT}}'
+                + f'.{constants.DATASET_300VW_IMAGES_OUTPUT_EXTENSION}'
             )
             cv2.imwrite(
                 str(frame_output_path),
@@ -87,39 +71,12 @@ def visualize(video_id: str, frame_id: str) -> None:
     output = _rescale_image(extraction)
     output_points = _rescale_points(extraction_points, extraction.shape)
 
-    # _plot(image)
-    # _plot(image, image_points)
-    # _plot(image, image_points, image_box)
-    # _plot(extraction)
-    # _plot(extraction, extraction_points)
-    _plot(output, output_points)
-
-
-def _plot(
-    image, points: np.ndarray = None, box: Tuple[int, int, int, int] = None
-) -> None:
-    plt.figure()
-    plt.imshow(image)
-    plt.axis('off')
-    plt.ion()
-    plt.show()
-
-    if points is not None:
-        cmap = plt.get_cmap('gnuplot')
-        colors = [cmap(i) for i in np.linspace(0, 1, len(points))]
-        for index, c in zip(range(len(points)), colors):
-            plt.plot([points[index, 0]], [points[index, 1]], 'o', color=c, markersize=1)
-
-    if box is not None:
-        x1, y1, x2, y2 = box
-        rect = patches.Rectangle(
-            (x1, y1), x2 - x1, y2 - y1, linewidth=1, edgecolor='r', facecolor='none'
-        )
-        ax = plt.gca()
-        ax.add_patch(rect)
-
-    plt.draw()
-    plt.pause(0.001)
+    # plot(image)
+    # plot(image, image_points)
+    # plot(image, image_points, image_box)
+    # plot(extraction)
+    # plot(extraction, extraction_points)
+    plot(output, output_points)
 
 
 def _load_pts_file(file_path: Path) -> np.ndarray:
@@ -219,7 +176,9 @@ def _rescale_points(
 
 
 def process_temp_folder(all_videos: List[Path]) -> None:
-    for video_input_path in tqdm(all_videos, desc=OUTER_LOOP_DESCRIPTION):
+    for video_input_path in tqdm(
+        all_videos, desc=constants.DATASET_300VW_OUTER_LOOP_DESCRIPTION
+    ):
         video_output_path = (
             personal_constants.DATASET_300VW_OUTPUT_PATH / video_input_path.stem
         )
@@ -241,7 +200,7 @@ def process_temp_folder(all_videos: List[Path]) -> None:
                     ).glob(f'*.{constants.DATASET_300VW_ANNOTATIONS_INPUT_EXTENSION}')
                 )
             ),
-            desc=INNER_LOOP_DESCRIPTION,
+            desc=constants.DATASET_300VW_INNER_LOOP_DESCRIPTION,
             leave=False,
         ):
             frame_output_path = (
@@ -285,16 +244,18 @@ def process_temp_folder(all_videos: List[Path]) -> None:
 
 
 def main() -> None:
-    all_videos = sorted(
-        [p for p in personal_constants.DATASET_300VW_RAW_PATH.iterdir() if p.is_dir()]
-    )
+    all_videos = all_video_paths(personal_constants.DATASET_300VW_RAW_PATH)
     assert len(all_videos) == constants.DATASET_300VW_N_VIDEOS
     print(f'n videos: {len(all_videos)}')
     all_videos = all_videos[: constants.DATASET_300VW_LIMIT_N_VIDEOS]
     print(f'Taking first n videos: {len(all_videos)}')
 
     print('Counting images...')
-    n_images_per_video = count_images(all_videos)
+    n_images_per_video = count_images(
+        all_videos,
+        constants.DATASET_300VW_ANNOTATIONS_INPUT_FOLDER,
+        constants.DATASET_300VW_ANNOTATIONS_INPUT_EXTENSION,
+    )
     n_images = sum(n_images_per_video)
     print(f'n images: {n_images}')
 
