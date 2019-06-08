@@ -50,7 +50,6 @@ class X300VWDataset(Dataset):
         frame_indices = [fi for fi in frame_indices if fi != frame_index]
         frame_indices = [frame_index] + frame_indices[: self._n_images_per_sample - 1]
         assert len(frame_indices) == self._n_images_per_sample
-        print(frame_indices)
 
         samples = [
             (self._load_image(video_index, fi), self._load_landmarks(video_index, fi))
