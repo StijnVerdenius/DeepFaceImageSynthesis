@@ -11,7 +11,7 @@
 
 #Loading modules
 module unload cuDNN
-module load Python/3.6.3-foss-2017b
+#module load Python/3.6.3-foss-2017b
 module load cuDNN/7.0.5-CUDA-9.0.176
 module load NCCL/2.0.5-CUDA-9.0.176
 
