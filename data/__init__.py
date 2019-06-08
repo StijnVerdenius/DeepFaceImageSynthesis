@@ -31,8 +31,6 @@ def plot(
     plt.figure()
     plt.imshow(image)
     plt.axis('off')
-    plt.ion()
-    plt.show()
 
     if landmarks is not None:
         cmap = plt.get_cmap('gnuplot')
@@ -52,3 +50,4 @@ def plot(
 
     plt.draw()
     plt.pause(0.001)
+    plt.show()

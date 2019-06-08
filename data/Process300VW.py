@@ -6,9 +6,8 @@ import cv2
 import numpy as np
 from tqdm import tqdm
 
+from data import all_video_paths, count_images, plot
 from utils import constants, personal_constants
-
-from . import all_video_paths, count_images, plot
 
 
 def extract_frames(all_videos: List[Path], n_images_per_video: List[int]) -> None:
@@ -84,7 +83,9 @@ def _load_pts_file(file_path: Path) -> np.ndarray:
         lines = file.readlines()
 
     assert lines[0].strip().startswith('version: 1'), str(file_path)
-    assert lines[1] == f'n_points: {constants.DATASET_300VW_N_LANDMARKS}\n', str(file_path)
+    assert lines[1] == f'n_points: {constants.DATASET_300VW_N_LANDMARKS}\n', str(
+        file_path
+    )
 
     lines = [l.strip() for l in lines]
     # remove
@@ -239,7 +240,9 @@ def process_temp_folder(all_videos: List[Path]) -> None:
                 )
 
             if not annotation_output_path.exists():
-                output_landmarks = _rescale_landmarks(extraction_landmarks, extraction.shape)
+                output_landmarks = _rescale_landmarks(
+                    extraction_landmarks, extraction.shape
+                )
                 np.savetxt(str(annotation_output_path), output_landmarks)
 
 
@@ -259,9 +262,9 @@ def main() -> None:
     n_images = sum(n_images_per_video)
     print(f'n images: {n_images}')
 
-    # print('Visualizing extraction process...')
-    # visualize('001', '000001')
-    # visualize('007', '000020')
+    print('Visualizing extraction process...')
+    visualize('001', '000001')
+    visualize('007', '000020')
 
     print('Extracting frames from videos...')
     extract_frames(all_videos, n_images_per_video)
@@ -271,7 +274,7 @@ def main() -> None:
 
     print('Done.')
     # use input because the plots will disappear once the program exits
-    # input('Press [enter] to exit.')
+    input('Press [enter] to exit.')
 
 
 if __name__ == '__main__':
