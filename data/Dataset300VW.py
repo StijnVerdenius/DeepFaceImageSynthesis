@@ -25,6 +25,17 @@ class X300VWDataset(Dataset):
         self._cumulative_n_images.append(float('inf'))
         self._n_images_per_sample = 3
 
+        self._window_size_gaussian = 7
+        assert self._window_size_gaussian > 0 and self._window_size_gaussian % 2 == 1
+        self._window_radius = self._window_size_gaussian // 2
+        x, y = np.meshgrid(
+            np.linspace(-1, 1, self._window_size_gaussian),
+            np.linspace(-1, 1, self._window_size_gaussian),
+        )
+        d = np.sqrt(x * x + y * y)
+        mu, sigma = 0.0, 1 / 3
+        self._gaussian = np.exp(-((d - mu) ** 2 / (2.0 * sigma ** 2)))
+
         self._transform = transform
 
     def __len__(self):
@@ -98,7 +109,37 @@ class X300VWDataset(Dataset):
         )
         if not annotation_input_path.exists():
             raise Exception(f'Landmarks file does not exist: {annotation_input_path}')
-        landmarks = np.loadtxt(annotation_input_path)
+        single_dim_landmarks = np.loadtxt(annotation_input_path)
+
+        landmarks = np.zeros(
+            (
+                constants.DATASET_300VW_N_LANDMARKS,
+                constants.IMSIZE + self._window_size_gaussian - 1,
+                constants.IMSIZE + self._window_size_gaussian - 1,
+            )
+        )
+        assert single_dim_landmarks.shape == (constants.DATASET_300VW_N_LANDMARKS, 2)
+        for landmark_index in range(single_dim_landmarks.shape[0]):
+            # because landmarks is zero padded, the start indices are the actual landmark centers
+            start_indices = single_dim_landmarks[landmark_index, :]
+            start_indices = np.round(start_indices).astype(int)
+            end_indices = start_indices + self._window_size_gaussian
+            if np.any(start_indices < 0) or np.any(
+                end_indices >= constants.IMSIZE + self._window_size_gaussian - 1
+            ):
+                continue
+            # landmarks[0] is x, landmarks[1] is y
+            landmarks[
+                landmark_index,
+                start_indices[1] : end_indices[1],
+                start_indices[0] : end_indices[0],
+            ] = np.copy(self._gaussian)
+        landmarks = landmarks[
+            :,
+            self._window_radius : constants.IMSIZE + self._window_radius,
+            self._window_radius : constants.IMSIZE + self._window_radius,
+        ]
+
         return landmarks
 
 
@@ -116,12 +157,37 @@ def _test():
                 constants.IMSIZE,
                 constants.IMSIZE,
             )
-            assert landmarks.shape == (constants.DATASET_300VW_N_LANDMARKS, 2)
+            assert landmarks.shape == (
+                constants.DATASET_300VW_N_LANDMARKS,
+                constants.IMSIZE,
+                constants.IMSIZE,
+            )
             print((batch_index, sample_index), image.shape, landmarks.shape)
-            image = ((image + 1) / 2) * 255
             image = np.moveaxis(image, 0, -1)
+            image = ((image + 1) / 2) * 255
+
+            overlay_alpha = 1.0
+
+            overlay_color = 'r'
+            if overlay_color == 'r':
+                color_index = 2
+            elif overlay_color == 'g':
+                color_index = 1
+            elif overlay_color == 'b':
+                color_index = 0
+
+            mask = np.zeros(image.shape, dtype=float)
+            mask[..., color_index] = 255
+            output = image
+            for index in range(landmarks.shape[0]):
+                output += overlay_alpha * mask * landmarks[index, :, :, np.newaxis]
+
+            output[output > 255] = 255
+            output = output.astype('uint8')
+
             image = image.astype('uint8')
-            plot(image, landmarks)
+            plot(image, None)
+            plot(output, None)
     input('Press [enter] to exit.')
 
 
