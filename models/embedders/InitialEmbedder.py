@@ -1,12 +1,13 @@
 from models.embedders.GeneralEmbedder import GeneralEmbedder
 import torch.nn as nn
+import torch
 
 
 class InitialEmbedder(GeneralEmbedder):
     """ Takes a video frame and associated landmark image and maps these to an N-dimensional vector
     that is invariant to the pose and mimics in a particular frame"""
 
-    def __init__(self, n_channels_in=784, n_hidden=64, n_channels_out=1, n_layers=3, device="cpu", **kwargs): # CHECK DEFAULT PARAMETERS!!!!! + Arch. is the same as PatchDiscriminator except output block
+    def __init__(self, n_channels_in: int=784, n_hidden: int=64, n_channels_out: int=1, n_layers: int=3, device: str="cpu", **kwargs): # CHECK DEFAULT PARAMETERS!!!!! + Arch. is the same as PatchDiscriminator except output block
         """
         n_channels_in (int)      - no. of channels in input images
         n_hidden (int)     - no. of filters in the last hidden layer
@@ -53,6 +54,7 @@ class InitialEmbedder(GeneralEmbedder):
 
 
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor)\
+            -> torch.Tensor:
 
         return self.model(x)

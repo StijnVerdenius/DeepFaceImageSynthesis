@@ -7,7 +7,7 @@ from utils.training_helpers import CHANNEL_DIM, L2_distance, L1_distance
 
 class TripleConsistencyLoss(GeneralLoss):
 
-    def __init__(self, weight, **kwargs):
+    def __init__(self, weight:float, **kwargs):
         super(TripleConsistencyLoss, self).__init__(weight=weight)
 
     def custom_forward(self,

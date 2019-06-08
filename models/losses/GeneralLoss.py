@@ -3,7 +3,7 @@ import torch.nn as nn
 
 class GeneralLoss(nn.Module):
 
-    def __init__(self, weight=1):
+    def __init__(self, weight:float=1):
         super(GeneralLoss, self).__init__()
         self.weight = weight  # hyperparameter
 

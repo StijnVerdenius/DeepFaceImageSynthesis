@@ -9,8 +9,8 @@ class ResnetGenerator(GeneralGenerator):
     """ Defines the pix2pix (CycleGAN) Generator"""
 
     # CHECK DEFAULT VALUES!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    def __init__(self, n_channels_in=71, n_channels_out=3, n_hidden=64, norm_layer=nn.InstanceNorm2d, use_dropout=False,
-                 n_downsampling=2, n_blocks=6, padding_type='reflect', device="cpu", **kwargs):
+    def __init__(self, n_channels_in: int=71, n_channels_out: int=3, n_hidden: int=64, norm_layer:nn.Module=nn.InstanceNorm2d, use_dropout: bool=False,
+                 n_downsampling: int=2, n_blocks: int=6, padding_type: str='reflect', device: str="cpu", **kwargs):
         """
         n_channels_in (int)      - no. of channels in input images
         n_channels_out (int)     - no. number of channels in output images
@@ -80,7 +80,8 @@ class ResnetGenerator(GeneralGenerator):
         # Save model
         self.model = nn.Sequential(*layers)
 
-    def forward(self, x):
+    def forward(self, x)\
+            -> torch.Tensor:
 
         return self.model(x)
 
@@ -88,7 +89,7 @@ class ResnetGenerator(GeneralGenerator):
 class ResidualBlock(nn.Module):
     """ Defines a Residual block for the bottleneck of the pix2pix Generator"""
 
-    def __init__(self, n_channels, padding_type, norm_layer=nn.InstanceNorm2d, use_dropout=False, use_bias=True):
+    def __init__(self, n_channels: int, padding_type: str, norm_layer: nn.Module=nn.InstanceNorm2d, use_dropout: bool=False, use_bias: bool=True):
         """
         n_channels         - no. of input and output channels
         padding_type (str) - type of padding: reflect, replicate, or zero
@@ -133,7 +134,8 @@ class ResidualBlock(nn.Module):
 
         self.resBlock = nn.Sequential(*residual)
 
-    def forward(self, x):
+    def forward(self, x)\
+            -> torch.Tensor:
         residual = self.resBlock(x)
         return x + residual  # add skip connections
 

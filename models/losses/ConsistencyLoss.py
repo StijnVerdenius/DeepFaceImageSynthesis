@@ -1,4 +1,5 @@
 from models.losses.GeneralLoss import GeneralLoss
+from models.generators.GeneralGenerator import GeneralGenerator
 import torch.nn as nn
 import torch
 from models.generators.ResnetGenerator import ResnetGenerator as G
@@ -8,10 +9,12 @@ from utils.training_helpers import L1_distance
 
 class ConsistencyLoss(GeneralLoss):
 
-    def __init__(self, weight=1, **kwargs):
+    def __init__(self, weight: float=1, **kwargs):
         super(ConsistencyLoss, self).__init__(weight)
 
-    def custom_forward(self, image, image_ls, target_ls, generator):
+    def custom_forward(self, image: torch.Tensor, image_ls: torch.Tensor, target_ls: torch.Tensor, generator: GeneralGenerator)\
+            -> torch.Tensor:
+
         # Concatanate input image with target landmark channels
         input = torch.cat((image, target_ls), 1)
 
@@ -40,7 +43,7 @@ if __name__ == '__main__':
     G = G()
     get_loss = ConsistencyLoss()
 
-    loss = get_loss.forward(dummy_batch, dummy_ls1, dummy_ls2, G)
+    loss = get_loss.forward(dummy_batch, dummy_ls1, dummy_ls2, G)[0]
     loss.backward()
 
     print(loss.item())
