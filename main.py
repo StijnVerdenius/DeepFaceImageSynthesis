@@ -30,7 +30,7 @@ def load_data(keyword: str, batch_size: int) -> DataLoader:  # todo @ klaus
         data = DataLoader(X300VWDataset(), shuffle=True, batch_size=batch_size)
     elif (keyword == "debug"):
         data = [(dummy_batch(batch_size, INPUT_CHANNELS), dummy_batch(batch_size, INPUT_LANDMARK_CHANNELS)) for _ in
-                range(1)]
+                range(5)]
     else:
         raise Exception(f"{keyword} is not a valid dataset")
 
