@@ -14,6 +14,8 @@ from torch.optim import Optimizer
 import numpy as np
 from datetime import datetime
 import sys
+import os
+
 
 class TrainingProcess:
 
@@ -58,6 +60,8 @@ class TrainingProcess:
         self.combined_batch_size = 2 * arguments.batch_size
         self.shuffle_indices = list(range(int(self.combined_batch_size)))
 
+        self.labels = None
+
         # assert type
         assert_type(GeneralGenerator, generator)
         assert_type(GeneralEmbedder, embedder)
@@ -78,7 +82,6 @@ class TrainingProcess:
                         batch_1: torch.Tensor,
                         batch_2: torch.Tensor,
                         batch_3: torch.Tensor,
-
                         train=True) \
             -> Tuple[Dict, Dict, torch.Tensor, torch.Tensor, torch.Tensor]:
         """
@@ -118,8 +121,11 @@ class TrainingProcess:
             self.trainer_gen.prepare_evaluation()
 
         # combine real and fake
+        if (self.labels is None):
+            self.labels = torch.cat((torch.zeros(fake.shape[0]).to(DEVICE), torch.ones(image_1.shape[0]).to(DEVICE)))
+
         combined_set, labels = combine_real_and_fake(self.shuffle_indices, truth_landmarked_batch.detach(),
-                                                     landmarked_fake.detach())
+                                                     landmarked_fake.detach(), self.labels)
 
         # forward pass discriminator
         predictions = self.discriminator.forward(combined_set.detach())
@@ -129,9 +135,21 @@ class TrainingProcess:
             # backward discriminator
             self.trainer_dis.do_backward(loss_dis)
 
-        fake.detach()
-        predictions.detach()
-        labels.detach()
+        # detaching
+        fake = fake.detach().cpu()
+        predictions = predictions.detach().cpu()
+        labels = labels.detach().cpu()
+        image_1 = image_1.detach().cpu()
+        image_2 = image_2.detach().cpu()
+        image_3 = image_3.detach().cpu()
+        landmarks_1 = landmarks_1.detach().cpu()
+        landmarks_2 = landmarks_2.detach().cpu()
+        landmarks_3 = landmarks_3.detach().cpu()
+        loss_gen = loss_gen.detach().cpu()
+        loss_dis = loss_dis.detach().cpu()
+        target_landmarked_batch = target_landmarked_batch.detach().cpu()
+        truth_landmarked_batch = truth_landmarked_batch.detach().cpu()
+        landmarked_fake = landmarked_fake.detach().cpu()
 
         # print flush
         sys.stdout.flush()
@@ -179,6 +197,9 @@ class TrainingProcess:
             if (batches_passed % self.arguments.plot_freq == 0):
                 plot_some_pictures(self.arguments.feedback, fake_images, batches_passed)
 
+            # empty cache
+            torch.cuda.empty_cache()
+
         return progress
 
     def validate(self) -> Tuple[float, float, float]:
@@ -214,6 +235,9 @@ class TrainingProcess:
             total_loss_generator.append(loss_gen_actual)
             total_loss_discriminator.append(loss_dis_actual)
 
+            # empty cache
+            torch.cuda.empty_cache()
+
         return mean(total_loss_generator), mean(total_loss_discriminator), mean(total_accuracy)
 
     def log(self, loss_gen: float, loss_dis: float, loss_gen_dict: Dict, loss_dis_dict: Dict,
@@ -228,7 +252,7 @@ class TrainingProcess:
         self.trainer_gen.prepare_evaluation()
 
         # validate on validationset
-        loss_gen_validate, loss_dis_validate, _ = 0, 0, 0  # self.validate()
+        loss_gen_validate, loss_dis_validate, _ = 0, 0, 0  # self.validate() todo: do we want to restore this?
 
         stat = Statistic(loss_gen_train=loss_gen,
                          loss_dis_train=loss_dis,

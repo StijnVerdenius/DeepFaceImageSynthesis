@@ -1,3 +1,8 @@
+# torch debug
+import os
+os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
+
+
 from torch.utils.data import DataLoader
 
 from models.discriminators.GeneralDiscriminator import GeneralDiscriminator

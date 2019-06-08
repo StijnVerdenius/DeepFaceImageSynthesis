@@ -35,6 +35,9 @@ def calculate_accuracy(predictions, targets):
     true_positives = (actual_predictions == (targets > 0.5)).type(torch.DoubleTensor)
     accuracy = (torch.mean(true_positives))
 
+    actual_predictions.detach()
+    true_positives.detach()
+
     return accuracy.item()
 
 
@@ -42,7 +45,7 @@ def unpack_batch(batch: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
     return batch["image"], batch["landmarks"]
 
 
-def combine_real_and_fake(indices, real: torch.Tensor, fake: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+def combine_real_and_fake(indices, real: torch.Tensor, fake: torch.Tensor, labels: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
     """
     Combines a set of real and fake images along the batch dimension
     Also generates targets.
@@ -57,8 +60,9 @@ def combine_real_and_fake(indices, real: torch.Tensor, fake: torch.Tensor) -> Tu
     composite = torch.cat((fake, real), dim=0).index_select(0, shuffle_indices_local)
 
     # combine real and fake targets
-    labels = (torch.zeros(fake.shape[0]).to(DEVICE), torch.ones(real.shape[0]).to(DEVICE))
-    ground_truth = torch.cat(labels, dim=0).index_select(0, shuffle_indices_local).to(DEVICE)
+    ground_truth = labels.index_select(0, shuffle_indices_local).to(DEVICE)
+
+    shuffle_indices_local.detach()
 
     return composite, ground_truth
 
