@@ -38,6 +38,10 @@ def calculate_accuracy(predictions, targets):
     return accuracy.item()
 
 
+def unpack_batch(batch: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    return batch["image"], batch["landmarks"]
+
+
 def combine_real_and_fake(indices, real: torch.Tensor, fake: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
     """
     Combines a set of real and fake images along the batch dimension

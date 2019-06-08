@@ -75,12 +75,10 @@ class TrainingProcess:
         assert_non_empty(dataloader_validation)
 
     def batch_iteration(self,
-                        image_1: torch.Tensor,
-                        image_2: torch.Tensor,
-                        image_3: torch.Tensor,
-                        landmarks_1: torch.Tensor,
-                        landmarks_2: torch.Tensor,
-                        landmarks_3: torch.Tensor,
+                        batch_1: torch.Tensor,
+                        batch_2: torch.Tensor,
+                        batch_3: torch.Tensor,
+
                         train=True) \
             -> Tuple[Dict, Dict, torch.Tensor, torch.Tensor, torch.Tensor]:
         """
@@ -89,12 +87,15 @@ class TrainingProcess:
         """
 
         # prepare input
+        image_1, landmarks_1 = unpack_batch(batch_1)
+        image_2, landmarks_2 = unpack_batch(batch_2)
+        image_3, landmarks_3 = unpack_batch(batch_1)
         image_1.to(DEVICE)
         image_2.to(DEVICE)
-        # image_3.to(DEVICE)
+        image_3.to(DEVICE)
         landmarks_1.to(DEVICE)
         landmarks_2.to(DEVICE)
-        # landmarks_3.to(DEVICE)
+        landmarks_3.to(DEVICE)
         target_landmarked_batch = torch.cat((image_1, landmarks_2), dim=CHANNEL_DIM)
         truth_landmarked_batch = torch.cat((image_2, landmarks_2), dim=CHANNEL_DIM)
 
@@ -142,14 +143,10 @@ class TrainingProcess:
 
         progress = []
 
-        for i, batch in enumerate(self.dataloader_train):
-
-            image_1, image_2, image_3 = batch["image"]
-            landmarks_1, landmarks_2, landmarks_3 = batch["landmarks"]
+        for i, (batch_1, batch_2, batch_3) in enumerate(self.dataloader_train):
 
             # run batch iteration
-            loss_gen, loss_dis, fake_images, _, _ = self.batch_iteration(image_1, image_2, image_3, landmarks_1,
-                                                                         landmarks_2, landmarks_3)
+            loss_gen, loss_dis, fake_images, _, _ = self.batch_iteration(batch_1, batch_2, batch_3)
 
             # assertions
             assert_type(dict, loss_gen)
@@ -190,16 +187,11 @@ class TrainingProcess:
         total_loss_generator = []
         total_accuracy = []
 
-        for i, batch in enumerate(self.dataloader_validation):  # todo: how to split? @klaus
-
-            # extract data
-            image_1, image_2, image_3 = batch["image"]
-            landmarks_1, landmarks_2, landmarks_3 = batch["landmarks"]
+        for i, (batch_1, batch_2, batch_3) in enumerate(self.dataloader_validation):
 
             # run batch iteration
-            loss_gen, loss_dis, _, predictions, actual_labels = self.batch_iteration(image_1, image_2, image_3,
-                                                                                     landmarks_1, landmarks_2,
-                                                                                     landmarks_3, train=False)
+            loss_gen, loss_dis, _, predictions, actual_labels = self.batch_iteration(batch_1, batch_2, batch_3,
+                                                                                     train=False)
 
             # also get accuracy
             accuracy = calculate_accuracy(predictions, actual_labels)
