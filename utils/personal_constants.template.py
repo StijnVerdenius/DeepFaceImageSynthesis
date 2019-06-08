@@ -1,6 +1,6 @@
 from pathlib import Path
 
-# please create a copy of this file named 'personal_constants.template.py',
+# please create a copy of this file named 'personal_constants.py',
 # remove the exception below and update the paths.
 # Only DATASET_300VW_OUTPUT_PATH is necessary for training the network.
 # The other two variables are needed for processing the dataset.
