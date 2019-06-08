@@ -55,18 +55,33 @@ class PatchDiscriminator(GeneralDiscriminator):
     def forward(self, x: torch.Tensor)\
             -> torch.Tensor:
 
-        return self.model(x).squeeze()
+        batch_size = x.shape[0]
+
+        return self.model(x).squeeze().view(batch_size, -1).mean(dim=1).squeeze()
 
 
 if __name__ == '__main__':
     # Test if working
 
-    dummy_batch = torch.rand((10, 3, 28, 28))
+    dummy_batch = torch.rand((32, 71, 128, 128))
 
-    D = PatchDiscriminator()
+    D = PatchDiscriminator(n_channels_in=71)
 
     score = D.forward(dummy_batch)
 
     print(D.model[0].weight.grad)
     print(score.shape)
     print(score)
+
+    # Test if working
+
+    dummy_batch = torch.rand((10, 3, 28, 28))
+
+    D = PatchDiscriminator(n_channels_in=3)
+
+    score = D.forward(dummy_batch)
+
+    print(D.model[0].weight.grad)
+    print(score.shape)
+    print(score)
+
