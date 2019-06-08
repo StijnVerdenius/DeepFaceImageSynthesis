@@ -32,7 +32,7 @@ class X300VWDataset(Dataset):
     def __getitem__(self, index: int) -> Dict[str, np.ndarray]:
 
         for video_index, (lower_bound, upper_bound) in enumerate(
-            zip(self._cumulative_n_images, self._cumulative_n_images[1:])
+                zip(self._cumulative_n_images, self._cumulative_n_images[1:])
         ):
             if lower_bound <= index < upper_bound:
                 break
@@ -40,26 +40,28 @@ class X300VWDataset(Dataset):
         # +1 because frames are numerated starting 1
         frame_index = index - lower_bound + 1
         frame_input_path = (
-            self._all_videos[video_index]
-            / constants.DATASET_300VW_IMAGES_OUTPUT_FOLDER
-            / (
-                f'{frame_index:{constants.DATASET_300VW_NUMBER_FORMAT}}'
-                + f'.{constants.DATASET_300VW_IMAGES_OUTPUT_EXTENSION}'
-            )
+                self._all_videos[video_index]
+                / constants.DATASET_300VW_IMAGES_OUTPUT_FOLDER
+                / (
+                        f'{frame_index:{constants.DATASET_300VW_NUMBER_FORMAT}}'
+                        + f'.{constants.DATASET_300VW_IMAGES_OUTPUT_EXTENSION}'
+                )
         )
         image = cv2.imread(str(frame_input_path))
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         image = image.astype(float)
         image = (image / 255) * 2 - 1
+        image = np.moveaxis(image, 2, 0)
+        assert image.shape == (constants.INPUT_CHANNELS, constants.IMSIZE, constants.IMSIZE), f"wrong shape {image.shape}"
         assert -1 <= image.min() <= image.max() <= 1
 
         annotation_input_path = (
-            self._all_videos[video_index]
-            / constants.DATASET_300VW_ANNOTATIONS_OUTPUT_FOLDER
-            / (
-                f'{frame_index:{constants.DATASET_300VW_NUMBER_FORMAT}}'
-                + f'.{constants.DATASET_300VW_ANNOTATIONS_OUTPUT_EXTENSION}'
-            )
+                self._all_videos[video_index]
+                / constants.DATASET_300VW_ANNOTATIONS_OUTPUT_FOLDER
+                / (
+                        f'{frame_index:{constants.DATASET_300VW_NUMBER_FORMAT}}'
+                        + f'.{constants.DATASET_300VW_ANNOTATIONS_OUTPUT_EXTENSION}'
+                )
         )
         landmarks = np.loadtxt(annotation_input_path)
         sample = {'image': image, 'landmarks': landmarks}

@@ -73,7 +73,7 @@ class TrainingProcess:
         assert_non_empty(dataloader_train)
         assert_non_empty(dataloader_validation)
 
-    def batch_iteration(self, batch: np.array, landmarks: np.array, train=True) \
+    def batch_iteration(self, batch: torch.Tensor, landmarks: torch.Tensor, train=True) \
             -> Tuple[Dict, Dict, torch.Tensor, torch.Tensor, torch.Tensor]:
         """
          inner loop of epoch iteration
@@ -81,8 +81,8 @@ class TrainingProcess:
         """
 
         # prepare input
-        batch = torch.from_numpy(batch).float().to(DEVICE)
-        landmarks = torch.from_numpy(landmarks).float().to(DEVICE)
+        batch.to(DEVICE)
+        landmarks.to(DEVICE)
         landmarked_batch = torch.cat((batch, landmarks), dim=CHANNEL_DIM)
 
         if (train):
@@ -129,10 +129,13 @@ class TrainingProcess:
 
         progress = []
 
-        for i, (batch, landmarks) in enumerate(self.dataloader_train):  # todo: how to split the data @ Klaus
+        for i, batch in enumerate(self.dataloader_train):  # todo: how to split the data @ Klaus
+
+            images = batch["image"]
+            landmarks = batch["landmarks"]
 
             # run batch iteration
-            loss_gen, loss_dis, fake_images, _, _ = self.batch_iteration(batch, landmarks)
+            loss_gen, loss_dis, fake_images, _, _ = self.batch_iteration(images, landmarks)
 
             # assertions
             assert_type(dict, loss_gen)

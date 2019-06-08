@@ -25,12 +25,12 @@ def load_data(keyword: str, batch_size: int) -> DataLoader:  # todo @ klaus
     data = None
 
     if (keyword == "train"):
-        DataLoader(X300VWDataset())
+        data = DataLoader(X300VWDataset(), shuffle=True, batch_size=batch_size)
     elif (keyword == "validate"):
-        DataLoader(X300VWDataset())
+        data = DataLoader(X300VWDataset(), shuffle=True, batch_size=batch_size)
     elif (keyword == "debug"):
         data = [(dummy_batch(batch_size, INPUT_CHANNELS), dummy_batch(batch_size, INPUT_LANDMARK_CHANNELS)) for _ in
-                range(5)]
+                range(1)]
     else:
         raise Exception(f"{keyword} is not a valid dataset")
 
@@ -47,7 +47,7 @@ def main(arguments):
         pr = start_timing()
 
     # data
-    dataloader_train = load_data("debug", arguments.batch_size)
+    dataloader_train = load_data("train", arguments.batch_size)
     dataloader_validate = load_data("debug", arguments.batch_size)
 
     # get models
@@ -161,7 +161,7 @@ def parse():
     parser.add_argument('--weight_pploss', default=1, type=int, help="name of objectclass")
 
     # data arguments
-    parser.add_argument('--batch_size', type=int, default=TEST_BATCH_SIZE, help='Batch size to run trainer.')
+    parser.add_argument('--batch_size', type=int, default=DEBUG_BATCH_SIZE, help='Batch size to run trainer.')
     # todo @ klaus
 
     return parser.parse_args()
