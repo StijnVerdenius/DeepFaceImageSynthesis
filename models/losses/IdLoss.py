@@ -7,11 +7,11 @@ from typing import Tuple
 from utils.constants import *
 # from utils.model_utils import
 from utils.training_helpers import L1_distance
-
+from typing import Tuple, Dict
 
 class IdLoss(GeneralLoss):
 
-    def __init__(self, weight, feature_selection=(13), **kwargs): ####Use ReLU 2.3!!!!!!!!!!!!!!!!!!
+    def __init__(self, weight: float, feature_selection: Tuple=(13), **kwargs): ####Use ReLU 2.3 - layer 13!!!!!!!!!!!!!!!!!!
         self.feature_selection = feature_selection
         super(IdLoss, self).__init__(weight=weight)
 
@@ -36,7 +36,7 @@ class IdLoss(GeneralLoss):
         """ extracts features from vgg network """
 
         usable_feats = VGG.features
-        # print(VGG.features)
+        print(VGG.features)
 
         # feat_p = usable_feats[:self.feature_selection[0] + 1]
         # feat_fc = usable_feats[self.feature_selection[0] + 1:self.feature_selection[1] + 1]
@@ -56,6 +56,6 @@ if __name__ == '__main__':
     testinput = torch.rand((20, 3, 28, 28))
     testinput_2 = torch.rand((20, 3, 28, 28))
 
-    bana = z.forward(testinput, testinput_2)
+    bana = z.forward(testinput, testinput_2)[0]
 
-    print(bana.shape, bana)
+    print(bana.shape,bana)

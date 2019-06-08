@@ -8,7 +8,7 @@ from utils.constants import IMSIZE
 class PixelDiscriminator(GeneralDiscriminator):
     """ Defines a PixelGAN discriminator"""
 
-    def __init__(self, n_channels_in=3, n_hidden=64, norm_layer=nn.BatchNorm2d, use_dropout=False, device="cpu",
+    def __init__(self, n_channels_in: int=3, n_hidden: int=64, norm_layer: nn.Module=nn.BatchNorm2d, use_dropout: bool=False, device: str="cpu",
                  **kwargs):
         """
         n_input (int)      - no. of channels in input images
@@ -37,8 +37,9 @@ class PixelDiscriminator(GeneralDiscriminator):
         # Save model
         self.model = nn.Sequential(*layers)
 
-    def forward(self, x: torch.Tensor):
-        return self.model.forward(x).view(-1, IMSIZE * IMSIZE).mean(dim=1)
+    def forward(self, x: torch.Tensor)\
+            -> torch.Tensor:
+        return self.model.forward(x).view(-1, IMSIZE * IMSIZE).mean()
 
 
 if __name__ == '__main__':
@@ -50,11 +51,13 @@ if __name__ == '__main__':
 
     score = G.forward(dummy_batch)
 
+    print(score.shape)
+
     get_loss = DLoss()
 
     target = torch.rand((10))
 
-    loss = get_loss.forward(score, target)
+    loss = get_loss.forward(score, target)[0]
 
     loss.backward()
 

@@ -11,8 +11,8 @@ class PixelLoss(GeneralLoss):
     def __init__(self, weight=1, **kwargs):
         super(PixelLoss,self).__init__(weight)
 
-    def custom_forward(self, image: torch.Tensor, target_ls: torch.Tensor, generator: GeneralGenerator):
-
+    def custom_forward(self, image: torch.Tensor, target_ls: torch.Tensor, generator: GeneralGenerator)\
+            -> torch.Tensor:
         # Concatanate input image with target landmark channels
         input = torch.cat((image, target_ls), CHANNEL_DIM)
 
@@ -39,7 +39,7 @@ if __name__ == '__main__':
     get_loss = PixelLoss()
 
 
-    loss = get_loss.forward(dummy_batch, dummy_ls1, G)
+    loss = get_loss.forward(dummy_batch, dummy_ls1, G)[0]
     loss.backward()
 
 

@@ -7,15 +7,16 @@ from typing import Tuple
 from utils.constants import *
 # from utils.model_utils import
 from utils.training_helpers import L1_distance
-
+from typing import Tuple, Dict
 
 class PerceptualLoss(GeneralLoss):
 
-    def __init__(self, weight, feature_selection=(3, 8, 15, 24), **kwargs):
+    def __init__(self, weight: float, feature_selection: Tuple=(3, 8, 15, 24), **kwargs):
         self.feature_selection = feature_selection
         super(PerceptualLoss, self).__init__(weight=weight)
 
-    def custom_forward(self, batch: torch.Tensor, generated_images: torch.Tensor):
+    def custom_forward(self, batch: torch.Tensor, generated_images: torch.Tensor)\
+            -> torch.Tensor:
         """ forward pass """
 
         # get vgg feats
@@ -31,12 +32,14 @@ class PerceptualLoss(GeneralLoss):
 
         return frobenius + l1_part
 
-    def frobenius_norm(self, batch_1: torch.Tensor, batch_2: torch.Tensor):
+    def frobenius_norm(self, batch_1: torch.Tensor, batch_2: torch.Tensor)\
+            -> torch.Tensor:
         """ forbenius norm (just normal norm?)"""
 
         return torch.norm((batch_1 - batch_2))  # todo: revisit
 
-    def gram_matrix(self, batch: torch.Tensor):
+    def gram_matrix(self, batch: torch.Tensor)\
+            -> torch.Tensor:
         """ calculates gram matrix """
 
         # dims
@@ -87,6 +90,6 @@ if __name__ == '__main__':
     testinput = torch.rand((20, 3, 28, 28))
     testinput_2 = torch.rand((20, 3, 28, 28))
 
-    bana = z.forward(testinput, testinput_2)
+    bana = z.forward(testinput, testinput_2)[0]
 
     print(bana.shape, bana)

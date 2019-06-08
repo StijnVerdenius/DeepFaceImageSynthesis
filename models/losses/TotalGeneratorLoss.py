@@ -1,5 +1,7 @@
 import torch
 
+from models.discriminators.GeneralDiscriminator import GeneralDiscriminator
+from models.generators.GeneralGenerator import GeneralGenerator
 from models.discriminators.PatchDiscriminator import PatchDiscriminator
 from models.generators.ResnetGenerator import ResnetGenerator
 from models.losses.GeneralLoss import GeneralLoss
@@ -12,7 +14,7 @@ from models.losses.PixelLoss import PixelLoss
 
 class TotalGeneratorLoss(GeneralLoss):
 
-    def __init__(self, pp_weight=10, adv_weight=1, trip_weight=100, id_weight=1, self_weight=100, pix_weight=10,
+    def __init__(self, pp_weight:float=10, adv_weight:float=1, trip_weight:float=100, id_weight:float=1, self_weight:float=100, pix_weight:float=10,
                  **kwargs):
         super().__init__()
         self.pp = PerceptualLoss(pp_weight)
@@ -25,8 +27,8 @@ class TotalGeneratorLoss(GeneralLoss):
 
         # todo: add @ elias
 
-    def forward(self, imgs, generated_imgs, landmarks_real, in_between_landmarks, target_landmarks, generator,
-                discriminator):
+    def forward(self, imgs:torch.Tensor, generated_imgs:torch.Tensor, landmarks_real: torch.Tensor, in_between_landmarks: torch.Tensor, target_landmarks:torch.Tensor,
+                generator: GeneralGenerator, discriminator: GeneralDiscriminator):
         """ combined loss function from the tiple-cons paper """
 
         loss_pp, save_pp = self.pp.forward(imgs, generated_imgs)

@@ -6,8 +6,8 @@ import torch
 class PatchDiscriminator(GeneralDiscriminator):
     """ Defines a PatchGAN discriminator"""
 
-    def __init__(self, n_channels_in=3, n_hidden=64, n_layers=3, norm_layer=nn.BatchNorm2d, use_dropout=False,
-                 device="cpu", **kwargs):
+    def __init__(self, n_channels_in:int=3, n_hidden:int=64, n_layers:int=3, norm_layer: nn.Module=nn.BatchNorm2d, use_dropout: bool=False,
+                 device: str="cpu", **kwargs):
         """
         n_channels_in (int)      - no. of channels in input images
         n_hidden (int)     - no. of filters in the last hidden layer
@@ -52,7 +52,8 @@ class PatchDiscriminator(GeneralDiscriminator):
         # Save model
         self.model = nn.Sequential(*layers)
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor)\
+            -> torch.Tensor:
 
         return self.model(x).squeeze()
 
