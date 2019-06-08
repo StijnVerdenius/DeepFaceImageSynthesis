@@ -10,6 +10,7 @@ from models.losses.TripleConsistencyLoss import TripleConsistencyLoss
 from models.losses.NonSaturatingGLoss import NonSaturatingGLoss
 from models.losses.ConsistencyLoss import ConsistencyLoss
 from models.losses.PixelLoss import PixelLoss
+from models.losses.IdLoss import IdLoss
 
 
 class TotalGeneratorLoss(GeneralLoss):
@@ -22,10 +23,8 @@ class TotalGeneratorLoss(GeneralLoss):
         self.trip = TripleConsistencyLoss(trip_weight)
         self.self = ConsistencyLoss(self_weight)
         self.pix = PixelLoss(pix_weight)
+        self.id = IdLoss(id_weight)
 
-        # NEED TO ADD ID LOSS
-
-        # todo: add @ elias
 
     def forward(self, imgs:torch.Tensor, generated_imgs:torch.Tensor, landmarks_real: torch.Tensor, in_between_landmarks: torch.Tensor, target_landmarks:torch.Tensor,
                 generator: GeneralGenerator, discriminator: GeneralDiscriminator):
@@ -36,12 +35,13 @@ class TotalGeneratorLoss(GeneralLoss):
         loss_adv, save_adv = self.adv(generated_imgs, discriminator)
         loss_self, save_self = self.self(imgs, landmarks_real, target_landmarks, generator)
         loss_pix, save_pix = self.pix(imgs, target_landmarks, generator)
+        loss_id, save_id = self.id(imgs, generated_imgs)
 
         # get total loss
-        total =  loss_pp + loss_adv + loss_triple + loss_pix + loss_self
+        total =  loss_pp + loss_adv + loss_triple + loss_pix + loss_self + loss_id
 
         # merge dicts
-        merged = {**save_adv, **save_pix, **save_pp, **save_self, **save_triple}
+        merged = {**save_adv, **save_pix, **save_pp, **save_self, **save_triple, **save_id}
 
         # return
         return total, merged
@@ -59,6 +59,6 @@ if __name__ == '__main__':
     D = PatchDiscriminator()
 
     bana = z.forward(testinput, testgenerated, test_landmarks_real, test_landmarks_in_between, test_landmarks_targets,
-                     G, D)
+                     G, D)[0]
 
     print(bana.shape, bana)
