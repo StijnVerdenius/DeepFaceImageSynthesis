@@ -116,3 +116,5 @@ venv.bak/
 */local_data/
 ./data/local_data
 ./data/local_data/
+
+utils/personal_constants.py
