@@ -39,7 +39,7 @@ class PixelDiscriminator(GeneralDiscriminator):
 
     def forward(self, x: torch.Tensor)\
             -> torch.Tensor:
-        return self.model.forward(x).view(-1, IMSIZE * IMSIZE).mean()
+        return self.model.forward(x).view(-1, IMSIZE * IMSIZE).mean(dim=1)
 
 
 if __name__ == '__main__':

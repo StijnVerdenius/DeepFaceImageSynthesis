@@ -48,7 +48,7 @@ def main(arguments):
 
     # data
     dataloader_train = load_data("train", arguments.batch_size)
-    dataloader_validate = load_data("debug", arguments.batch_size)
+    dataloader_validate = load_data("validate", arguments.batch_size)
 
     # get models
     embedder = find_right_model(EMBED_DIR, arguments.embedder,
@@ -129,17 +129,17 @@ def parse():
     parser = argparse.ArgumentParser()
 
     # training arguments
-    parser.add_argument('--epochs', default=5, type=int, help='max number of epochs')
-    parser.add_argument('--device', default="cpu", type=str, help='device')
+    parser.add_argument('--epochs', default=100, type=int, help='max number of epochs')
+    parser.add_argument('--eval_freq', type=int, default=5, help='Frequency (batch-wise) of evaluation')
+    parser.add_argument('--plot_freq', type=int, default=25, help='Frequency (batch-wise) of plotting pictures')
+    parser.add_argument('--saving_freq', type=int, default=10, help='Frequency (epoch-wise) of saving models')
+    parser.add_argument('--device', default="cuda", type=str, help='device')
     parser.add_argument('--feedback', default=False, type=bool, help='whether to plot or not during training')
     parser.add_argument('--mode', default="train", type=str, help="'train', 'test' or 'finetune'")
     parser.add_argument('--learning_rate', type=float, default=1e-4, help='Learning rate')
-    parser.add_argument('--eval_freq', type=int, default=5, help='Frequency (batch-wise) of evaluation')
-    parser.add_argument('--plot_freq', type=int, default=5, help='Frequency (batch-wise) of plotting pictures')
-    parser.add_argument('--saving_freq', type=int, default=100, help='Frequency (epoch-wise) of saving models')
 
     # debug
-    parser.add_argument('--timing', type=bool, default=True, help='are we measuring efficiency?')
+    parser.add_argument('--timing', type=bool, default=False, help='are we measuring efficiency?')
 
     # test arguments
     parser.add_argument('--test_model_date', default="", type=str, help='date_stamp string for which model to load')

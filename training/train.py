@@ -90,12 +90,12 @@ class TrainingProcess:
         image_1, landmarks_1 = unpack_batch(batch_1)
         image_2, landmarks_2 = unpack_batch(batch_2)
         image_3, landmarks_3 = unpack_batch(batch_1)
-        image_1.to(DEVICE)
-        image_2.to(DEVICE)
-        image_3.to(DEVICE)
-        landmarks_1.to(DEVICE)
-        landmarks_2.to(DEVICE)
-        landmarks_3.to(DEVICE)
+        image_1 = image_1.to(DEVICE).float()
+        image_2 = image_2.to(DEVICE).float()
+        image_3 = image_3.to(DEVICE).float()
+        landmarks_1 = landmarks_1.to(DEVICE).float()
+        landmarks_2 = landmarks_2.to(DEVICE).float()
+        landmarks_3 = landmarks_3.to(DEVICE).float()
         target_landmarked_batch = torch.cat((image_1, landmarks_2), dim=CHANNEL_DIM)
         truth_landmarked_batch = torch.cat((image_2, landmarks_2), dim=CHANNEL_DIM)
 
@@ -146,7 +146,7 @@ class TrainingProcess:
         for i, (batch_1, batch_2, batch_3) in enumerate(self.dataloader_train):
 
             # run batch iteration
-            loss_gen, loss_dis, fake_images, _, _ = self.batch_iteration(batch_1, batch_2, batch_3)
+            loss_gen, loss_dis, fake_images, predictions, labels = self.batch_iteration(batch_1, batch_2, batch_3)
 
             # assertions
             assert_type(dict, loss_gen)
@@ -160,9 +160,11 @@ class TrainingProcess:
                 # convert dicts to ints
                 loss_gen_actual = sum(loss_gen.values())
                 loss_dis_actual = sum(loss_dis.values())
+                accuracy_discriminator = calculate_accuracy(predictions, labels)
 
                 # log to terminal and retrieve a statistics object
-                statistic = self.log(loss_gen_actual, loss_dis_actual, loss_gen, loss_dis, batches_passed)
+                statistic = self.log(loss_gen_actual, loss_dis_actual, loss_gen, loss_dis, batches_passed,
+                                     accuracy_discriminator)
 
                 # assert type
                 assert_type(Statistic, statistic)
@@ -188,7 +190,6 @@ class TrainingProcess:
         total_accuracy = []
 
         for i, (batch_1, batch_2, batch_3) in enumerate(self.dataloader_validation):
-
             # run batch iteration
             loss_gen, loss_dis, _, predictions, actual_labels = self.batch_iteration(batch_1, batch_2, batch_3,
                                                                                      train=False)
@@ -213,7 +214,7 @@ class TrainingProcess:
         return mean(total_loss_generator), mean(total_loss_discriminator), mean(total_accuracy)
 
     def log(self, loss_gen: float, loss_dis: float, loss_gen_dict: Dict, loss_dis_dict: Dict,
-            batches_passed: int) -> Statistic:
+            batches_passed: int, discriminator_accuracy: float) -> Statistic:
         """
         logs to terminal and calculate log_statistics
 
@@ -224,7 +225,7 @@ class TrainingProcess:
         self.trainer_gen.prepare_evaluation()
 
         # validate on validationset
-        loss_gen_validate, loss_dis_validate, discriminator_accuracy = self.validate()
+        loss_gen_validate, loss_dis_validate, _ = 0, 0, 0  # self.validate()
 
         stat = Statistic(loss_gen_train=loss_gen,
                          loss_dis_train=loss_dis,
@@ -237,7 +238,7 @@ class TrainingProcess:
         # print in-place with 3 decimals
         print(
             f"\r",
-            f"batch: {batches_passed}",
+            f"batch: {batches_passed}/{len(self.dataloader_train)}",
             f"|\t {stat}",
             end='')
 
@@ -265,7 +266,8 @@ class TrainingProcess:
             # run
             for epoch in range(self.arguments.epochs):
 
-                print(f"\n\n{PRINTCOLOR_BOLD}Starting epoch{PRINTCOLOR_END} {epoch} at {str(datetime.now())}")
+                print(
+                    f"\n\n{PRINTCOLOR_BOLD}Starting epoch{PRINTCOLOR_END} {epoch}/{self.arguments.epochs} at {str(datetime.now())}")
 
                 # do epoch
                 epoch_progress = self.epoch_iteration(epoch)

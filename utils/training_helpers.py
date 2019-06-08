@@ -13,16 +13,16 @@ def plot_some_pictures(feedback, images, batches_done):
 
     """
 
-    save_image(images[:25].view(-1, 3, IMSIZE, IMSIZE),
+    save_image(images[:16].view(-1, 3, IMSIZE, IMSIZE),
                f'./{PREFIX_OUTPUT}/{DATA_MANAGER.stamp}/{PIC_DIR}/{batches_done}.png',
-               nrow=5, normalize=True)
+               nrow=4, normalize=True)
 
     if (feedback):
         # TODO: if feedback is on, run the following script from the result-image directory in terminal while it is running:
         # watch xdg-open latests_plot.png
-        save_image(images[:25].view(-1, 3, IMSIZE, IMSIZE),
+        save_image(images[:16].view(-1, 3, IMSIZE, IMSIZE),
                    f'./{PREFIX_OUTPUT}/{DATA_MANAGER.stamp}/{PIC_DIR}/latests_plot.png',
-                   nrow=5, normalize=True)
+                   nrow=4, normalize=True)
 
 
 def calculate_accuracy(predictions, targets):
