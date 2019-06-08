@@ -13,7 +13,7 @@ from torch.utils.data import DataLoader
 from torch.optim import Optimizer
 import numpy as np
 from datetime import datetime
-
+import sys
 
 class TrainingProcess:
 
@@ -132,6 +132,9 @@ class TrainingProcess:
         fake.detach()
         predictions.detach()
         labels.detach()
+
+        # print flush
+        sys.stdout.flush()
 
         return loss_gen_saving, loss_dis_saving, fake, predictions, labels
 
