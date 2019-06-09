@@ -10,20 +10,19 @@
 #SBATCH --gres=gpu:1
 
 #Loading modules
-module unload cuDNN
-#module load Python/3.6.3-foss-2017b
-module load cuDNN/7.0.5-CUDA-9.0.176
-module load NCCL/2.0.5-CUDA-9.0.176
+module load Miniconda3/4.3.27
+module load CUDA/9.0.176
+module load cuDNN/7.3.1-CUDA-9.0.176
 
 export LD_LIBRARY_PATH=/hpc/eb/Debian9/cuDNN/7.1-CUDA-8.0.44-GCCcore-5.4.0/lib6$
 export PYTHONIOENCODING=utf8
 
 echo "copy directory"
-mkdir $TMPDIR/lgpu0386
-cp -r $HOME/DeepFakes $TMPDIR/lgpu0386
+mkdir $TMPDIR/lgpu0293
+cp -r $HOME/DeepFakes $TMPDIR/lgpu0293
 
 echo "cd inwards"
-cd $TMPDIR/lgpu0386/DeepFakes
+cd $TMPDIR/lgpu0293/DeepFakes
 
 echo "activate env"
 source activate dl
@@ -33,7 +32,7 @@ echo " "
 
 srun python3 main.py
 
-cp -r $TMPDIR/lgpu0386/DeepFakes/results $HOME/DeepFakes/results
+cp -r $TMPDIR/lgpu0293/DeepFakes/results $HOME/DeepFakes/results
 
 echo " "
 echo " ------ Job is finished -------"
