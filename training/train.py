@@ -168,44 +168,44 @@ class TrainingProcess:
 
         for i, (batch_1, batch_2, batch_3) in enumerate(self.dataloader_train):
 
-            if i > 100:  ###### ADDED THIS FOR DEBUGGING!!!!!!!
-                break
-            else:
+            # if i > 100:  ###### ADDED THIS FOR DEBUGGING!!!!!!!
+            #     break
+            # else:
 
-                # run batch iteration
-                loss_gen, loss_dis, fake_images, predictions, labels = self.batch_iteration(batch_1, batch_2, batch_3)
+            # run batch iteration
+            loss_gen, loss_dis, fake_images, predictions, labels = self.batch_iteration(batch_1, batch_2, batch_3)
 
-                # assertions
-                assert_type(dict, loss_gen)
-                assert_type(dict, loss_dis)
+            # assertions
+            assert_type(dict, loss_gen)
+            assert_type(dict, loss_dis)
 
-                # calculate amount of passed batches
-                batches_passed = i + (epoch_num * len(self.dataloader_train))
+            # calculate amount of passed batches
+            batches_passed = i + (epoch_num * len(self.dataloader_train))
 
-                # print progress to terminal
-                if (batches_passed % self.arguments.eval_freq == 0):
+            # print progress to terminal
+            if (batches_passed % self.arguments.eval_freq == 0):
 
-                    # convert dicts to ints
-                    loss_gen_actual = sum(loss_gen.values())
-                    loss_dis_actual = sum(loss_dis.values())
-                    accuracy_discriminator = calculate_accuracy(predictions, labels)
+                # convert dicts to ints
+                loss_gen_actual = sum(loss_gen.values())
+                loss_dis_actual = sum(loss_dis.values())
+                accuracy_discriminator = calculate_accuracy(predictions, labels)
 
-                    # log to terminal and retrieve a statistics object
-                    statistic = self.log(loss_gen_actual, loss_dis_actual, loss_gen, loss_dis, batches_passed,
-                                         accuracy_discriminator)
+                # log to terminal and retrieve a statistics object
+                statistic = self.log(loss_gen_actual, loss_dis_actual, loss_gen, loss_dis, batches_passed,
+                                     accuracy_discriminator)
 
-                    # assert type
-                    assert_type(Statistic, statistic)
+                # assert type
+                assert_type(Statistic, statistic)
 
-                    # append statistic to list
-                    progress.append(statistic)
+                # append statistic to list
+                progress.append(statistic)
 
-                # save a set of pictures
-                if (batches_passed % self.arguments.plot_freq == 0):
-                    plot_some_pictures(self.arguments.feedback, fake_images, batches_passed)
+            # save a set of pictures
+            if (batches_passed % self.arguments.plot_freq == 0):
+                plot_some_pictures(self.arguments.feedback, fake_images, batches_passed)
 
-                # empty cache
-                torch.cuda.empty_cache()
+            # empty cache
+            torch.cuda.empty_cache()
 
         return progress
 
