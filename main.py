@@ -138,7 +138,7 @@ def parse():
     parser = argparse.ArgumentParser()
 
     # training arguments
-    parser.add_argument('--epochs', default=100, type=int, help='max number of epochs')
+    parser.add_argument('--epochs', default=5, type=int, help='max number of epochs') ##################### SHOULD BE 100!!! changed it for DEBUGGING!
     parser.add_argument('--eval_freq', type=int, default=5, help='Frequency (batch-wise) of evaluation')
     parser.add_argument('--plot_freq', type=int, default=25, help='Frequency (batch-wise) of plotting pictures')
     parser.add_argument('--saving_freq', type=int, default=10, help='Frequency (epoch-wise) of saving models')

@@ -166,6 +166,7 @@ class TrainingProcess:
 
         progress = []
 
+
         for i, (batch_1, batch_2, batch_3) in enumerate(self.dataloader_train):
 
             if i > 470:  ###### ADDED THIS FOR DEBUGGING!!!!!!!
