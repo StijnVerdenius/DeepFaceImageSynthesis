@@ -180,16 +180,12 @@ def _test():
 
             mask = np.zeros(image.shape, dtype=float)
             mask[..., color_index] = 255
-            output = np.copy(image)
             for index in range(landmarks.shape[0]):
-                output += overlay_alpha * mask * landmarks[index, :, :, np.newaxis]
+                image += overlay_alpha * mask * landmarks[index, :, :, np.newaxis]
 
-            output[output > 255] = 255
-            output = output.astype('uint8')
-
+            image[image > 255] = 255
             image = image.astype('uint8')
-            plot(image, None)
-            plot(output, None)
+            plot(image)
     input('Press [enter] to exit.')
 
 
