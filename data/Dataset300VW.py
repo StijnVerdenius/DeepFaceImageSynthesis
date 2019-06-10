@@ -180,7 +180,7 @@ def _test():
 
             mask = np.zeros(image.shape, dtype=float)
             mask[..., color_index] = 255
-            output = image
+            output = np.copy(image)
             for index in range(landmarks.shape[0]):
                 output += overlay_alpha * mask * landmarks[index, :, :, np.newaxis]
 
