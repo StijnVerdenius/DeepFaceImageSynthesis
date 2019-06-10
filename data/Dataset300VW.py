@@ -17,6 +17,8 @@ class X300VWDataset(Dataset):
             constants.DATASET_300VW_ANNOTATIONS_OUTPUT_EXTENSION,
         )
         self._n_images = sum(n_images_per_video)
+        print(f'n images in dataset: {self._n_images}')
+
         cumulative_sum = 0
         self._cumulative_n_images = [cumulative_sum]
         for n_images_in_video in n_images_per_video:
