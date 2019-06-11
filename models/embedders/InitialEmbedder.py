@@ -18,7 +18,7 @@ class InitialEmbedder(GeneralEmbedder):
 
         # super().__init__(input_size=input_size, device=device, embedding_size=embedding_size)
 
-        super(InitialEmbedder,self).__init__(n_channels_in, n_channels_out, device)
+        super(InitialEmbedder,self).__init__(n_channels_in, n_channels_out, device, **kwargs)
 
         # Initialize Embedder input block
         layers = [nn.Conv2d(n_channels_in, n_hidden, kernel_size=4, stride=2, padding=1)]

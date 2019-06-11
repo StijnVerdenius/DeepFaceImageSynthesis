@@ -69,7 +69,7 @@ def main(arguments):
 
     generator = find_right_model(GEN_DIR, arguments.generator,
                                  device=DEVICE,
-                                 n_channels_in=INPUT_SIZE).to(DEVICE)
+                                 n_channels_in=INPUT_SIZE, bna=3).to(DEVICE)
 
     discriminator = find_right_model(DIS_DIR, arguments.discriminator,
                                      device=DEVICE,
@@ -126,7 +126,7 @@ def main(arguments):
                               arguments.test_model_date)
 
         # run test
-        compare(dataloader_validate, embedder, generator, arguments)
+        compare(dataloader_validate, embedder, generator, arguments, number_of_batches=30, number_of_pictures=3)
 
     else:
 
@@ -147,7 +147,7 @@ def parse():
     parser.add_argument('--saving_freq', type=int, default=10, help='Frequency (epoch-wise) of saving models')
     parser.add_argument('--device', default="cuda", type=str, help='device')
     parser.add_argument('--feedback', default=False, type=bool, help='whether to plot or not during training')
-    parser.add_argument('--mode', default="train", type=str, help="'train', 'test' or 'finetune'")
+    parser.add_argument('--mode', default="test", type=str, help="'train', 'test' or 'finetune'")
     parser.add_argument('--learning_rate', type=float, default=1e-4, help='Learning rate')
 
     # debug
