@@ -16,8 +16,6 @@ from datetime import datetime
 import sys
 import os
 from tensorboardX import SummaryWriter ####### TESTING tensorboard
-import torchvision.utils as vutils
-
 
 
 class TrainingProcess:
@@ -64,7 +62,7 @@ class TrainingProcess:
         self.shuffle_indices = list(range(int(self.combined_batch_size)))
 
         # initialize tensorboardx
-        self.writer = SummaryWriter() ########################################################################### ADD DIRECTORY
+        self.writer = SummaryWriter('results/tensorboardx') ########################################################################### ADD DIRECTORY
 
         self.labels = None
 
@@ -270,24 +268,11 @@ class TrainingProcess:
         self.trainer_gen.prepare_evaluation()
 
         # pass stats to tensorboardX #############################################################################################################################################
-
         for e in list(loss_gen_dict.keys()):
-            print(e)
-            # self.writer.add_scalar("loss_g" + str(e), loss_gen_dict[e], batches_passed)
+            self.writer.add_scalar(str(e), loss_gen_dict[e], batches_passed)
 
         for e in list(loss_dis_dict.keys()):
-            print(e)
-            # self.writer.add_scalar("loss_d"+ str(e), loss_dis_dict[e], batches_passed)
-
-
-        error
-        #
-        # self.writer.add_scalar("loss_g", loss_gen, batches_passed)
-        # self.writer.add_scalar("loss_d", loss_dis, batches_passed)
-
-
-
-
+            self.writer.add_scalar(str(e), loss_dis_dict[e], batches_passed)
 
         self.writer.add_scalar("disc_acc", discriminator_accuracy, batches_passed)
 
