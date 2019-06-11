@@ -217,7 +217,7 @@ class TrainingProcess:
 
                 # pass fake images to tensorboardx
                 # self.writer.add_image('fake_samples', fake_images[:16].view(-1, 3, IMSIZE, IMSIZE), batches_passed)  ###############################################################
-                self.writer.add_image('fake_samples', vutils.make_grid(fake_images, normalize=True), batches_passed)  ###############################################################
+                self.writer.add_image('fake_samples', vutils.make_grid(fake_images[:16].view(-1, 3, IMSIZE, IMSIZE), normalize=True), batches_passed)  ###############################################################
 
 
 
