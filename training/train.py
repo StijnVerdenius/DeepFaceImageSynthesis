@@ -268,6 +268,11 @@ class TrainingProcess:
         self.trainer_dis.prepare_evaluation()
         self.trainer_gen.prepare_evaluation()
 
+        # pass stats to tensorboardX
+        self.writer.add_scalar("loss_g", loss_gen, batches_passed)
+        self.writer.add_scalar("loss_d", loss_dis, batches_passed)
+        self.writer.add_scalar("disc_acc", discriminator_accuracy, batches_passed)
+
         # validate on validationset
         loss_gen_validate, loss_dis_validate, _ = 0, 0, 0  # self.validate() todo: do we want to restore this?
 
