@@ -117,8 +117,6 @@ class TrainingProcess:
         landmarked_fake = torch.cat((fake, landmarks_2), dim=CHANNEL_DIM)
         loss_gen, loss_gen_saving = self.loss_gen.forward(landmarked_fake, self.discriminator)
 
-
-
         if (train):
             # backward pass generator
             self.trainer_gen.do_backward(loss_gen)
@@ -176,9 +174,9 @@ class TrainingProcess:
 
         for i, (batch_1, batch_2, batch_3) in enumerate(self.dataloader_train):
 
-            print(batch_1[list(batch_1.keys())[0]].shape)
-            print(batch_2[list(batch_2.keys())[0]].shape)
-            print(batch_3[list(batch_3.keys())[0]].shape)
+            # print(batch_1[list(batch_1.keys())[0]].shape)
+            # print(batch_2[list(batch_2.keys())[0]].shape)
+            # print(batch_3[list(batch_3.keys())[0]].shape)
 
             # if i > 505:  ###### ADDED THIS FOR DEBUGGING!!!!!!!
             #     break
@@ -280,8 +278,6 @@ class TrainingProcess:
                          loss_gen_train_dict=loss_gen_dict,
                          loss_dis_train_dict=loss_dis_dict,
                          dis_acc=discriminator_accuracy)
-
-
 
         # print in-place with 3 decimals
         print(

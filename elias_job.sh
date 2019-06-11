@@ -32,7 +32,7 @@ echo " "
 
 srun python3 main.py
 
-cp -r $TMPDIR/lgpu0293/DeepFakes/results $HOME/ProjectAI/DeepFakes/results
+cp -r $TMPDIR/lgpu0293/DeepFakes/results/output/* $HOME/ProjectAI/DeepFakes/results/output
 
 echo " "
 echo " ------ Job is finished -------"
