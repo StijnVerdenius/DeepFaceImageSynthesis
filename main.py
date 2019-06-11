@@ -32,9 +32,9 @@ def load_data(keyword: str, batch_size: int) -> DataLoader:  # todo @ klaus
     data = None
 
     if (keyword == "train"):
-        data = DataLoader(X300VWDataset(), shuffle=True, batch_size=batch_size) #Changed to false!!!
+        data = DataLoader(X300VWDataset(), shuffle=True, batch_size=batch_size, drop_last=True) #Changed to false!!!
     elif (keyword == "validate"):
-        data = DataLoader(X300VWDataset(), shuffle=True, batch_size=batch_size) #Changed to false!!!
+        data = DataLoader(X300VWDataset(), shuffle=True, batch_size=batch_size, drop_last=True) #Changed to false!!!
     elif (keyword == "debug"):
         data = [(dummy_batch(batch_size, INPUT_CHANNELS), dummy_batch(batch_size, INPUT_LANDMARK_CHANNELS)) for _ in
                 range(5)]
