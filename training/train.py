@@ -214,6 +214,9 @@ class TrainingProcess:
             if (batches_passed % self.arguments.plot_freq == 0):
                 plot_some_pictures(self.arguments.feedback, fake_images, batches_passed)
 
+                # pass fake images to tensorboardx
+                self.writer.add_image('fake_samples', fake_images[:16].view(-1, 3, IMSIZE, IMSIZE), batches_passed)  ###############################################################
+
             # empty cache
             torch.cuda.empty_cache()
 
@@ -268,7 +271,7 @@ class TrainingProcess:
         self.trainer_dis.prepare_evaluation()
         self.trainer_gen.prepare_evaluation()
 
-        # pass stats to tensorboardX
+        # pass stats to tensorboardX #############################################################################################################################################
         self.writer.add_scalar("loss_g", loss_gen, batches_passed)
         self.writer.add_scalar("loss_d", loss_dis, batches_passed)
         self.writer.add_scalar("disc_acc", discriminator_accuracy, batches_passed)
