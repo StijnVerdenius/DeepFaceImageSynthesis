@@ -14,7 +14,7 @@ from utils.model_utils import find_right_model, load_models_and_state
 from utils.constants import *
 import argparse
 from training.train import TrainingProcess
-from testing.test import test
+from testing.test import compare
 import torch.optim as opt
 import torch
 from data.Dataset300VW import X300VWDataset
@@ -124,7 +124,7 @@ def main(arguments):
                               arguments.test_model_date)
 
         # run test
-        test(dataloader_validate, embedder, generator, discriminator, arguments)
+        compare(dataloader_validate, embedder, generator, arguments)
 
     else:
 
@@ -140,7 +140,7 @@ def parse():
     # training arguments
     parser.add_argument('--epochs', default=5, type=int, help='max number of epochs') ##################### SHOULD BE 100!!! changed it for DEBUGGING!
     parser.add_argument('--eval_freq', type=int, default=5, help='Frequency (batch-wise) of evaluation')
-    parser.add_argument('--plot_freq', type=int, default=25, help='Frequency (batch-wise) of plotting pictures')
+    parser.add_argument('--plot_freq', type=int, default=50, help='Frequency (batch-wise) of plotting pictures')
     parser.add_argument('--saving_freq', type=int, default=10, help='Frequency (epoch-wise) of saving models')
     parser.add_argument('--device', default="cuda", type=str, help='device')
     parser.add_argument('--feedback', default=False, type=bool, help='whether to plot or not during training')
@@ -151,8 +151,8 @@ def parse():
     parser.add_argument('--timing', type=bool, default=False, help='are we measuring efficiency?')
 
     # test arguments
-    parser.add_argument('--test_model_date', default="", type=str, help='date_stamp string for which model to load')
-    parser.add_argument('--test_model_suffix', default="", type=str, help='filename string for which model to load')
+    parser.add_argument('--test_model_date', default="2020-06-08_16:56:58", type=str, help='date_stamp string for which model to load')
+    parser.add_argument('--test_model_suffix', default="finished", type=str, help='filename string for which model to load')
 
     # model arguments
     parser.add_argument('--embedding_size', default=2, type=int, help='dimensionality of latent embedding space')

@@ -92,7 +92,7 @@ class TrainingProcess:
         # prepare input
         image_1, landmarks_1 = unpack_batch(batch_1)
         image_2, landmarks_2 = unpack_batch(batch_2)
-        image_3, landmarks_3 = unpack_batch(batch_1)
+        image_3, landmarks_3 = unpack_batch(batch_3)
         image_1 = image_1.to(DEVICE).float()
         image_2 = image_2.to(DEVICE).float()
         image_3 = image_3.to(DEVICE).float()
@@ -156,8 +156,6 @@ class TrainingProcess:
 
         return loss_gen_saving, loss_dis_saving, fake, predictions, labels
 
-
-
     def epoch_iteration(self, epoch_num: int) -> List[Statistic]:
         """
         one epoch implementation
@@ -165,7 +163,6 @@ class TrainingProcess:
         """
 
         progress = []
-
 
         for i, (batch_1, batch_2, batch_3) in enumerate(self.dataloader_train):
 
@@ -185,7 +182,6 @@ class TrainingProcess:
 
             # print progress to terminal
             if (batches_passed % self.arguments.eval_freq == 0):
-
                 # convert dicts to ints
                 loss_gen_actual = sum(loss_gen.values())
                 loss_dis_actual = sum(loss_dis.values())
@@ -315,7 +311,7 @@ class TrainingProcess:
                                              print_success=False)
 
                 # write models if needed (don't save the first one
-                if (epoch + 1 % self.arguments.saving_freq == 0):
+                if (((epoch + 1) % self.arguments.saving_freq) == 0):
                     save_models(self.discriminator, self.generator, self.embedder, f"Models_at_epoch_{epoch}")
 
                 # flush prints

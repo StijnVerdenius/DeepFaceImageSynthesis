@@ -2,6 +2,7 @@ import inspect
 import os
 import cProfile, pstats, io
 from utils.constants import *
+import numpy as np
 
 
 def ensure_current_directory():
@@ -77,6 +78,7 @@ def start_timing():
     pr.enable()
     return pr
 
+
 def stop_timing(pr):
     pr.disable()
     s = io.StringIO()
@@ -84,3 +86,12 @@ def stop_timing(pr):
     ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
     ps.print_stats()
     print(s.getvalue())
+
+
+def normalize_picture(img):
+    centered = img - np.min(img)
+    return ((centered / np.max(centered))*255).astype(int)
+
+
+def de_torch(img, channels=3):
+    return img.detach().cpu().numpy().reshape((IMSIZE, IMSIZE, channels))
