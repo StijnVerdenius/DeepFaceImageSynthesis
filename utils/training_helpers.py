@@ -4,10 +4,11 @@ import torch
 from torch import __init__
 from torchvision.utils import save_image
 from utils.constants import *
+import torchvision.utils as vutils
 import random
 
 
-def plot_some_pictures(feedback, images, batches_done):
+def plot_some_pictures(feedback, images, batches_done, writer):
     """
     save some plots in PIC_DIR
 
@@ -23,6 +24,9 @@ def plot_some_pictures(feedback, images, batches_done):
         save_image(images[:16].view(-1, 3, IMSIZE, IMSIZE),
                    f'./{PREFIX_OUTPUT}/{DATA_MANAGER.stamp}/{PIC_DIR}/latests_plot.png',
                    nrow=4, normalize=True)
+
+        # pass fake images to tensorboardx
+        writer.add_image('fake_samples', vutils.make_grid(images[:16].view(-1, 3, IMSIZE, IMSIZE), normalize=True), batches_done)
 
 
 def calculate_accuracy(predictions, targets):
