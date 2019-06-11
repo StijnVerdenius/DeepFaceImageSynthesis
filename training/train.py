@@ -16,6 +16,7 @@ from datetime import datetime
 import sys
 import os
 from tensorboardX import SummaryWriter ####### TESTING tensorboard
+import torchvision.utils as vutils
 
 
 
@@ -215,7 +216,10 @@ class TrainingProcess:
                 plot_some_pictures(self.arguments.feedback, fake_images, batches_passed)
 
                 # pass fake images to tensorboardx
-                self.writer.add_image('fake_samples', fake_images[:16].view(-1, 3, IMSIZE, IMSIZE), batches_passed)  ###############################################################
+                # self.writer.add_image('fake_samples', fake_images[:16].view(-1, 3, IMSIZE, IMSIZE), batches_passed)  ###############################################################
+                self.writer.add_image('fake_samples', vutils.make_grid(fake_images, normalize=True), batches_passed)  ###############################################################
+
+
 
             # empty cache
             torch.cuda.empty_cache()
