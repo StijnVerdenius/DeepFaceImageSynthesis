@@ -15,6 +15,8 @@ import numpy as np
 from datetime import datetime
 import sys
 import os
+from tensorboardX import SummaryWriter ####### TESTING tensorboard
+
 
 
 class TrainingProcess:
@@ -59,6 +61,9 @@ class TrainingProcess:
         # for combining batches
         self.combined_batch_size = 2 * arguments.batch_size
         self.shuffle_indices = list(range(int(self.combined_batch_size)))
+
+        # initialize tensorboardx
+        self.writer = SummaryWriter()
 
         self.labels = None
 
@@ -111,6 +116,8 @@ class TrainingProcess:
         fake = self.generator.forward(target_landmarked_batch)
         landmarked_fake = torch.cat((fake, landmarks_2), dim=CHANNEL_DIM)
         loss_gen, loss_gen_saving = self.loss_gen.forward(landmarked_fake, self.discriminator)
+
+
 
         if (train):
             # backward pass generator
@@ -168,6 +175,10 @@ class TrainingProcess:
 
 
         for i, (batch_1, batch_2, batch_3) in enumerate(self.dataloader_train):
+
+            print(batch_1[list(batch_1.keys())[0]].shape)
+            print(batch_2[list(batch_2.keys())[0]].shape)
+            print(batch_3[list(batch_3.keys())[0]].shape)
 
             # if i > 505:  ###### ADDED THIS FOR DEBUGGING!!!!!!!
             #     break
@@ -270,6 +281,8 @@ class TrainingProcess:
                          loss_dis_train_dict=loss_dis_dict,
                          dis_acc=discriminator_accuracy)
 
+
+
         # print in-place with 3 decimals
         print(
             f"\r",
@@ -315,7 +328,7 @@ class TrainingProcess:
                                              print_success=False)
 
                 # write models if needed (don't save the first one
-                if (epoch + 1 % self.arguments.saving_freq == 0):
+                if (epoch + 1) % self.arguments.saving_freq == 0:
                     save_models(self.discriminator, self.generator, self.embedder, f"Models_at_epoch_{epoch}")
 
                 # flush prints
