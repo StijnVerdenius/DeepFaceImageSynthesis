@@ -96,7 +96,7 @@ class TrainingProcess:
         # prepare input
         image_1, landmarks_1 = unpack_batch(batch_1)
         image_2, landmarks_2 = unpack_batch(batch_2)
-        image_3, landmarks_3 = unpack_batch(batch_1)
+        image_3, landmarks_3 = unpack_batch(batch_3)
         image_1 = image_1.to(DEVICE).float()
         image_2 = image_2.to(DEVICE).float()
         image_3 = image_3.to(DEVICE).float()
@@ -332,7 +332,7 @@ class TrainingProcess:
                                              print_success=False)
 
                 # write models if needed (don't save the first one
-                if (epoch + 1) % self.arguments.saving_freq == 0:
+                if (((epoch + 1) % self.arguments.saving_freq) == 0):
                     save_models(self.discriminator, self.generator, self.embedder, f"Models_at_epoch_{epoch}")
 
                 # flush prints

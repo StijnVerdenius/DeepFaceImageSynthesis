@@ -2,6 +2,7 @@ import inspect
 import os
 import cProfile, pstats, io
 from utils.constants import *
+import numpy as np
 
 
 def ensure_current_directory():
@@ -77,6 +78,7 @@ def start_timing():
     pr.enable()
     return pr
 
+
 def stop_timing(pr):
     pr.disable()
     s = io.StringIO()
@@ -84,3 +86,23 @@ def stop_timing(pr):
     ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
     ps.print_stats()
     print(s.getvalue())
+
+
+def denormalize_picture(image, binarised=False):
+    """ denormalises picture for plotting """
+
+    image = ((image + 1) / 2) * 255
+
+    image[image > 255] = 255
+    image = image.astype('uint8')
+
+    if (binarised):
+        image[image == 127] = 255
+
+    return image
+
+
+def de_torch(img):
+    """ converts pytorch picture to numpy for plotting"""
+
+    return np.moveaxis(img.detach().cpu().numpy(), 0, -1)

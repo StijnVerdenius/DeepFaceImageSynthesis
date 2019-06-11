@@ -8,7 +8,7 @@ class EmptyEmbedder(GeneralEmbedder):
     """ for running without embedder """
 
     def __init__(self, **kwargs):
-        super().__init__()
+        super().__init__(**kwargs)
         print("Note: Running without embedder")
 
     @staticmethod
@@ -16,9 +16,13 @@ class EmptyEmbedder(GeneralEmbedder):
         return None
 
     @staticmethod
-    def parameters():
+    def parameters(*args):
         return [torch.LongTensor([])]
 
     @staticmethod
-    def state_dict():
+    def state_dict(**kwargs):
         return None
+
+    @staticmethod
+    def load_state_dict(self, *args, **kwargs):
+        pass

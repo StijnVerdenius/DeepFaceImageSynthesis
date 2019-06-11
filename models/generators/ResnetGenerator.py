@@ -20,7 +20,7 @@ class ResnetGenerator(GeneralGenerator):
         n_blocks (int)     - no of ResNet blocks
         padding_type (str) - type of padding: zero, replicate, or reflect
         """
-        super(ResnetGenerator, self).__init__(n_channels_in, n_channels_out, device)
+        super(ResnetGenerator, self).__init__(n_channels_in, n_channels_out, device, **kwargs)
 
         # If normalizing layer is instance normalization, add bias
         use_bias = norm_layer == nn.InstanceNorm2d

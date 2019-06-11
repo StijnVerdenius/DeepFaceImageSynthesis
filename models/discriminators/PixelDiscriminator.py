@@ -16,7 +16,7 @@ class PixelDiscriminator(GeneralDiscriminator):
         norm_layer         - normalization layer
         use_dropout (bool) - use dropout layers or not
         """
-        super(PixelDiscriminator, self).__init__(n_channels_in, device)
+        super(PixelDiscriminator, self).__init__(n_channels_in, device, **kwargs)
 
         # If normalizing layer is batch normalization, don't add bias because nn.BatchNorm2d has affine params
         use_bias = norm_layer != nn.BatchNorm2d

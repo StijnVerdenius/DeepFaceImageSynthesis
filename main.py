@@ -14,7 +14,7 @@ from utils.model_utils import find_right_model, load_models_and_state
 from utils.constants import *
 import argparse
 from training.train import TrainingProcess
-from testing.test import test
+from testing.test import compare
 import torch.optim as opt
 import torch
 from data.Dataset300VW import X300VWDataset
@@ -27,14 +27,15 @@ def dummy_batch(batch_size, channels):
     return np.random.normal(0, 1, (batch_size, channels, IMSIZE, IMSIZE))
 
 
-def load_data(keyword: str, batch_size: int) -> DataLoader:  # todo @ klaus
+def load_data(keyword: str, batch_size: int, mode: str) -> DataLoader:  # todo @ klaus
 
     data = None
 
     if (keyword == "train"):
-        data = DataLoader(X300VWDataset(), shuffle=False, batch_size=batch_size, drop_last=True) #Changed to false!!!
+        data = DataLoader(X300VWDataset(), shuffle=(False or mode == "test"), batch_size=batch_size, drop_last=True) #Changed to false!!!
+
     elif (keyword == "validate"):
-        data = DataLoader(X300VWDataset(), shuffle=False, batch_size=batch_size, drop_last=True) #Changed to false!!!
+        data = DataLoader(X300VWDataset(), shuffle=(False or mode == "test"), batch_size=batch_size, drop_last=True) #Changed to false!!!
     elif (keyword == "debug"):
         data = [(dummy_batch(batch_size, INPUT_CHANNELS), dummy_batch(batch_size, INPUT_LANDMARK_CHANNELS)) for _ in
                 range(5)]
@@ -56,8 +57,8 @@ def main(arguments):
     print(f"Device used = {DEVICE}")
 
     # data
-    dataloader_train = load_data("train", arguments.batch_size)
-    dataloader_validate = load_data("validate", arguments.batch_size)
+    dataloader_train = load_data("train", arguments.batch_size, arguments.mode)
+    dataloader_validate = load_data("validate", arguments.batch_size, arguments.mode)
 
     # get models
     embedder = find_right_model(EMBED_DIR, arguments.embedder,
@@ -124,7 +125,7 @@ def main(arguments):
                               arguments.test_model_date)
 
         # run test
-        test(dataloader_validate, embedder, generator, discriminator, arguments)
+        compare(dataloader_validate, embedder, generator, arguments, number_of_batches=30, number_of_pictures=3)
 
     else:
 
@@ -138,10 +139,11 @@ def parse():
     parser = argparse.ArgumentParser()
 
     # training arguments
-    parser.add_argument('--epochs', default=5, type=int, help='max number of epochs') ##################### SHOULD BE 100!!! changed it for DEBUGGING!
-    parser.add_argument('--eval_freq', type=int, default=5, help='Frequency (batch-wise) of evaluation')
-    parser.add_argument('--plot_freq', type=int, default=25, help='Frequency (batch-wise) of plotting pictures')
-    parser.add_argument('--saving_freq', type=int, default=10, help='Frequency (epoch-wise) of saving models')
+    parser.add_argument('--epochs', default=2, type=int,
+                        help='max number of epochs')  ##################### SHOULD BE 100!!! changed it for DEBUGGING!
+    parser.add_argument('--eval_freq', type=int, default=10, help='Frequency (batch-wise) of evaluation')
+    parser.add_argument('--plot_freq', type=int, default=500000, help='Frequency (batch-wise) of plotting pictures')
+    parser.add_argument('--saving_freq', type=int, default=100000, help='Frequency (epoch-wise) of saving models')
     parser.add_argument('--device', default="cuda", type=str, help='device')
     parser.add_argument('--feedback', default=False, type=bool, help='whether to plot or not during training')
     parser.add_argument('--mode', default="train", type=str, help="'train', 'test' or 'finetune'")
@@ -151,8 +153,10 @@ def parse():
     parser.add_argument('--timing', type=bool, default=False, help='are we measuring efficiency?')
 
     # test arguments
-    parser.add_argument('--test_model_date', default="", type=str, help='date_stamp string for which model to load')
-    parser.add_argument('--test_model_suffix', default="", type=str, help='filename string for which model to load')
+    parser.add_argument('--test_model_date', default="2020-06-08_16:56:58", type=str,
+                        help='date_stamp string for which model to load')
+    parser.add_argument('--test_model_suffix', default="finished", type=str,
+                        help='filename string for which model to load')
 
     # model arguments
     parser.add_argument('--embedding_size', default=2, type=int, help='dimensionality of latent embedding space')
@@ -188,7 +192,7 @@ def manipulate_defaults_for_own_test(args):
 
 
 if __name__ == '__main__':
-    print("cuda_version" , torch.version.cuda, "pytorch version", torch.__version__, "python version", sys.version)
+    print("cuda_version", torch.version.cuda, "pytorch version", torch.__version__, "python version", sys.version)
     ensure_current_directory()
     args = parse()
     manipulate_defaults_for_own_test(args)

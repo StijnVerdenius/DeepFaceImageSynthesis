@@ -6,6 +6,7 @@ from torch.utils.data import Dataset
 
 from data import all_video_paths, count_images, plot
 from utils import constants, personal_constants
+from functools import lru_cache
 
 
 class X300VWDataset(Dataset):
@@ -40,13 +41,15 @@ class X300VWDataset(Dataset):
 
         self._transform = transform
 
+
+
     def __len__(self):
         return self._n_images
 
     def __getitem__(self, index: int) -> Dict[str, np.ndarray]:
 
         for video_index, (lower_bound, upper_bound) in enumerate(
-            zip(self._cumulative_n_images, self._cumulative_n_images[1:])
+                zip(self._cumulative_n_images, self._cumulative_n_images[1:])
         ):
             if lower_bound <= index < upper_bound:
                 break
@@ -78,12 +81,12 @@ class X300VWDataset(Dataset):
 
     def _load_image(self, video_index: int, frame_index: int) -> np.ndarray:
         frame_input_path = (
-            self._all_videos[video_index]
-            / constants.DATASET_300VW_IMAGES_OUTPUT_FOLDER
-            / (
-                f'{frame_index:{constants.DATASET_300VW_NUMBER_FORMAT}}'
-                + f'.{constants.DATASET_300VW_IMAGES_OUTPUT_EXTENSION}'
-            )
+                self._all_videos[video_index]
+                / constants.DATASET_300VW_IMAGES_OUTPUT_FOLDER
+                / (
+                        f'{frame_index:{constants.DATASET_300VW_NUMBER_FORMAT}}'
+                        + f'.{constants.DATASET_300VW_IMAGES_OUTPUT_EXTENSION}'
+                )
         )
         if not frame_input_path.exists():
             raise Exception(f'Image does not exist: {frame_input_path}')
@@ -100,20 +103,21 @@ class X300VWDataset(Dataset):
         ), f"wrong shape {image.shape}"
         return image
 
+    # @lru_cache()
     def _load_landmarks(self, video_index: int, frame_index: int) -> np.ndarray:
         annotation_input_path = (
-            self._all_videos[video_index]
-            / constants.DATASET_300VW_ANNOTATIONS_OUTPUT_FOLDER
-            / (
-                f'{frame_index:{constants.DATASET_300VW_NUMBER_FORMAT}}'
-                + f'.{constants.DATASET_300VW_ANNOTATIONS_OUTPUT_EXTENSION}'
-            )
+                self._all_videos[video_index]
+                / constants.DATASET_300VW_ANNOTATIONS_OUTPUT_FOLDER
+                / (
+                        f'{frame_index:{constants.DATASET_300VW_NUMBER_FORMAT}}'
+                        + f'.{constants.DATASET_300VW_ANNOTATIONS_OUTPUT_EXTENSION}'
+                )
         )
         if not annotation_input_path.exists():
             raise Exception(f'Landmarks file does not exist: {annotation_input_path}')
         single_dim_landmarks = np.loadtxt(annotation_input_path)
 
-        landmarks = np.zeros(
+        landmarks = np.empty(
             (
                 constants.DATASET_300VW_N_LANDMARKS,
                 constants.IMSIZE + self._window_size_gaussian - 1,
@@ -122,27 +126,41 @@ class X300VWDataset(Dataset):
         )
         assert single_dim_landmarks.shape == (constants.DATASET_300VW_N_LANDMARKS, 2)
         for landmark_index in range(single_dim_landmarks.shape[0]):
-            # because landmarks is zero padded, the start indices are the actual landmark centers
+            # # because landmarks is zero padded, the start indices are the actual landmark centers
             start_indices = single_dim_landmarks[landmark_index, :]
             start_indices = np.round(start_indices).astype(int)
-            end_indices = start_indices + self._window_size_gaussian
-            if np.any(start_indices < 0) or np.any(
-                end_indices >= constants.IMSIZE + self._window_size_gaussian - 1
-            ):
-                continue
-            # landmarks[0] is x, landmarks[1] is y
-            landmarks[
-                landmark_index,
-                start_indices[1] : end_indices[1],
-                start_indices[0] : end_indices[0],
-            ] = np.copy(self._gaussian)
+            landmarks[landmark_index, :, :] = self._temp(start_indices[0], start_indices[1])
+
+            # self.temp(start_indices)
         landmarks = landmarks[
-            :,
-            self._window_radius : constants.IMSIZE + self._window_radius,
-            self._window_radius : constants.IMSIZE + self._window_radius,
-        ]
+                    :,
+                    self._window_radius: constants.IMSIZE + self._window_radius,
+                    self._window_radius: constants.IMSIZE + self._window_radius,
+                    ]
 
         return landmarks
+
+    @lru_cache()
+    def _temp(self, x_1, y_1):
+        # because landmarks is zero padded, the start indices are the actual landmark centers
+
+        x_2, y_2 = x_1 + self._window_size_gaussian, y_1 + self._window_size_gaussian
+        landmark_channel = np.zeros((constants.IMSIZE + self._window_size_gaussian - 1,
+                                     constants.IMSIZE + self._window_size_gaussian - 1,
+                                     ))
+        if (x_1 < 0 or
+                y_1 < 0 or
+                x_2 >= constants.IMSIZE + self._window_size_gaussian - 1 or
+                y_2 >= constants.IMSIZE + self._window_size_gaussian - 1
+        ):
+            return landmark_channel
+        # landmarks[0] is x, landmarks[1] is y
+        landmark_channel[
+        y_1: y_2,
+        x_1: x_2,
+        ] = self._gaussian
+
+        return landmark_channel
 
 
 def _test():
