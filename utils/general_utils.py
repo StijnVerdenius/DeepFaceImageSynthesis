@@ -88,10 +88,21 @@ def stop_timing(pr):
     print(s.getvalue())
 
 
-def normalize_picture(img):
-    centered = img - np.min(img)
-    return ((centered / np.max(centered))*255).astype(int)
+def denormalize_picture(image, binarised=False):
+    """ denormalises picture for plotting """
+
+    image = ((image + 1) / 2) * 255
+
+    image[image > 255] = 255
+    image = image.astype('uint8')
+
+    if (binarised):
+        image[image == 127] = 255
+
+    return image
 
 
-def de_torch(img, channels=3):
-    return img.detach().cpu().numpy().reshape((IMSIZE, IMSIZE, channels))
+def de_torch(img):
+    """ converts pytorch picture to numpy for plotting"""
+
+    return np.moveaxis(img.detach().cpu().numpy(), 0, -1)
