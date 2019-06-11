@@ -69,7 +69,7 @@ def main(arguments):
 
     generator = find_right_model(GEN_DIR, arguments.generator,
                                  device=DEVICE,
-                                 n_channels_in=INPUT_SIZE, bna=3).to(DEVICE)
+                                 n_channels_in=INPUT_SIZE).to(DEVICE)
 
     discriminator = find_right_model(DIS_DIR, arguments.discriminator,
                                      device=DEVICE,
@@ -140,14 +140,14 @@ def parse():
     parser = argparse.ArgumentParser()
 
     # training arguments
-    parser.add_argument('--epochs', default=5, type=int,
+    parser.add_argument('--epochs', default=2, type=int,
                         help='max number of epochs')  ##################### SHOULD BE 100!!! changed it for DEBUGGING!
-    parser.add_argument('--eval_freq', type=int, default=5, help='Frequency (batch-wise) of evaluation')
-    parser.add_argument('--plot_freq', type=int, default=50, help='Frequency (batch-wise) of plotting pictures')
-    parser.add_argument('--saving_freq', type=int, default=10, help='Frequency (epoch-wise) of saving models')
+    parser.add_argument('--eval_freq', type=int, default=10, help='Frequency (batch-wise) of evaluation')
+    parser.add_argument('--plot_freq', type=int, default=500000, help='Frequency (batch-wise) of plotting pictures')
+    parser.add_argument('--saving_freq', type=int, default=100000, help='Frequency (epoch-wise) of saving models')
     parser.add_argument('--device', default="cuda", type=str, help='device')
     parser.add_argument('--feedback', default=False, type=bool, help='whether to plot or not during training')
-    parser.add_argument('--mode', default="test", type=str, help="'train', 'test' or 'finetune'")
+    parser.add_argument('--mode', default="train", type=str, help="'train', 'test' or 'finetune'")
     parser.add_argument('--learning_rate', type=float, default=1e-4, help='Learning rate')
 
     # debug

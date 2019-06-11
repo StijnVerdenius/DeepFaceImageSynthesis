@@ -166,7 +166,7 @@ class TrainingProcess:
 
         for i, (batch_1, batch_2, batch_3) in enumerate(self.dataloader_train):
 
-            if i > 20:  ###### ADDED THIS FOR DEBUGGING!!!!!!!
+            if i > 200:  ###### ADDED THIS FOR DEBUGGING!!!!!!!
                 break
             # else:
 
