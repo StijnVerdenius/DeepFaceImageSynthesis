@@ -1,3 +1,4 @@
+from functools import lru_cache
 from typing import Dict, Optional
 
 import cv2
@@ -6,7 +7,6 @@ from torch.utils.data import Dataset
 
 from data import all_video_paths, count_images, plot
 from utils import constants, personal_constants
-from functools import lru_cache
 
 
 class X300VWDataset(Dataset):
@@ -41,15 +41,13 @@ class X300VWDataset(Dataset):
 
         self._transform = transform
 
-
-
     def __len__(self):
         return self._n_images
 
     def __getitem__(self, index: int) -> Dict[str, np.ndarray]:
 
         for video_index, (lower_bound, upper_bound) in enumerate(
-                zip(self._cumulative_n_images, self._cumulative_n_images[1:])
+            zip(self._cumulative_n_images, self._cumulative_n_images[1:])
         ):
             if lower_bound <= index < upper_bound:
                 break
@@ -81,12 +79,12 @@ class X300VWDataset(Dataset):
 
     def _load_image(self, video_index: int, frame_index: int) -> np.ndarray:
         frame_input_path = (
-                self._all_videos[video_index]
-                / constants.DATASET_300VW_IMAGES_OUTPUT_FOLDER
-                / (
-                        f'{frame_index:{constants.DATASET_300VW_NUMBER_FORMAT}}'
-                        + f'.{constants.DATASET_300VW_IMAGES_OUTPUT_EXTENSION}'
-                )
+            self._all_videos[video_index]
+            / constants.DATASET_300VW_IMAGES_OUTPUT_FOLDER
+            / (
+                f'{frame_index:{constants.DATASET_300VW_NUMBER_FORMAT}}'
+                + f'.{constants.DATASET_300VW_IMAGES_OUTPUT_EXTENSION}'
+            )
         )
         if not frame_input_path.exists():
             raise Exception(f'Image does not exist: {frame_input_path}')
@@ -106,12 +104,12 @@ class X300VWDataset(Dataset):
     # @lru_cache()
     def _load_landmarks(self, video_index: int, frame_index: int) -> np.ndarray:
         annotation_input_path = (
-                self._all_videos[video_index]
-                / constants.DATASET_300VW_ANNOTATIONS_OUTPUT_FOLDER
-                / (
-                        f'{frame_index:{constants.DATASET_300VW_NUMBER_FORMAT}}'
-                        + f'.{constants.DATASET_300VW_ANNOTATIONS_OUTPUT_EXTENSION}'
-                )
+            self._all_videos[video_index]
+            / constants.DATASET_300VW_ANNOTATIONS_OUTPUT_FOLDER
+            / (
+                f'{frame_index:{constants.DATASET_300VW_NUMBER_FORMAT}}'
+                + f'.{constants.DATASET_300VW_ANNOTATIONS_OUTPUT_EXTENSION}'
+            )
         )
         if not annotation_input_path.exists():
             raise Exception(f'Landmarks file does not exist: {annotation_input_path}')
@@ -129,14 +127,16 @@ class X300VWDataset(Dataset):
             # # because landmarks is zero padded, the start indices are the actual landmark centers
             start_indices = single_dim_landmarks[landmark_index, :]
             start_indices = np.round(start_indices).astype(int)
-            landmarks[landmark_index, :, :] = self._temp(start_indices[0], start_indices[1])
+            landmarks[landmark_index, :, :] = self._temp(
+                start_indices[0], start_indices[1]
+            )
 
             # self.temp(start_indices)
         landmarks = landmarks[
-                    :,
-                    self._window_radius: constants.IMSIZE + self._window_radius,
-                    self._window_radius: constants.IMSIZE + self._window_radius,
-                    ]
+            :,
+            self._window_radius : constants.IMSIZE + self._window_radius,
+            self._window_radius : constants.IMSIZE + self._window_radius,
+        ]
 
         return landmarks
 
@@ -145,20 +145,21 @@ class X300VWDataset(Dataset):
         # because landmarks is zero padded, the start indices are the actual landmark centers
 
         x_2, y_2 = x_1 + self._window_size_gaussian, y_1 + self._window_size_gaussian
-        landmark_channel = np.zeros((constants.IMSIZE + self._window_size_gaussian - 1,
-                                     constants.IMSIZE + self._window_size_gaussian - 1,
-                                     ))
-        if (x_1 < 0 or
-                y_1 < 0 or
-                x_2 >= constants.IMSIZE + self._window_size_gaussian - 1 or
-                y_2 >= constants.IMSIZE + self._window_size_gaussian - 1
+        landmark_channel = np.zeros(
+            (
+                constants.IMSIZE + self._window_size_gaussian - 1,
+                constants.IMSIZE + self._window_size_gaussian - 1,
+            )
+        )
+        if (
+            x_1 < 0
+            or y_1 < 0
+            or x_2 >= constants.IMSIZE + self._window_size_gaussian - 1
+            or y_2 >= constants.IMSIZE + self._window_size_gaussian - 1
         ):
             return landmark_channel
         # landmarks[0] is x, landmarks[1] is y
-        landmark_channel[
-        y_1: y_2,
-        x_1: x_2,
-        ] = self._gaussian
+        landmark_channel[y_1:y_2, x_1:x_2] = self._gaussian
 
         return landmark_channel
 
