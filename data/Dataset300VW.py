@@ -3,6 +3,7 @@ from typing import Dict, Optional
 
 import cv2
 import numpy as np
+import torch
 from torch.utils.data import Dataset
 
 from data import all_video_paths, count_images, plot
@@ -55,9 +56,12 @@ class X300VWDataset(Dataset):
         if np.isinf(upper_bound):
             upper_bound = self._n_images
 
-        frame_indices = np.random.randint(
-            0, upper_bound - lower_bound, self._n_images_per_sample
-        )
+        frame_indices = torch.randint(
+            0,
+            upper_bound - lower_bound,  # == n_images_per_video[video_index]
+            size=(self._n_images_per_sample,),
+            dtype=torch.int64,
+        ).numpy()
         # +1 because frames are numerated starting 1
         frame_index = index - lower_bound + 1
         frame_indices += 1
