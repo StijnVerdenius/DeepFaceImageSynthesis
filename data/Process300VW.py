@@ -123,13 +123,15 @@ def _landmarks_to_box(
 
     # landmarks can be out of image, but that's okay, we'll still export them.
     image_height, image_width, _ = image_size
-    center_x, center_y = (x1 + x2) // 2, (y1 + y2) // 2
+    # // 2 returns numpy float
+    center_x, center_y = int((x1 + x2) / 2), int((y1 + y2) / 2)
     box_radius = min(
         box_radius, center_x, center_y, image_width - center_x, image_height - center_y
     )
+    box_radius = int(box_radius)
     x1, y1 = [t - box_radius for t in (center_x, center_y)]
     x2, y2 = [t + box_radius for t in (center_x, center_y)]
-    x1, y1, x2, y2 = [int(t) for t in (x1, y1, x2, y2)]
+    assert all(isinstance(t, int) for t in (x1, y1, x2, y2))
 
     assert abs((x2 - x1) - (y2 - y1)) == 0
     assert 0 <= x1 <= x2 <= image_width and 0 <= y1 <= y2 <= image_height
