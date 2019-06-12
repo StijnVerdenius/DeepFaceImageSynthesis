@@ -62,7 +62,7 @@ class TrainingProcess:
         self.shuffle_indices = list(range(int(self.combined_batch_size)))
 
         # initialize tensorboardx
-        self.writer = SummaryWriter('results/tensorboardx') ########################################################################### ADD DIRECTORY
+        self.writer = SummaryWriter('results/output/tensorboardx') ########################################################################### ADD DIRECTORY
 
         self.labels = None
 

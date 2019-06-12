@@ -153,7 +153,7 @@ def parse():
     parser.add_argument('--timing', type=bool, default=False, help='are we measuring efficiency?')
 
     # test arguments
-    parser.add_argument('--test_model_date', default="2020-06-08_16:56:58", type=str,
+    parser.add_argument('--test_model_date', default="2019-06-10_12:23:58", type=str, #default = 2020-06-08_16:56:58
                         help='date_stamp string for which model to load')
     parser.add_argument('--test_model_suffix', default="finished", type=str,
                         help='filename string for which model to load')
