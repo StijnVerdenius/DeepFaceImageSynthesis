@@ -105,7 +105,6 @@ class X300VWDataset(Dataset):
         ), f"wrong shape {image.shape}"
         return image
 
-    # @lru_cache()
     def _load_landmarks(self, video_index: int, frame_index: int) -> np.ndarray:
         annotation_input_path = (
             self._all_videos[video_index]
@@ -131,7 +130,7 @@ class X300VWDataset(Dataset):
             # # because landmarks is zero padded, the start indices are the actual landmark centers
             start_indices = single_dim_landmarks[landmark_index, :]
             start_indices = np.round(start_indices).astype(int)
-            landmarks[landmark_index, :, :] = self._temp(
+            landmarks[landmark_index, :, :] = self._landmark_to_channel(
                 start_indices[0], start_indices[1]
             )
 
@@ -145,7 +144,7 @@ class X300VWDataset(Dataset):
         return landmarks
 
     @lru_cache()
-    def _temp(self, x_1, y_1):
+    def _landmark_to_channel(self, x_1, y_1):
         # because landmarks is zero padded, the start indices are the actual landmark centers
 
         x_2, y_2 = x_1 + self._window_size_gaussian, y_1 + self._window_size_gaussian
