@@ -186,18 +186,14 @@ class TrainingProcess:
             # save a set of pictures
             if (batches_passed % self.arguments.plot_freq == 0):
 
+                plot_some_pictures(self.arguments.feedback, fake_images, batches_passed)
+
                 fake_imgs = fake_images[:16].view(-1, 3, IMSIZE, IMSIZE)
 
                 fake_imgs = de_torch(fake_imgs) ########################## added this
                 fake_imgs = denormalize_picture(fake_imgs)
                 fake_imgs = BGR2RGB(fake_imgs)
 
-                plot_some_pictures(self.arguments.feedback, fake_imgs, batches_passed)
-
-                # pass fake images to tensorboardx
-                # self.writer.add_image('fake_samples',
-                #                       vutils.make_grid(fake_imgs[:16].view(-1, 3, IMSIZE, IMSIZE), normalize=True),
-                #                       batches_passed)
                 self.writer.add_image('fake_samples',
                       vutils.make_grid(fake_imgs, normalize=True),
                       batches_passed)
