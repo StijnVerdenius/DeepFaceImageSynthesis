@@ -1,7 +1,12 @@
 # torch debug
 import os
 
+from torchvision import transforms
+
+import transformations
+
 os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
+
 
 from torch.utils.data import DataLoader
 
@@ -32,13 +37,35 @@ def load_data(keyword: str, batch_size: int, mode: str) -> DataLoader:  # todo @
 
     data = None
 
+    if mode == "test":
+        dataset_mode = Dataset300VWMode.TEST_1
+    elif keyword == "train":
+        dataset_mode = Dataset300VWMode.TRAIN
+    elif keyword == "validate":
+        dataset_mode = Dataset300VWMode.TEST_3
+    else:
+        raise Exception("Unknown dataset_mode")
+
+    transform = transforms.Compose(
+        [
+            transformations.RandomHorizontalFlip(),
+            transformations.RandomCrop(),
+            transformations.Resize(),
+            transformations.RescaleValues(),
+            transformations.ChangeChannels(),
+        ]
+    )
+
     if (keyword == "train"):
-        data = DataLoader(X300VWDataset(), shuffle=(False or mode == "test"), batch_size=batch_size,
-                          drop_last=True)  # Changed to false!!!
+        data = DataLoader(X300VWDataset(dataset_mode, transform=transform),
+                          shuffle=(False or mode == "test"), batch_size=batch_size,
+                          drop_last=True) #Changed to false!!!
 
     elif (keyword == "validate"):
-        data = DataLoader(X300VWDataset(), shuffle=(False or mode == "test"), batch_size=batch_size,
-                          drop_last=True)  # Changed to false!!!
+        data = DataLoader(X300VWDataset(dataset_mode, transform=transform),
+                          shuffle=(False or mode == "test"), batch_size=batch_size,
+                          drop_last=True) #Changed to false!!!
+
     elif (keyword == "debug"):
         data = [(dummy_batch(batch_size, INPUT_CHANNELS), dummy_batch(batch_size, INPUT_LANDMARK_CHANNELS)) for _ in
                 range(5)]
