@@ -267,10 +267,9 @@ class TrainingProcess:
         self.trainer_dis.prepare_evaluation()
         self.trainer_gen.prepare_evaluation()
 
-        # pass stats to tensorboardX #############################################################################################################################################
+        # pass stats to tensorboardX
         for e in list(loss_gen_dict.keys()):
             self.writer.add_scalar(str(e), loss_gen_dict[e], batches_passed)
-
         for e in list(loss_dis_dict.keys()):
             self.writer.add_scalar(str(e), loss_dis_dict[e], batches_passed)
 
