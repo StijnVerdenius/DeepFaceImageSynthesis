@@ -119,50 +119,58 @@ class X300VWDataset(Dataset):
         single_dim_landmarks = np.loadtxt(annotation_input_path)
 
         landmarks = np.empty(
-            (
-                constants.DATASET_300VW_N_LANDMARKS,
-                constants.IMSIZE + self._window_size_gaussian - 1,
-                constants.IMSIZE + self._window_size_gaussian - 1,
-            )
+            (constants.DATASET_300VW_N_LANDMARKS, constants.IMSIZE, constants.IMSIZE)
         )
         assert single_dim_landmarks.shape == (constants.DATASET_300VW_N_LANDMARKS, 2)
         for landmark_index in range(single_dim_landmarks.shape[0]):
-            # # because landmarks is zero padded, the start indices are the actual landmark centers
             start_indices = single_dim_landmarks[landmark_index, :]
-            start_indices = np.round(start_indices).astype(int)
             landmarks[landmark_index, :, :] = self._landmark_to_channel(
                 start_indices[0], start_indices[1]
             )
 
-            # self.temp(start_indices)
-        landmarks = landmarks[
-            :,
-            self._window_radius : constants.IMSIZE + self._window_radius,
-            self._window_radius : constants.IMSIZE + self._window_radius,
-        ]
-
         return landmarks
 
     @lru_cache()
-    def _landmark_to_channel(self, x_1, y_1):
-        # because landmarks is zero padded, the start indices are the actual landmark centers
+    def _landmark_to_channel(self, x_1: int, y_1: int) -> np.ndarray:
+        landmark_channel = np.zeros((constants.IMSIZE, constants.IMSIZE))
+        start_indices_landmarks = np.asarray([x_1, y_1], dtype=int)
+        start_indices_landmarks -= self._window_radius
 
-        x_2, y_2 = x_1 + self._window_size_gaussian, y_1 + self._window_size_gaussian
-        landmark_channel = np.zeros(
-            (
-                constants.IMSIZE + self._window_size_gaussian - 1,
-                constants.IMSIZE + self._window_size_gaussian - 1,
-            )
-        )
-        if (
-            x_1 < 0
-            or y_1 < 0
-            or x_2 >= constants.IMSIZE + self._window_size_gaussian - 1
-            or y_2 >= constants.IMSIZE + self._window_size_gaussian - 1
+        end_indices_landmarks = start_indices_landmarks + self._window_size_gaussian
+        if any(start_indices_landmarks > constants.IMSIZE) or any(
+            end_indices_landmarks < 0
         ):
             return landmark_channel
-        # landmarks[0] is x, landmarks[1] is y
-        landmark_channel[y_1:y_2, x_1:x_2] = self._gaussian
+
+        start_indices_gaussian = np.where(
+            start_indices_landmarks < 0, abs(start_indices_landmarks), 0
+        )
+        start_indices_landmarks = np.where(
+            start_indices_landmarks < 0, 0, start_indices_landmarks
+        )
+        end_indices_gaussian = self._window_size_gaussian - np.where(
+            end_indices_landmarks > constants.IMSIZE,
+            end_indices_landmarks - constants.IMSIZE,
+            0,
+        )
+        end_indices_landmarks = np.where(
+            end_indices_landmarks > constants.IMSIZE,
+            constants.IMSIZE,
+            end_indices_landmarks,
+        )
+
+        assert all(
+            (end_indices_landmarks - start_indices_landmarks)
+            == (end_indices_gaussian - start_indices_gaussian)
+        )
+
+        landmark_channel[
+            start_indices_landmarks[1] : end_indices_landmarks[1],
+            start_indices_landmarks[0] : end_indices_landmarks[0],
+        ] = self._gaussian[
+            start_indices_gaussian[1] : end_indices_gaussian[1],
+            start_indices_gaussian[0] : end_indices_gaussian[0],
+        ]
 
         return landmark_channel
 
