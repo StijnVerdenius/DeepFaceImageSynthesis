@@ -138,7 +138,8 @@ class X300VWDataset(Dataset):
         return image
 
     def _load_landmarks(self, video_index: int, frame_index: int) -> np.ndarray:
-        single_dim_landmarks = self._all_landmarks[video_index][frame_index, :, :]
+        # single_dim_landmarks = self._all_landmarks[video_index][frame_index, :, :]
+        single_dim_landmarks = self._all_landmarks[video_index][frame_index-1, :, :]
         landmarks = np.empty(
             (constants.IMSIZE, constants.IMSIZE, constants.DATASET_300VW_N_LANDMARKS)
         )
