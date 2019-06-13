@@ -64,6 +64,7 @@ class TotalGeneratorLoss(GeneralLoss):
             feat_1_2 = usable_feats[:self.feature_selection[1] + 1]
             feat_2_2 = usable_feats[self.feature_selection[1] + 1:self.feature_selection[2] + 1]
             if self.id.active:
+                feat_2_3 = usable_feats[self.feature_selection[2] + 1: self.feature_selection[0] + 1]
                 feat_3_3 = usable_feats[self.feature_selection[0] + 1:self.feature_selection[3] + 1]
             else:
                 feat_3_3 = usable_feats[self.feature_selection[2] + 1:self.feature_selection[3] + 1]
