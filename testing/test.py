@@ -73,7 +73,7 @@ def compare(dataloader: DataLoader,
 
             plt.subplot(number_of_pictures, plots, image_index * plots + 5)
             plt.imshow(np.stack((plottable_landmarks_2.T, plottable_landmarks_2.T, plottable_landmarks_2.T), axis=2))
-            plt.title("source")
+            plt.title("target")
             plt.xticks([])
             plt.yticks([])
 

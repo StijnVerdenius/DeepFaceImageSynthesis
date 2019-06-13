@@ -62,7 +62,7 @@ class TrainingProcess:
         self.shuffle_indices = list(range(int(self.combined_batch_size)))
 
         # initialize tensorboardx
-        self.writer = SummaryWriter('results/tensorboardx') ########################################################################### ADD DIRECTORY
+        self.writer = SummaryWriter('results/output/tensorboardx') ########################################################################### ADD DIRECTORY
 
         self.labels = None
 
@@ -211,7 +211,9 @@ class TrainingProcess:
 
             # save a set of pictures
             if (batches_passed % self.arguments.plot_freq == 0):
-                plot_some_pictures(self.arguments.feedback, fake_images, batches_passed, writer=self.writer)
+                plot_some_pictures(self.arguments.feedback, fake_images, batches_passed)
+                # pass fake images to tensorboardx
+                self.writer.add_image('fake_samples', vutils.make_grid(fake_images[:16].view(-1, 3, IMSIZE, IMSIZE), normalize=True), batches_passed)
 
             # empty cache
             torch.cuda.empty_cache()
