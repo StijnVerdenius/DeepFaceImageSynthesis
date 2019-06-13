@@ -187,8 +187,8 @@ class TrainingProcess:
             if (batches_passed % self.arguments.plot_freq == 0):
 
                 fake_imgs = de_torch(fake_images) ########################## added this
-                fake_imgs = denormalize_picture(fake_images)
-                fake_imgs = BGR2RGB(fake_images)
+                fake_imgs = denormalize_picture(fake_imgs)
+                fake_imgs = BGR2RGB(fake_imgs)
 
                 plot_some_pictures(self.arguments.feedback, fake_imgs, batches_passed)
                 # pass fake images to tensorboardx
