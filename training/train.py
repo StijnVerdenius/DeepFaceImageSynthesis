@@ -34,6 +34,8 @@ class TrainingProcess:
                  loss_dis: GeneralLoss,
                  arguments):
 
+        DATA_MANAGER.date_stamp()
+
         # models
         self.generator = generator
         self.discriminator = discriminator
@@ -64,7 +66,7 @@ class TrainingProcess:
 
         # initialize tensorboardx
         self.writer = SummaryWriter(
-            'results/output/tensorboardx')  ############## ADD DIRECTORY
+            f"results/output/tensorboardx/{DATA_MANAGER.stamp}")  ############## ADD DIRECTORY
 
         self.labels = None
 
@@ -247,7 +249,10 @@ class TrainingProcess:
         for e in list(loss_dis_dict.keys()):
             self.writer.add_scalar(str(e), loss_dis_dict[e], batches_passed)
 
+
+
         self.writer.add_scalar("disc_acc", discriminator_accuracy, batches_passed)
+        self.writer.add_scalar("total_loss_generator", loss_gen, batches_passed)
 
         # validate on validationset
         loss_gen_validate, loss_dis_validate, _ = 0, 0, 0  # self.validate() todo: do we want to restore this?

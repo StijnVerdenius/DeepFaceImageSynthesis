@@ -17,7 +17,7 @@ def ensure_current_directory():
 
 
 def setup_directories():
-    stamp = DATA_MANAGER.date_stamp()
+    stamp = DATA_MANAGER.stamp
     dirs = OUTPUT_DIRS
     for dir_to_be in dirs:
         DATA_MANAGER.create_dir(f"{stamp}/{dir_to_be}")
