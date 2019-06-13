@@ -27,13 +27,15 @@ class X300VWDataset(Dataset):
 
         self._n_images_per_video = count_images(
             self._all_videos,
-            constants.DATASET_300VW_ANNOTATIONS_OUTPUT_FOLDER,
-            constants.DATASET_300VW_ANNOTATIONS_OUTPUT_EXTENSION,
+            constants.DATASET_300VW_IMAGES_OUTPUT_FOLDER,
+            constants.DATASET_300VW_IMAGES_OUTPUT_EXTENSION,
         )
         self._n_images = sum(self._n_images_per_video)
         self._cumulative_n_images = self._cumulative_sum()
         self._n_images_per_sample = n_images_per_sample
         print(f'n images in dataset: {self._n_images}')
+
+        self._all_landmarks = self._load_all_landmarks()
 
         self._window_size_gaussian = window_size_gaussian
         assert self._window_size_gaussian > 0 and self._window_size_gaussian % 2 == 1
@@ -53,6 +55,15 @@ class X300VWDataset(Dataset):
                 f'Videos are missing from dataset. Should have the following: {mode.value}'
             )
         return filtered_list
+
+    def _load_all_landmarks(self) -> List[np.ndarray]:
+        print('Loading landmarks positions into memory...')
+        return [
+            np.load(video_path / 'annotations.npy')
+            for video_path in tqdm(self._all_videos)
+            if (video_path / 'annotations.npy').exists()
+        ]
+
     def _cumulative_sum(self) -> List[int]:
         cumulative_sum = 0
         cumulative_n_images = [cumulative_sum]
@@ -137,17 +148,7 @@ class X300VWDataset(Dataset):
         return image
 
     def _load_landmarks(self, video_index: int, frame_index: int) -> np.ndarray:
-        annotation_input_path = (
-            self._all_videos[video_index]
-            / constants.DATASET_300VW_ANNOTATIONS_OUTPUT_FOLDER
-            / (
-                f'{frame_index:{constants.DATASET_300VW_NUMBER_FORMAT}}'
-                + f'.{constants.DATASET_300VW_ANNOTATIONS_OUTPUT_EXTENSION}'
-            )
-        )
-        if not annotation_input_path.exists():
-            raise Exception(f'Landmarks file does not exist: {annotation_input_path}')
-        single_dim_landmarks = np.loadtxt(annotation_input_path)
+        single_dim_landmarks = self._all_landmarks[video_index][frame_index, :, :]
 
         landmarks = np.empty(
             (constants.DATASET_300VW_N_LANDMARKS, constants.IMSIZE, constants.IMSIZE)
