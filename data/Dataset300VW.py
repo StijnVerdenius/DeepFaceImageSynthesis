@@ -1,10 +1,12 @@
 from functools import lru_cache
+from pathlib import Path
 from typing import Dict, List, Optional
 
 import cv2
 import numpy as np
 import torch
 from torch.utils.data import Dataset
+from tqdm import tqdm
 
 from data import all_video_paths, count_images, plot
 from utils import constants, personal_constants
@@ -13,6 +15,7 @@ from utils import constants, personal_constants
 class X300VWDataset(Dataset):
     def __init__(
         self,
+        mode: constants.Dataset300VWMode,
         window_size_gaussian: int = 7,
         n_images_per_sample: int = 3,
         mu: float = 0.0,
@@ -20,6 +23,8 @@ class X300VWDataset(Dataset):
         transform: Optional = None,
     ) -> None:
         self._all_videos = all_video_paths(personal_constants.DATASET_300VW_OUTPUT_PATH)
+        self._all_videos = self._filter(mode)
+
         self._n_images_per_video = count_images(
             self._all_videos,
             constants.DATASET_300VW_ANNOTATIONS_OUTPUT_FOLDER,
@@ -37,6 +42,17 @@ class X300VWDataset(Dataset):
 
         self._transform = transform
 
+    def _filter(self, mode: constants.Dataset300VWMode) -> List[Path]:
+        filtered_list = [
+            video_path
+            for video_path in self._all_videos
+            if video_path.stem in mode.value
+        ]
+        if len(mode.value) != len(filtered_list):
+            raise Exception(
+                f'Videos are missing from dataset. Should have the following: {mode.value}'
+            )
+        return filtered_list
     def _cumulative_sum(self) -> List[int]:
         cumulative_sum = 0
         cumulative_n_images = [cumulative_sum]
