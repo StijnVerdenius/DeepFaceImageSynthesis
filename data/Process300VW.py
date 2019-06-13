@@ -123,7 +123,7 @@ def _landmarks_to_box(
 
     # landmarks can be out of image, but that's okay, we'll still export them.
     image_height, image_width, _ = image_size
-    # // 2 returns numpy float
+    # // 2 returns numpy float but we need ints
     center_x, center_y = int((x1 + x2) / 2), int((y1 + y2) / 2)
     box_radius = min(
         box_radius, center_x, center_y, image_width - center_x, image_height - center_y
@@ -185,36 +185,34 @@ def process_temp_folder(all_videos: List[Path]) -> None:
         video_output_path = (
             personal_constants.DATASET_300VW_OUTPUT_PATH / video_input_path.stem
         )
-        annotations_output_dir = (
-            video_output_path / constants.DATASET_300VW_ANNOTATIONS_OUTPUT_FOLDER
-        )
-        annotations_output_dir.mkdir(exist_ok=True, parents=True)
+        annotation_file_output_path = video_output_path / 'annotations.npy'
         frames_output_dir = (
             video_output_path / constants.DATASET_300VW_IMAGES_OUTPUT_FOLDER
         )
         frames_output_dir.mkdir(exist_ok=True, parents=True)
 
-        for annotation_input_path in tqdm(
-            sorted(
-                list(
-                    (
-                        video_input_path
-                        / constants.DATASET_300VW_ANNOTATIONS_INPUT_FOLDER
-                    ).glob(f'*.{constants.DATASET_300VW_ANNOTATIONS_INPUT_EXTENSION}')
-                )
-            ),
-            desc=constants.DATASET_300VW_INNER_LOOP_DESCRIPTION,
-            leave=False,
+        annotations_paths = sorted(
+            list(
+                (
+                    video_input_path / constants.DATASET_300VW_ANNOTATIONS_INPUT_FOLDER
+                ).glob(f'*.{constants.DATASET_300VW_ANNOTATIONS_INPUT_EXTENSION}')
+            )
+        )
+        landmarks = np.empty(
+            (len(annotations_paths), constants.DATASET_300VW_N_LANDMARKS, 2)
+        )
+        for frame_index, annotation_input_path in enumerate(
+            tqdm(
+                annotations_paths,
+                desc=constants.DATASET_300VW_INNER_LOOP_DESCRIPTION,
+                leave=False,
+            )
         ):
             frame_output_path = (
                 frames_output_dir
                 / f'{annotation_input_path.stem}.{constants.DATASET_300VW_IMAGES_OUTPUT_EXTENSION}'
             )
-            annotation_output_path = (
-                annotations_output_dir
-                / f'{annotation_input_path.stem}.{constants.DATASET_300VW_ANNOTATIONS_OUTPUT_EXTENSION}'
-            )
-            if frame_output_path.exists() and annotation_output_path.exists():
+            if frame_output_path.exists() and annotation_file_output_path.exists():
                 continue
 
             frame_input_path = (
@@ -241,11 +239,14 @@ def process_temp_folder(all_videos: List[Path]) -> None:
                     ],
                 )
 
-            if not annotation_output_path.exists():
-                output_landmarks = _rescale_landmarks(
-                    extraction_landmarks, extraction.shape
-                )
-                np.savetxt(str(annotation_output_path), output_landmarks)
+            output_landmarks = _rescale_landmarks(
+                extraction_landmarks, extraction.shape
+            )
+
+            landmarks[frame_index, :, :] = output_landmarks
+
+        if not annotation_file_output_path.exists():
+            np.save(str(annotation_file_output_path), landmarks)
 
 
 def main() -> None:
