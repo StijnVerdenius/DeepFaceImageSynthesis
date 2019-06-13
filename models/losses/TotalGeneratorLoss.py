@@ -100,7 +100,7 @@ class TotalGeneratorLoss(GeneralLoss):
             a_2_3_fake = feat_2_3.forward(generated_images)
 
 
-            return (a_2_3_real, a_1_2_real, a_2_2_real, a_3_3_real, a_4_3_real), (a_2_3_fake, a_1_2_fake, a_2_2_fake, a_3_3_fake, a_4_3_fake) ###########################################
+        return (a_2_3_real, a_1_2_real, a_2_2_real, a_3_3_real, a_4_3_real), (a_2_3_fake, a_1_2_fake, a_2_2_fake, a_3_3_fake, a_4_3_fake) ###########################################
 
 
     def forward(self, generator: GeneralGenerator,
@@ -136,7 +136,7 @@ class TotalGeneratorLoss(GeneralLoss):
             elif self.id.active:
                 feature_selection=(13)
 
-            real_feats, fake_feats = self.get_features(image_1, fake, feature_selection)
+        real_feats, fake_feats = self.get_features(image_1, fake, feature_selection)
 
 
         # adverserial loss
@@ -169,12 +169,14 @@ class TotalGeneratorLoss(GeneralLoss):
         del image_2
 
         # style losses
-        loss_pp, save_pp = self.pp.forward(image_1, fake)
+        loss_pp, save_pp = self.pp.forward(real_feats, fake_feats)
+        # loss_pp, save_pp = self.pp.forward(image_1, fake)
         total_loss += loss_pp
         loss_pp.detach()
         del loss_pp
 
-        loss_id, save_id = self.id(image_1, fake)
+        # loss_id, save_id = self.id(image_1, fake)
+        loss_id, save_id = self.id(real_feats, fake_feats)
         total_loss += loss_id
         loss_id.detach()
         del loss_id
