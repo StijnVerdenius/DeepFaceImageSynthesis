@@ -47,9 +47,10 @@ def compare(dataloader: DataLoader,
             plottable_source = denormalize_picture(de_torch(image_1[image_index, :, :, :]))
             plottable_target = denormalize_picture(de_torch(image_2[image_index, :, :, :]))
 
-            plt.subplot(number_of_pictures, plots, image_index * plots + 3)
-            plt.imshow(plottable_generated)
-            plt.title("generated")
+
+            plt.subplot(number_of_pictures, plots, image_index * plots + 1)
+            plt.imshow(np.stack((plottable_landmarks_1.T, plottable_landmarks_1.T, plottable_landmarks_1.T), axis=2))
+            plt.title("source")
             plt.xticks([])
             plt.yticks([])
 
@@ -59,15 +60,15 @@ def compare(dataloader: DataLoader,
             plt.xticks([])
             plt.yticks([])
 
-            plt.subplot(number_of_pictures, plots, image_index * plots + 4)
-            plt.imshow(plottable_target)
-            plt.title("target")
+            plt.subplot(number_of_pictures, plots, image_index * plots + 3)
+            plt.imshow(plottable_generated)
+            plt.title("generated")
             plt.xticks([])
             plt.yticks([])
 
-            plt.subplot(number_of_pictures, plots, image_index * plots + 1)
-            plt.imshow(np.stack((plottable_landmarks_1.T, plottable_landmarks_1.T, plottable_landmarks_1.T), axis=2))
-            plt.title("source")
+            plt.subplot(number_of_pictures, plots, image_index * plots + 4)
+            plt.imshow(plottable_target)
+            plt.title("target")
             plt.xticks([])
             plt.yticks([])
 

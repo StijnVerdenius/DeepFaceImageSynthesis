@@ -16,11 +16,6 @@ CODE_DIR = "codebase"
 OUTPUT_DIRS = [PIC_DIR, PROGRESS_DIR, MODELS_DIR, CODE_DIR]
 
 # data manager
-DATA_MANAGER = DataManager(f"./{PREFIX_OUTPUT}/")
-
-# vgg
-VGG = vgg.vgg19(pretrained=True)
-VGG.eval()
 
 # train
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -30,6 +25,13 @@ INPUT_LANDMARK_CHANNELS = 68
 INPUT_CHANNELS = 3
 INPUT_SIZE = INPUT_CHANNELS + INPUT_LANDMARK_CHANNELS
 DEBUG_BATCH_SIZE = 16
+TOTAL_LOSS = "TotalGeneratorLoss"
+DATA_MANAGER = DataManager(f"./{PREFIX_OUTPUT}/")
+
+# vgg
+VGG = vgg.vgg19(pretrained=True)
+VGG = VGG.to(DEVICE)
+VGG.eval()
 
 # dataset
 DATASET_300VW_PADDING = 0
@@ -62,3 +64,4 @@ PRINTCOLOR_RED = '\033[91m'
 PRINTCOLOR_BOLD = '\033[1m'
 PRINTCOLOR_UNDERLINE = '\033[4m'
 PRINTCOLOR_END = '\033[0m'
+

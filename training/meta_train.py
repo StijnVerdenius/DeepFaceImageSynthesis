@@ -25,15 +25,15 @@ class MetaTrain(TrainingProcess):
                  loss_gen: GeneralLoss,
                  loss_dis: GeneralLoss,
                  arguments,
-                 costum_field_example=None):
+                 custom_field_example=None):
 
         super().__init__(generator, discriminator, embedder, dataloader_train, dataloader_validation, optimizer_gen,
                          optimizer_dis, optimizer_emb, loss_gen, loss_dis, arguments)
 
-        self.costum_field = costum_field_example  # example
+        self.custom_field = custom_field_example  # example
 
     def new_method_example(self):
-        print(self.costum_field)  # example new method
+        print(self.custom_field)  # example new method
 
     def batch_iteration(self, image_1: torch.Tensor, landmarks_1: torch.Tensor, train=True):
         # example overriding parent method

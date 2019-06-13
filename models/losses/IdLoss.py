@@ -28,18 +28,14 @@ class IdLoss(GeneralLoss):
 
         return l1
 
-    def get_features(self, batch: torch.Tensor, generated_images: torch.Tensor, ) \
+    def get_features(self, batch: torch.Tensor, generated_images: torch.Tensor) \
             -> Tuple[
-                Tuple[torch.Tensor],
-                Tuple[torch.Tensor]
+                torch.Tensor,
+                torch.Tensor
             ]:
         """ extracts features from vgg network """
 
         usable_feats = VGG.features
-        # print(VGG.features)
-
-        # feat_p = usable_feats[:self.feature_selection[0] + 1]
-        # feat_fc = usable_feats[self.feature_selection[0] + 1:self.feature_selection[1] + 1]
 
         feat_r2_3 = usable_feats[:self.feature_selection + 1]
 
