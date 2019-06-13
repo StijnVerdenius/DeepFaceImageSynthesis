@@ -16,7 +16,7 @@ from typing import Tuple, Dict
 
 from utils.constants import DEVICE, CHANNEL_DIM, IMSIZE, DEBUG_BATCH_SIZE
 from utils.training_helpers import unpack_batch
-
+from utils.constants import *
 
 class TotalGeneratorLoss(GeneralLoss):
 
@@ -31,6 +31,76 @@ class TotalGeneratorLoss(GeneralLoss):
         self.self = ConsistencyLoss(ConsistencyLoss_weight)
         self.pix = PixelLoss(PixelLoss_weight)
         self.id = IdLoss(IdLoss_weight)
+
+
+    def get_features(self, batch: torch.Tensor, generated_images: torch.Tensor, feature_selection: Tuple ) \
+                -> Tuple[
+                    Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor],
+                    Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]
+                ]:
+        """ extracts features from vgg network """
+
+        # set defaults
+        a_1_2_real = None
+        a_1_2_fake = None
+
+        a_2_2_real = None
+        a_2_2_fake = None
+
+        a_2_3_real = None
+        a_2_3_fake = None
+
+        a_3_3_real = None
+        a_3_3_fake = None
+
+        a_4_3_real = None
+        a_4_3_fake = None
+
+        self.feature_selection = feature_selection
+
+        usable_feats = VGG.features[:self.feature_selection[-1] + 1]
+
+        if self.pp.active:
+            feat_1_2 = usable_feats[:self.feature_selection[1] + 1]
+            feat_2_2 = usable_feats[self.feature_selection[1] + 1:self.feature_selection[2] + 1]
+            if self.id.active:
+                feat_3_3 = usable_feats[self.feature_selection[0] + 1:self.feature_selection[3] + 1]
+            else:
+                feat_3_3 = usable_feats[self.feature_selection[2] + 1:self.feature_selection[3] + 1]
+            feat_4_3 = usable_feats[self.feature_selection[3] + 1:]
+
+        elif  self.id.active:
+            feat_2_3 = usable_feats[:self.feature_selection[0] + 1]
+
+        if self.pp.active:
+            a_1_2_real = feat_1_2.forward(batch)
+            a_1_2_fake = feat_1_2.forward(generated_images)
+
+            a_2_2_real = feat_2_2.forward(a_1_2_real)
+            a_2_2_fake = feat_2_2.forward(a_1_2_fake)
+
+            if self.id.active:
+                a_2_3_real = feat_2_3.forward(a_2_2_real)
+                a_2_3_fake = feat_2_3.forward(a_2_2_fake)
+
+                a_3_3_real = feat_3_3.forward(a_2_3_real)
+                a_3_3_fake = feat_3_3.forward(a_2_3_fake)
+
+            else:
+
+                a_3_3_real = feat_3_3.forward(a_2_2_real)
+                a_3_3_fake = feat_3_3.forward(a_2_2_fake)
+
+            a_4_3_real = feat_4_3.forward(a_3_3_real)
+            a_4_3_fake = feat_4_3.forward(a_3_3_fake)
+
+        elif self.id.active:
+            a_2_3_real = feat_2_3.forward(batch)
+            a_2_3_fake = feat_2_3.forward(generated_images)
+
+
+            return (a_2_3_real, a_1_2_real, a_2_2_real, a_3_3_real, a_4_3_real), (a_2_3_fake, a_1_2_fake, a_2_2_fake, a_3_3_fake, a_4_3_fake) ###########################################
+
 
     def forward(self, generator: GeneralGenerator,
                 discriminator: GeneralDiscriminator,
@@ -56,6 +126,17 @@ class TotalGeneratorLoss(GeneralLoss):
         target_landmarked_fake = torch.cat((fake, landmarks_2), dim=CHANNEL_DIM)
 
         total_loss = 0
+
+        if self.pp.active or self.id.active:
+            if self.pp.active and self.id.active:
+                feature_selection=(13, 3, 8, 15, 24)
+            elif self.pp.active:
+                feature_selection=(None, 3, 8, 15, 24)
+            elif self.id.active:
+                feature_selection=(13)
+
+            real_feats, fake_feats = self.get_features(image_1, fake, feature_selection)
+
 
         # adverserial loss
         loss_adv, save_adv = self.adv(target_landmarked_fake, discriminator)
