@@ -1,5 +1,5 @@
 from functools import lru_cache
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 import cv2
 import numpy as np
@@ -11,36 +11,48 @@ from utils import constants, personal_constants
 
 
 class X300VWDataset(Dataset):
-    def __init__(self, transform: Optional = None) -> None:
+    def __init__(
+        self,
+        window_size_gaussian: int = 7,
+        n_images_per_sample: int = 3,
+        mu: float = 0.0,
+        sigma: float = 1 / 3,
+        transform: Optional = None,
+    ) -> None:
         self._all_videos = all_video_paths(personal_constants.DATASET_300VW_OUTPUT_PATH)
-        n_images_per_video = count_images(
+        self._n_images_per_video = count_images(
             self._all_videos,
             constants.DATASET_300VW_ANNOTATIONS_OUTPUT_FOLDER,
             constants.DATASET_300VW_ANNOTATIONS_OUTPUT_EXTENSION,
         )
-        self._n_images = sum(n_images_per_video)
+        self._n_images = sum(self._n_images_per_video)
+        self._cumulative_n_images = self._cumulative_sum()
+        self._n_images_per_sample = n_images_per_sample
         print(f'n images in dataset: {self._n_images}')
 
-        cumulative_sum = 0
-        self._cumulative_n_images = [cumulative_sum]
-        for n_images_in_video in n_images_per_video:
-            cumulative_sum += n_images_in_video
-            self._cumulative_n_images.append(cumulative_sum)
-        self._cumulative_n_images.append(float('inf'))
-        self._n_images_per_sample = 3
-
-        self._window_size_gaussian = 7
+        self._window_size_gaussian = window_size_gaussian
         assert self._window_size_gaussian > 0 and self._window_size_gaussian % 2 == 1
         self._window_radius = self._window_size_gaussian // 2
+        self._gaussian = self._precompute_gaussian(mu, sigma)
+
+        self._transform = transform
+
+    def _cumulative_sum(self) -> List[int]:
+        cumulative_sum = 0
+        cumulative_n_images = [cumulative_sum]
+        for n_images_in_video in self._n_images_per_video:
+            cumulative_sum += n_images_in_video
+            cumulative_n_images.append(cumulative_sum)
+
+        return cumulative_n_images
+
+    def _precompute_gaussian(self, mu: float, sigma: float) -> np.ndarray:
         x, y = np.meshgrid(
             np.linspace(-1, 1, self._window_size_gaussian),
             np.linspace(-1, 1, self._window_size_gaussian),
         )
         d = np.sqrt(x * x + y * y)
-        mu, sigma = 0.0, 1 / 3
-        self._gaussian = np.exp(-((d - mu) ** 2 / (2.0 * sigma ** 2)))
-
-        self._transform = transform
+        return np.exp(-((d - mu) ** 2 / (2.0 * sigma ** 2)))
 
     def __len__(self):
         return self._n_images
@@ -53,33 +65,36 @@ class X300VWDataset(Dataset):
             if lower_bound <= index < upper_bound:
                 break
 
-        if np.isinf(upper_bound):
-            upper_bound = self._n_images
-
-        frame_indices = torch.randint(
-            0,
-            upper_bound - lower_bound,  # == n_images_per_video[video_index]
-            size=(self._n_images_per_sample,),
-            dtype=torch.int64,
-        ).numpy()
+        assert upper_bound - lower_bound == self._n_images_per_video[video_index]
         # +1 because frames are numerated starting 1
         frame_index = index - lower_bound + 1
-        frame_indices += 1
-        frame_indices = [fi for fi in frame_indices if fi != frame_index]
-        frame_indices = [frame_index] + frame_indices[: self._n_images_per_sample - 1]
-        assert len(frame_indices) == self._n_images_per_sample
+        frame_indices = self._random_sample_indices(video_index, frame_index)
 
-        samples = [
-            (self._load_image(video_index, fi), self._load_landmarks(video_index, fi))
+        sample = [
+            {
+                'image': self._load_image(video_index, fi),
+                'landmarks': self._load_landmarks(video_index, fi),
+            }
             for fi in frame_indices
         ]
-        keys = ('image', 'landmarks')
-        sample = [{k: v for k, v in zip(keys, values)} for values in samples]
 
         if self._transform:
             sample = self._transform(sample)
 
         return sample
+
+    def _random_sample_indices(self, video_index: int, frame_index: int) -> List[int]:
+        frame_indices = torch.randint(
+            0,
+            self._n_images_per_video[video_index],
+            size=(self._n_images_per_sample,),
+            dtype=torch.int64,
+        ).numpy()
+        frame_indices += 1
+        frame_indices = [fi for fi in frame_indices if fi != frame_index]
+        frame_indices = [frame_index] + frame_indices[: self._n_images_per_sample - 1]
+        assert len(frame_indices) == self._n_images_per_sample
+        return frame_indices
 
     def _load_image(self, video_index: int, frame_index: int) -> np.ndarray:
         frame_input_path = (
