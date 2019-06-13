@@ -65,8 +65,10 @@ class TrainingProcess:
         self.shuffle_indices = list(range(int(self.combined_batch_size)))
 
         # initialize tensorboardx
+        # self.writer = SummaryWriter(
+        #     f"results/output/tensorboardx/{DATA_MANAGER.stamp}")  ############## ADD DIRECTORY
         self.writer = SummaryWriter(
-            f"results/output/tensorboardx/{DATA_MANAGER.stamp}")  ############## ADD DIRECTORY
+            f"lgpu0293@lisa.surfsara.nl:/home/lgpu0293/ProjectAI/DeepFakes/results/output/tensorboardx/{DATA_MANAGER.stamp}")  ############## ADD DIRECTORY
 
         self.labels = None
 
