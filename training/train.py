@@ -190,10 +190,6 @@ class TrainingProcess:
 
                 fake_imgs = fake_images[:16].view(-1, 3, IMSIZE, IMSIZE)
 
-                fake_imgs = de_torch(fake_imgs) ########################## added this
-                fake_imgs = denormalize_picture(fake_imgs)
-                fake_imgs = BGR2RGB(fake_imgs)
-
                 self.writer.add_image('fake_samples',
                       vutils.make_grid(fake_imgs, normalize=True),
                       batches_passed)

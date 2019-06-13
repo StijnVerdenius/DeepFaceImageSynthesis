@@ -14,7 +14,8 @@ LOSS_DIR = "losses"
 EMBED_DIR = "embedders"
 GEN_DIR = "generators"
 DIS_DIR = "discriminators"
-PREFIX_OUTPUT = "results/output"
+# PREFIX_OUTPUT = "results/output"
+PREFIX_OUTPUT = "/home/lgpu0293/ProjectAI/DeepFakes/results/output"
 CODE_DIR = "codebase"
 OUTPUT_DIRS = [PIC_DIR, PROGRESS_DIR, MODELS_DIR, CODE_DIR]
 
