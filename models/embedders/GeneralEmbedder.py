@@ -9,4 +9,4 @@ class GeneralEmbedder(GeneralModel):
         super().__init__(n_channels_in, device, **kwargs)
         self.n_channels_out = n_channels_out
 
-    # todo: add methods here that are shared for all embedders, inheret your costum version from this object
+    # todo: add methods here that are shared for all embedders, inheret your custom version from this object

@@ -3,9 +3,12 @@ import torch.nn as nn
 
 class GeneralLoss(nn.Module):
 
-    def __init__(self, weight:float=1):
+    def __init__(self, weight: float = 1.0):
         super(GeneralLoss, self).__init__()
         self.weight = weight  # hyperparameter
+        self.active = (weight > 0)
+        if (not self.active):
+            print(f"{self.__class__.__name__} deactivated due to weight = {weight}")
 
     def forward(self, *input):
         """
@@ -14,6 +17,10 @@ class GeneralLoss(nn.Module):
         :param input: any number of params
         :return:
         """
+
+        # don't bother calculating if the loss is deactivated
+        if (not self.active):
+            return 0, {}
 
         loss = self.custom_forward(*input)
 
@@ -29,4 +36,4 @@ class GeneralLoss(nn.Module):
         :param input: any number of params
         :return:
         """
-        raise Exception("PLEASE IMPLEMENT costum_forward METHOD IN CHILD-CLASS")
+        raise Exception("PLEASE IMPLEMENT custom_forward METHOD IN CHILD-CLASS")

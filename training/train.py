@@ -3,6 +3,7 @@ from models.embedders.GeneralEmbedder import GeneralEmbedder
 from models.general.statistic import Statistic
 from models.generators.GeneralGenerator import GeneralGenerator
 from models.losses.GeneralLoss import GeneralLoss
+from models.losses.TotalGeneratorLoss import TotalGeneratorLoss
 from utils.general_utils import *
 from utils.constants import *
 from models.general.trainer import Trainer
@@ -15,7 +16,7 @@ import numpy as np
 from datetime import datetime
 import sys
 import os
-from tensorboardX import SummaryWriter ####### TESTING tensorboard
+from tensorboardX import SummaryWriter  ####### TESTING tensorboard
 
 
 class TrainingProcess:
@@ -29,7 +30,7 @@ class TrainingProcess:
                  optimizer_gen: Optimizer,
                  optimizer_dis: Optimizer,
                  optimizer_emb: Optimizer,
-                 loss_gen: GeneralLoss,
+                 loss_gen: TotalGeneratorLoss,
                  loss_dis: GeneralLoss,
                  arguments):
 
@@ -62,7 +63,8 @@ class TrainingProcess:
         self.shuffle_indices = list(range(int(self.combined_batch_size)))
 
         # initialize tensorboardx
-        self.writer = SummaryWriter('results/output/tensorboardx') ########################################################################### ADD DIRECTORY
+        self.writer = SummaryWriter(
+            'results/output/tensorboardx')  ############## ADD DIRECTORY
 
         self.labels = None
 
@@ -83,9 +85,9 @@ class TrainingProcess:
         assert_non_empty(dataloader_validation)
 
     def batch_iteration(self,
-                        batch_1: torch.Tensor,
-                        batch_2: torch.Tensor,
-                        batch_3: torch.Tensor,
+                        batch_1: Dict,
+                        batch_2: Dict,
+                        batch_3: Dict,
                         train=True) \
             -> Tuple[Dict, Dict, torch.Tensor, torch.Tensor, torch.Tensor]:
         """
@@ -93,29 +95,17 @@ class TrainingProcess:
 
         """
 
-        # prepare input
-        image_1, landmarks_1 = unpack_batch(batch_1)
-        image_2, landmarks_2 = unpack_batch(batch_2)
-        image_3, landmarks_3 = unpack_batch(batch_3)
-        image_1 = image_1.to(DEVICE).float()
-        image_2 = image_2.to(DEVICE).float()
-        image_3 = image_3.to(DEVICE).float()
-        landmarks_1 = landmarks_1.to(DEVICE).float()
-        landmarks_2 = landmarks_2.to(DEVICE).float()
-        landmarks_3 = landmarks_3.to(DEVICE).float()
-        target_landmarked_batch = torch.cat((image_1, landmarks_2), dim=CHANNEL_DIM)
-        truth_landmarked_batch = torch.cat((image_2, landmarks_2), dim=CHANNEL_DIM)
-
         if (train):
             # set generator to train and discriminator to evaluation
             self.trainer_gen.prepare_training()
             self.trainer_dis.prepare_evaluation()
 
         # forward pass generator
-        fake = self.generator.forward(target_landmarked_batch)
-        landmarked_fake = torch.cat((fake, landmarks_2), dim=CHANNEL_DIM)
-        loss_gen, loss_gen_saving = self.loss_gen.forward(landmarked_fake, self.discriminator)
-
+        loss_gen, loss_gen_saving, fake, landmarked_fake, landmarked_truth = self.loss_gen.forward(self.generator,
+                                                                                                   self.discriminator,
+                                                                                                   batch_1,
+                                                                                                   batch_2,
+                                                                                                   batch_3)
         if (train):
             # backward pass generator
             self.trainer_gen.do_backward(loss_gen)
@@ -126,9 +116,8 @@ class TrainingProcess:
 
         # combine real and fake
         if (self.labels is None):
-            self.labels = torch.cat((torch.zeros(fake.shape[0]).to(DEVICE), torch.ones(image_1.shape[0]).to(DEVICE)))
-
-        combined_set, labels = combine_real_and_fake(self.shuffle_indices, truth_landmarked_batch.detach(),
+            self.labels = torch.cat((torch.zeros(fake.shape[0]).to(DEVICE), torch.ones(fake.shape[0]).to(DEVICE)))
+        combined_set, labels = combine_real_and_fake(self.shuffle_indices, landmarked_truth.detach(),
                                                      landmarked_fake.detach(), self.labels)
 
         # forward pass discriminator
@@ -140,27 +129,18 @@ class TrainingProcess:
             self.trainer_dis.do_backward(loss_dis)
 
         # detaching
-        fake = fake.detach().cpu()
-        predictions = predictions.detach().cpu()
-        labels = labels.detach().cpu()
-        image_1 = image_1.detach().cpu()
-        image_2 = image_2.detach().cpu()
-        image_3 = image_3.detach().cpu()
-        landmarks_1 = landmarks_1.detach().cpu()
-        landmarks_2 = landmarks_2.detach().cpu()
-        landmarks_3 = landmarks_3.detach().cpu()
-        loss_gen = loss_gen.detach().cpu()
-        loss_dis = loss_dis.detach().cpu()
-        target_landmarked_batch = target_landmarked_batch.detach().cpu()
-        truth_landmarked_batch = truth_landmarked_batch.detach().cpu()
-        landmarked_fake = landmarked_fake.detach().cpu()
+        fake = fake.detach()
+        predictions = predictions.detach()
+        labels = labels.detach()
+        loss_gen = loss_gen.detach()
+        loss_dis = loss_dis.detach()
+        landmarked_truth = landmarked_truth.detach()
+        landmarked_fake = landmarked_fake.detach()
 
         # print flush
         sys.stdout.flush()
 
         return loss_gen_saving, loss_dis_saving, fake, predictions, labels
-
-
 
     def epoch_iteration(self, epoch_num: int) -> List[Statistic]:
         """
@@ -170,16 +150,7 @@ class TrainingProcess:
 
         progress = []
 
-
         for i, (batch_1, batch_2, batch_3) in enumerate(self.dataloader_train):
-
-            # print(batch_1[list(batch_1.keys())[0]].shape)
-            # print(batch_2[list(batch_2.keys())[0]].shape)
-            # print(batch_3[list(batch_3.keys())[0]].shape)
-
-            # if i > 505:  ###### ADDED THIS FOR DEBUGGING!!!!!!!
-            #     break
-            # else:
 
             # run batch iteration
             loss_gen, loss_dis, fake_images, predictions, labels = self.batch_iteration(batch_1, batch_2, batch_3)
@@ -193,7 +164,6 @@ class TrainingProcess:
 
             # print progress to terminal
             if (batches_passed % self.arguments.eval_freq == 0):
-
                 # convert dicts to ints
                 loss_gen_actual = sum(loss_gen.values())
                 loss_dis_actual = sum(loss_dis.values())
@@ -213,7 +183,9 @@ class TrainingProcess:
             if (batches_passed % self.arguments.plot_freq == 0):
                 plot_some_pictures(self.arguments.feedback, fake_images, batches_passed)
                 # pass fake images to tensorboardx
-                self.writer.add_image('fake_samples', vutils.make_grid(fake_images[:16].view(-1, 3, IMSIZE, IMSIZE), normalize=True), batches_passed)
+                self.writer.add_image('fake_samples',
+                                      vutils.make_grid(fake_images[:16].view(-1, 3, IMSIZE, IMSIZE), normalize=True),
+                                      batches_passed)
 
             # empty cache
             torch.cuda.empty_cache()
@@ -280,6 +252,8 @@ class TrainingProcess:
         # validate on validationset
         loss_gen_validate, loss_dis_validate, _ = 0, 0, 0  # self.validate() todo: do we want to restore this?
 
+        print(loss_gen_dict)
+
         stat = Statistic(loss_gen_train=loss_gen,
                          loss_dis_train=loss_dis,
                          loss_gen_val=loss_gen_validate,
@@ -293,6 +267,7 @@ class TrainingProcess:
             f"\r",
             f"batch: {batches_passed}/{len(self.dataloader_train)}",
             f"|\t {stat}",
+            f"details: {loss_gen_dict}",
             end='')
 
         # define training statistic

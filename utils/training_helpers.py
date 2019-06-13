@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, Dict
 
 import torch
 from torch import __init__
@@ -42,7 +42,7 @@ def calculate_accuracy(predictions, targets):
     return accuracy.item()
 
 
-def unpack_batch(batch: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+def unpack_batch(batch: Dict[str, torch.Tensor]) -> Tuple[torch.Tensor, torch.Tensor]:
     return batch["image"], batch["landmarks"]
 
 

@@ -10,4 +10,4 @@ class GeneralGenerator(GeneralModel):
 
         self.n_channels_out = n_channels_out
 
-    # todo: add methods here that are shared for all generators, inheret your costum version from this object
+    # todo: add methods here that are shared for all generators, inheret your custom version from this object
