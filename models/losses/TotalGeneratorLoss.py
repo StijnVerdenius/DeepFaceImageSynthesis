@@ -12,7 +12,7 @@ from models.losses.ConsistencyLoss import ConsistencyLoss
 from models.losses.PixelLoss import PixelLoss
 from models.losses.IdLoss import IdLoss
 
-from typing import Tuple, Dict
+from typing import Tuple, Dict, Any
 
 from utils.constants import DEVICE, CHANNEL_DIM, IMSIZE, DEBUG_BATCH_SIZE
 from utils.training_helpers import unpack_batch
@@ -38,7 +38,7 @@ class TotalGeneratorLoss(GeneralLoss):
                 batch_2: Dict[str, torch.Tensor],
                 batch_3: Dict[str, torch.Tensor]) \
             -> Tuple[
-                torch.Tensor, Dict, torch.Tensor, torch.Tensor, torch.Tensor
+                Any, Dict, torch.Tensor, torch.Tensor, torch.Tensor
             ]:
         """ combined loss function from the tiple-cons paper """
 
@@ -61,33 +61,41 @@ class TotalGeneratorLoss(GeneralLoss):
         loss_adv, save_adv = self.adv(target_landmarked_fake, discriminator)
         total_loss += loss_adv
         loss_adv.detach()
+        del loss_adv
+        target_landmarked_fake.detach()
+
+        # consistency losses
+        loss_self, save_self = self.self(image_1, fake, landmarks_1, generator)
+        total_loss += loss_self
+        loss_self.detach()
+        del loss_self
+        landmarks_1.detach()
+        del landmarks_1
+
+        loss_triple, save_triple = self.trip.forward(image_1, fake, landmarks_3, landmarks_2, generator)
+        total_loss += loss_triple
+        loss_triple.detach()
+        del loss_triple
+        landmarks_2.detach()
+        del landmarks_2
 
         loss_pix, save_pix = self.pix(image_2, fake)
         total_loss += loss_pix
         loss_pix.detach()
+        del loss_pix
         image_2.detach()
+        del image_2
 
         # style losses
         loss_pp, save_pp = self.pp.forward(image_1, fake)
         total_loss += loss_pp
         loss_pp.detach()
+        del loss_pp
 
         loss_id, save_id = self.id(image_1, fake)
         total_loss += loss_id
         loss_id.detach()
-
-
-        # consistency losses
-        loss_triple, save_triple = self.trip.forward(image_1, fake, landmarks_3, landmarks_2, generator)
-        total_loss += loss_triple
-        loss_triple.detach()
-
-        loss_self, save_self = self.self(image_1, fake, landmarks_1, generator)
-        total_loss += loss_self
-        loss_self.detach()
-
-        # get total loss
-        # total = loss_pp + loss_adv + loss_triple + loss_pix + loss_self + loss_id
+        del loss_id
 
         # merge dicts
         merged = {**save_adv, **save_pix, **save_pp, **save_self, **save_triple, **save_id}
@@ -112,6 +120,8 @@ if __name__ == '__main__':
 
     G = ResnetGenerator(n_channels_in=71).to(DEVICE)
     D = PatchDiscriminator(n_channels_in=71).to(DEVICE).eval()
+
+    # optimizer =
 
     bana = loss_func.forward(G, D, batch1, batch2, batch3)
 

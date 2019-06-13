@@ -145,11 +145,11 @@ def parse():
     parser = argparse.ArgumentParser()
 
     # training arguments
-    parser.add_argument('--epochs', default=2, type=int,
-                        help='max number of epochs')  ##################### SHOULD BE 100!!! changed it for DEBUGGING!
-    parser.add_argument('--eval_freq', type=int, default=1, help='Frequency (batch-wise) of evaluation')
-    parser.add_argument('--plot_freq', type=int, default=500000, help='Frequency (batch-wise) of plotting pictures')
-    parser.add_argument('--saving_freq', type=int, default=100000, help='Frequency (epoch-wise) of saving models')
+    parser.add_argument('--epochs', default=100, type=int,
+                        help='max number of epochs')
+    parser.add_argument('--eval_freq', type=int, default=5, help='Frequency (batch-wise) of evaluation')
+    parser.add_argument('--plot_freq', type=int, default=100, help='Frequency (batch-wise) of plotting pictures')
+    parser.add_argument('--saving_freq', type=int, default=10, help='Frequency (epoch-wise) of saving models')
     parser.add_argument('--device', default="cuda", type=str, help='device')
     parser.add_argument('--feedback', default=False, type=bool, help='whether to plot or not during training')
     parser.add_argument('--mode', default="train", type=str, help="'train', 'test' or 'finetune'")
@@ -159,9 +159,9 @@ def parse():
     parser.add_argument('--timing', type=bool, default=False, help='are we measuring efficiency?')
 
     # test arguments
-    parser.add_argument('--test_model_date', default="2019-06-10_12:23:58", type=str,  # default = 2020-06-08_16:56:58
+    parser.add_argument('--test_model_date', default="2019-06-13_15:45:03", type=str,
                         help='date_stamp string for which model to load')
-    parser.add_argument('--test_model_suffix', default="finished", type=str,
+    parser.add_argument('--test_model_suffix', default="KILLED_at_epoch_0", type=str,
                         help='filename string for which model to load')
 
     # model arguments
@@ -174,20 +174,20 @@ def parse():
     # parser.add_argument('--loss_gen', default="NonSaturatingGLoss", type=str,
     parser.add_argument('--loss_gen', default=TOTAL_LOSS, type=str,
                         help="Overwrites hyperparams generatorloss if not total")
-    parser.add_argument('--loss_dis', default="DefaultDLoss", type=str, help="name of objectclass")
+    parser.add_argument('--loss_dis', default="HingeAdverserialDLoss", type=str, help="name of objectclass")
 
-    # hyperparams generatorloss
-    parser.add_argument('--NonSaturatingGLoss_weight', default=1.0, type=float,
+    # hyperparams generatorloss  (-1 === DEFAULT)
+    parser.add_argument('--NonSaturatingGLoss_weight', default=10, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--PerceptualLoss_weight', default=1.0, type=float,
+    parser.add_argument('--PerceptualLoss_weight', default=-1, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--PixelLoss_weight', default=1.0, type=float,
+    parser.add_argument('--PixelLoss_weight', default=-1, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--ConsistencyLoss_weight', default=1.0, type=float,
+    parser.add_argument('--ConsistencyLoss_weight', default=-1, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--TripleConsistencyLoss_weight', default=1.0, type=float,
+    parser.add_argument('--TripleConsistencyLoss_weight', default=-1, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--IdLoss_weight', default=1.0, type=float,
+    parser.add_argument('--IdLoss_weight', default=-1, type=float,
                         help="weight hyperparameter for specific generatorloss")
 
     # data arguments

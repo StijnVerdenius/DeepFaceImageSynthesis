@@ -54,16 +54,16 @@ def combine_real_and_fake(indices, real: torch.Tensor, fake: torch.Tensor, label
     """
 
     # random indices
-    random.shuffle(indices)
-    shuffle_indices_local = torch.LongTensor(indices).to(DEVICE)
+    # random.shuffle(indices)
+    # shuffle_indices_local = torch.LongTensor(indices).to(DEVICE)
 
     # combine fake and real images
-    composite = torch.cat((fake, real), dim=0).index_select(0, shuffle_indices_local)
+    composite = torch.cat((fake, real), dim=0) #.index_select(0, shuffle_indices_local)
 
     # combine real and fake targets
-    ground_truth = labels.index_select(0, shuffle_indices_local).to(DEVICE)
+    ground_truth = labels #.index_select(0, shuffle_indices_local).to(DEVICE)
 
-    shuffle_indices_local.detach()
+    # shuffle_indices_local.detach()
 
     return composite, ground_truth
 

@@ -28,8 +28,6 @@ class Statistic:
     def __repr__(self):
         return f"loss-generator-train: {self.loss_gen_train :0.3f}, " + \
                f"loss-discriminator-train: {self.loss_dis_train:0.3f}, " + \
-               f"loss-generator-validate: {self.loss_gen_val:0.3f}, " + \
-               f"loss-discriminator-validate: {self.loss_dis_val:0.3f}, " + \
                f"accuracy-discriminator: {self.dis_acc} "
 
     def __str__(self):

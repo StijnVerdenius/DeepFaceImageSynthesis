@@ -112,7 +112,7 @@ def get_generator_loss_weights(arguments):
     """ returns a dictionary with the right loss weights given parsed arguments """
 
     default_returnvalue = {key: value for key, value in arguments.__dict__.items() if
-                           (("weight" in key) and (not value == "default"))}
+                           (("weight" in key) and (not value == -1))}
     if (not arguments.loss_gen == TOTAL_LOSS):
         for key in default_returnvalue:
             if (not arguments.loss_gen in key):
