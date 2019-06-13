@@ -230,14 +230,13 @@ def _test_return() -> None:
 def _test_random_sampling() -> None:
     from torch.utils.data import DataLoader
 
-    # change return of __get_item__ to
-    # return frames_indices
-    raise Exception()
-
-    dataset = X300VWDataset()
+    dataset = X300VWDataset(constants.Dataset300VWMode.ALL)
     dataloader = DataLoader(
         dataset, shuffle=False, batch_size=constants.DEBUG_BATCH_SIZE
     )
+    # change return of __get_item__ to
+    # return frames_indices
+    raise Exception()
     n_epochs = 3
     frames_indices = [
         _get_all_frames_indices(dataloader, dataset) for _ in range(n_epochs)
