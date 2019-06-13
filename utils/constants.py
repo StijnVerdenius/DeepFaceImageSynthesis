@@ -1,5 +1,6 @@
 from enum import Enum
 
+import cv2
 import torch
 import torchvision.models.vgg as vgg
 
@@ -46,6 +47,7 @@ PRINTCOLOR_UNDERLINE = '\033[4m'
 PRINTCOLOR_END = '\033[0m'
 
 # dataset
+INTERPOLATION = cv2.INTER_CUBIC
 DATASET_300VW_PADDING = 0
 DATASET_300VW_EXPAND_RATIO = 2.0
 DATASET_300VW_LIMIT_N_VIDEOS = None

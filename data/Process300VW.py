@@ -159,7 +159,9 @@ def _rescale_image(image: np.ndarray) -> np.ndarray:
     output_width, output_height = constants.IMSIZE, constants.IMSIZE
     _, _, n_channels = image.shape
     image = cv2.resize(
-        image, dsize=(output_width, output_height), interpolation=cv2.INTER_CUBIC
+        image,
+        dsize=(output_width, output_height),
+        interpolation=constants.INTERPOLATION,
     )
     # notice that the order is swapped
     assert image.shape == (output_height, output_width, n_channels)
