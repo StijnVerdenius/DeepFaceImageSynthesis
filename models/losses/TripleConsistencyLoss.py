@@ -29,6 +29,10 @@ class TripleConsistencyLoss(GeneralLoss):
         # l1 norm
         norm = L1_distance(indirect_output, direct_output).pow(2)
 
+        in_between_landmarks.detach()
+        in_between_output.detach()
+        indirect_output.detach()
+
         return norm.mean()
 
 
