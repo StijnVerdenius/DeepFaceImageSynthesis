@@ -110,18 +110,28 @@ class X300VWDataset(Dataset):
 
         return sample
 
+    # def _random_sample_indices(self, video_index: int, frame_index: int) -> List[int]:
+    #     frames_indices = torch.randint(
+    #         0,
+    #         self._n_images_per_video[video_index],
+    #         size=(self._n_images_per_sample,),
+    #         dtype=torch.int64,
+    #     ).numpy()
+    #     frames_indices += 1
+    #     frames_indices = [fi for fi in frames_indices if fi != frame_index]
+    #     frames_indices = [frame_index] + frames_indices[: self._n_images_per_sample - 1]
+    #     assert len(frames_indices) == self._n_images_per_sample
+    #     return frames_indices
+
     def _random_sample_indices(self, video_index: int, frame_index: int) -> List[int]:
-        frames_indices = torch.randint(
-            0,
-            self._n_images_per_video[video_index],
-            size=(self._n_images_per_sample,),
-            dtype=torch.int64,
-        ).numpy()
+        frames_indices = torch.randperm(self._n_images_per_video[video_index], dtype=torch.int64).numpy()
+        frames_indices = frames_indices[: self._n_images_per_sample]
         frames_indices += 1
         frames_indices = [fi for fi in frames_indices if fi != frame_index]
         frames_indices = [frame_index] + frames_indices[: self._n_images_per_sample - 1]
         assert len(frames_indices) == self._n_images_per_sample
         return frames_indices
+
 
     def _load_image(self, video_index: int, frame_index: int) -> np.ndarray:
         frame_input_path = (
