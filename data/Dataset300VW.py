@@ -190,10 +190,9 @@ class X300VWDataset(Dataset):
         return landmark_channel
 
 
-def _test():
+def _test_return() -> None:
     dataset = X300VWDataset()
     n_images = len(dataset)
-    print(f'n videos: {n_images}')
     dataset_indices = np.random.randint(0, n_images, size=3)
     for batch_index, dataset_index in enumerate(dataset_indices):
         batch = dataset[dataset_index]
@@ -214,14 +213,7 @@ def _test():
             image = ((image + 1) / 2) * 255
 
             overlay_alpha = 1.0
-
-            overlay_color = 'r'
-            if overlay_color == 'r':
-                color_index = 2
-            elif overlay_color == 'g':
-                color_index = 1
-            elif overlay_color == 'b':
-                color_index = 0
+            color_index = 'rgb'.index('r')
 
             mask = np.zeros(image.shape, dtype=float)
             mask[..., color_index] = 255
@@ -231,8 +223,9 @@ def _test():
             image[image > 255] = 255
             image = image.astype('uint8')
             plot(image)
+
     input('Press [enter] to exit.')
 
 
 if __name__ == '__main__':
-    _test()
+    _test_return()
