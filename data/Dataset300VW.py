@@ -68,14 +68,14 @@ class X300VWDataset(Dataset):
         assert upper_bound - lower_bound == self._n_images_per_video[video_index]
         # +1 because frames are numerated starting 1
         frame_index = index - lower_bound + 1
-        frame_indices = self._random_sample_indices(video_index, frame_index)
+        frames_indices = self._random_sample_indices(video_index, frame_index)
 
         sample = [
             {
                 'image': self._load_image(video_index, fi),
                 'landmarks': self._load_landmarks(video_index, fi),
             }
-            for fi in frame_indices
+            for fi in frames_indices
         ]
 
         if self._transform:
@@ -84,17 +84,17 @@ class X300VWDataset(Dataset):
         return sample
 
     def _random_sample_indices(self, video_index: int, frame_index: int) -> List[int]:
-        frame_indices = torch.randint(
+        frames_indices = torch.randint(
             0,
             self._n_images_per_video[video_index],
             size=(self._n_images_per_sample,),
             dtype=torch.int64,
         ).numpy()
-        frame_indices += 1
-        frame_indices = [fi for fi in frame_indices if fi != frame_index]
-        frame_indices = [frame_index] + frame_indices[: self._n_images_per_sample - 1]
-        assert len(frame_indices) == self._n_images_per_sample
-        return frame_indices
+        frames_indices += 1
+        frames_indices = [fi for fi in frames_indices if fi != frame_index]
+        frames_indices = [frame_index] + frames_indices[: self._n_images_per_sample - 1]
+        assert len(frames_indices) == self._n_images_per_sample
+        return frames_indices
 
     def _load_image(self, video_index: int, frame_index: int) -> np.ndarray:
         frame_input_path = (
@@ -227,5 +227,39 @@ def _test_return() -> None:
     input('Press [enter] to exit.')
 
 
+def _test_random_sampling() -> None:
+    from torch.utils.data import DataLoader
+
+    # change return of __get_item__ to
+    # return frames_indices
+    raise Exception()
+
+    dataset = X300VWDataset()
+    dataloader = DataLoader(
+        dataset, shuffle=False, batch_size=constants.DEBUG_BATCH_SIZE
+    )
+    n_epochs = 3
+    frames_indices = [
+        _get_all_frames_indices(dataloader, dataset) for _ in range(n_epochs)
+    ]
+    for i in range(n_epochs):
+        for j in range(i + 1, n_epochs):
+            assert (frames_indices[i] != frames_indices[j]).any()
+        print(frames_indices[i][:2, :2, :])
+
+
+def _get_all_frames_indices(dataloader, dataset):
+    # not empty because last batch might be smaller
+    frames_indices = np.zeros(
+        (len(dataloader), constants.DEBUG_BATCH_SIZE, dataset._n_images_per_sample),
+        dtype=int,
+    )
+    for batch_index, batch in enumerate(dataloader):
+        for sample_index, sample in enumerate(batch):
+            frames_indices[batch_index, : len(sample), sample_index] = sample
+    return frames_indices
+
+
 if __name__ == '__main__':
-    _test_return()
+    # _test_return()
+    _test_random_sampling()
