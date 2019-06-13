@@ -6,7 +6,7 @@ import numpy as np
 from matplotlib import patches
 from tqdm import tqdm
 
-from utils import constants
+from utils import constants, general_utils
 
 
 def all_video_paths(path: Path) -> List[Path]:
@@ -27,10 +27,29 @@ def plot(
     image: np.ndarray,
     landmarks: Optional[np.ndarray] = None,
     box: Optional[Tuple[int, int, int, int]] = None,
+    landmarks_in_channel: Optional[np.ndarray] = None,
+    overlay_alpha: float = 1.0,
+    color_index: str = 'r',
+    title: Optional[str] = None,
 ) -> None:
     plt.figure()
-    plt.imshow(image)
     plt.axis('off')
+
+    if landmarks_in_channel is not None:
+        color_index = 'bgr'.index(color_index)
+        image = image.astype(float)
+        mask = np.zeros(image.shape, dtype=float)
+        mask[..., color_index] = 255
+        for index in range(landmarks_in_channel.shape[-1]):
+            image += (
+                overlay_alpha * mask * landmarks_in_channel[:, :, index, np.newaxis]
+            )
+
+        image[image > 255] = 255
+        image = image.astype('uint8')
+
+    image = general_utils.BGR2RGB(image)
+    plt.imshow(image)
 
     if landmarks is not None:
         cmap = plt.get_cmap('gnuplot')
@@ -48,6 +67,7 @@ def plot(
         ax = plt.gca()
         ax.add_patch(rect)
 
+    plt.title(title)
     plt.draw()
     plt.pause(0.001)
     plt.show()

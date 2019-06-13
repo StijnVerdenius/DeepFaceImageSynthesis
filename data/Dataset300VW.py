@@ -135,28 +135,17 @@ class X300VWDataset(Dataset):
         if not frame_input_path.exists():
             raise Exception(f'Image does not exist: {frame_input_path}')
         image = cv2.imread(str(frame_input_path))
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        image = image.astype(float)
-        image = (image / 255) * 2 - 1
-        assert -1 <= image.min() <= image.max() <= 1
-        image = np.moveaxis(image, -1, 0)
-        assert image.shape == (
-            constants.INPUT_CHANNELS,
-            constants.IMSIZE,
-            constants.IMSIZE,
-        ), f"wrong shape {image.shape}"
         return image
 
     def _load_landmarks(self, video_index: int, frame_index: int) -> np.ndarray:
         single_dim_landmarks = self._all_landmarks[video_index][frame_index, :, :]
-
         landmarks = np.empty(
-            (constants.DATASET_300VW_N_LANDMARKS, constants.IMSIZE, constants.IMSIZE)
+            (constants.IMSIZE, constants.IMSIZE, constants.DATASET_300VW_N_LANDMARKS)
         )
         assert single_dim_landmarks.shape == (constants.DATASET_300VW_N_LANDMARKS, 2)
         for landmark_index in range(single_dim_landmarks.shape[0]):
             start_indices = single_dim_landmarks[landmark_index, :]
-            landmarks[landmark_index, :, :] = self._landmark_to_channel(
+            landmarks[:, :, landmark_index] = self._landmark_to_channel(
                 start_indices[0], start_indices[1]
             )
 
@@ -208,7 +197,7 @@ class X300VWDataset(Dataset):
 
 
 def _test_return() -> None:
-    dataset = X300VWDataset()
+    dataset = X300VWDataset(constants.Dataset300VWMode.ALL)
     n_images = len(dataset)
     dataset_indices = np.random.randint(0, n_images, size=3)
     for batch_index, dataset_index in enumerate(dataset_indices):
@@ -216,30 +205,17 @@ def _test_return() -> None:
         for sample_index, sample in enumerate(batch):
             image, landmarks = sample['image'], sample['landmarks']
             assert image.shape == (
+                constants.IMSIZE,
+                constants.IMSIZE,
                 constants.INPUT_CHANNELS,
-                constants.IMSIZE,
-                constants.IMSIZE,
             )
             assert landmarks.shape == (
+                constants.IMSIZE,
+                constants.IMSIZE,
                 constants.DATASET_300VW_N_LANDMARKS,
-                constants.IMSIZE,
-                constants.IMSIZE,
             )
             print((batch_index, sample_index), image.shape, landmarks.shape)
-            image = np.moveaxis(image, 0, -1)
-            image = ((image + 1) / 2) * 255
-
-            overlay_alpha = 1.0
-            color_index = 'rgb'.index('r')
-
-            mask = np.zeros(image.shape, dtype=float)
-            mask[..., color_index] = 255
-            for index in range(landmarks.shape[0]):
-                image += overlay_alpha * mask * landmarks[index, :, :, np.newaxis]
-
-            image[image > 255] = 255
-            image = image.astype('uint8')
-            plot(image)
+            plot(image, landmarks_in_channel=landmarks)
 
     input('Press [enter] to exit.')
 
@@ -277,5 +253,5 @@ def _get_all_frames_indices(dataloader, dataset):
 
 
 if __name__ == '__main__':
-    # _test_return()
-    _test_random_sampling()
+    _test_return()
+    # _test_random_sampling()

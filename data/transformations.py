@@ -157,7 +157,7 @@ class ChangeChannels:
         return value
 
 
-if __name__ == '__main__':
+def _test():
     from data.Dataset300VW import X300VWDataset
 
     dataset = X300VWDataset(constants.Dataset300VWMode.ALL)
@@ -187,3 +187,7 @@ if __name__ == '__main__':
     image = general_utils.denormalize_picture(image)
     landmarks = general_utils.move_color_channel(landmarks)
     plot(image, landmarks_in_channel=landmarks, title='all')
+
+
+if __name__ == '__main__':
+    _test()

@@ -1,8 +1,12 @@
+import cProfile
 import inspect
+import io
 import os
-import cProfile, pstats, io
-from utils.constants import *
+import pstats
+
 import numpy as np
+
+from utils.constants import *
 
 
 def ensure_current_directory():
@@ -88,7 +92,7 @@ def stop_timing(pr):
     print(s.getvalue())
 
 
-def denormalize_picture(image, binarised=False):
+def denormalize_picture(image: np.ndarray, binarised: bool = False) -> np.ndarray:
     """ denormalises picture for plotting """
 
     image = ((image + 1) / 2) * 255
@@ -105,4 +109,19 @@ def denormalize_picture(image, binarised=False):
 def de_torch(img):
     """ converts pytorch picture to numpy for plotting"""
 
-    return np.moveaxis(img.detach().cpu().numpy(), 0, -1)
+    return move_color_channel(img.detach().cpu().numpy())
+
+
+def move_color_channel(image: np.ndarray) -> np.ndarray:
+    return np.moveaxis(image, 0, -1)
+
+
+def BGR2RGB(image: np.ndarray) -> np.ndarray:
+    # for some reason,
+    # image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    # throws an error but the code below achieves the same thing
+    temp = np.empty_like(image)
+    temp[:, :, 0] = image[:, :, 2]
+    temp[:, :, 1] = image[:, :, 1]
+    temp[:, :, 2] = image[:, :, 0]
+    return temp
