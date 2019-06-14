@@ -89,17 +89,20 @@ def main(arguments):
                                 device=DEVICE,
                                 n_channels_in=INPUT_SIZE,
                                 n_channels_out=arguments.embedding_size,
-                                use_dropout=arguments.dropout).to(DEVICE)
+                                use_dropout=arguments.dropout,
+                                n_hidden=arguments.n_hidden).to(DEVICE)
 
     generator = find_right_model(GEN_DIR, arguments.generator,
                                  device=DEVICE,
                                  n_channels_in=INPUT_SIZE,
-                                 use_dropout=arguments.dropout).to(DEVICE)
+                                 use_dropout=arguments.dropout,
+                                 n_hidden=arguments.n_hidden).to(DEVICE)
 
     discriminator = find_right_model(DIS_DIR, arguments.discriminator,
                                      device=DEVICE,
                                      n_channels_in=INPUT_SIZE,
-                                     use_dropout=arguments.dropout).to(DEVICE)
+                                     use_dropout=arguments.dropout,
+                                     n_hidden=arguments.n_hidden).to(DEVICE)
 
     # assertions
     assert_type(GeneralGenerator, generator)
@@ -112,17 +115,15 @@ def main(arguments):
         # init optimizers
         generator_optimizer = find_right_model(OPTIMS, arguments.generator_optimizer,
                                                params=generator.parameters(),
-                                               lr=arguments.learning_rate,
-                                               n_hidden=arguments.n_hidden)
+                                               lr=arguments.learning_rate
+                                               )
         discriminator_optimizer = find_right_model(OPTIMS, arguments.discriminator_optimizer,
                                                    params=discriminator.parameters(),
-                                                   lr=arguments.learning_rate,
-                                                   n_hidden=arguments.n_hidden)
+                                                   lr=arguments.learning_rate)
+
         embedder_optimizer = find_right_model(OPTIMS, arguments.embedder_optimizer,
                                               params=embedder.parameters(),
-                                              lr=arguments.learning_rate,
-                                              n_hidden=arguments.n_hidden)
-
+                                              lr=arguments.learning_rate)
         # define loss functions
         if (not arguments.loss_gen == TOTAL_LOSS):
             print(
@@ -206,7 +207,7 @@ def parse():
     parser.add_argument('--embedder', default="EmptyEmbedder", type=str, help="name of objectclass")
     parser.add_argument('--discriminator', default="PatchDiscriminator", type=str, help="name of objectclass")
     parser.add_argument('--generator', default="ResnetGenerator", type=str, help="name of objectclass")
-    parser.add_argument('--n_hidden', type=int, default=-24, help='features in the first hidden layer')
+    parser.add_argument('--n_hidden', type=int, default=24, help='features in the first hidden layer')
 
     # optimizer arguments
     parser.add_argument('--discriminator_optimizer', default="SGD", type=str, help="name of objectclass")
@@ -221,15 +222,15 @@ def parse():
     # hyperparams generatorloss  (-1 === DEFAULT)
     parser.add_argument('--NonSaturatingGLoss_weight', default=-1, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--PerceptualLoss_weight', default=0, type=float,
+    parser.add_argument('--PerceptualLoss_weight', default=-1, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--PixelLoss_weight', default=1000, type=float,
+    parser.add_argument('--PixelLoss_weight', default=-1, type=float,
                         help="weight hyperparameter for specific generatorloss")
     parser.add_argument('--ConsistencyLoss_weight', default=-1, type=float,
                         help="weight hyperparameter for specific generatorloss")
     parser.add_argument('--TripleConsistencyLoss_weight', default=-1, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--IdLoss_weight', default=0, type=float,
+    parser.add_argument('--IdLoss_weight', default=-1, type=float,
                         help="weight hyperparameter for specific generatorloss")
 
     # data arguments
