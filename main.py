@@ -167,9 +167,9 @@ def parse():
     parser.add_argument('--timing', type=bool, default=False, help='are we measuring efficiency?')
 
     # test arguments
-    parser.add_argument('--test_model_date', default="week_2", type=str,
+    parser.add_argument('--test_model_date', default="2019-06-14_13:17:17", type=str,
                         help='date_stamp string for which model to load')
-    parser.add_argument('--test_model_suffix', default="Models_at_epoch_49", type=str,
+    parser.add_argument('--test_model_suffix', default="KILLED_at_epoch_0", type=str,
                         help='filename string for which model to load')
 
     # model arguments
@@ -191,15 +191,15 @@ def parse():
     # hyperparams generatorloss  (-1 === DEFAULT)
     parser.add_argument('--NonSaturatingGLoss_weight', default=-1, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--PerceptualLoss_weight', default=-1, type=float,
+    parser.add_argument('--PerceptualLoss_weight', default=0, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--PixelLoss_weight', default=-1, type=float,
+    parser.add_argument('--PixelLoss_weight', default=1000, type=float,
                         help="weight hyperparameter for specific generatorloss")
     parser.add_argument('--ConsistencyLoss_weight', default=-1, type=float,
                         help="weight hyperparameter for specific generatorloss")
     parser.add_argument('--TripleConsistencyLoss_weight', default=-1, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--IdLoss_weight', default=-1, type=float,
+    parser.add_argument('--IdLoss_weight', default=0, type=float,
                         help="weight hyperparameter for specific generatorloss")
 
     # data arguments
