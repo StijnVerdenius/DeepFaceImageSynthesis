@@ -48,7 +48,7 @@ def plot(
         image[image > 255] = 255
         image = image.astype('uint8')
 
-    image = general_utils.BGR2RGB(image)
+    image = general_utils.BGR2RGB_numpy(image)
     plt.imshow(image)
 
     if landmarks is not None:

@@ -185,14 +185,12 @@ class TrainingProcess:
 
             # save a set of pictures
             if (batches_passed % self.arguments.plot_freq == 0):
-
-                plot_some_pictures(self.arguments.feedback, fake_images, batches_passed)
-
-                fake_imgs = fake_images[:16].view(-1, 3, IMSIZE, IMSIZE)
-
-                self.writer.add_image('fake_samples',
-                      vutils.make_grid(fake_imgs, normalize=True),
-                      batches_passed)
+                example_images = fake_images[:16].view(-1, 3, IMSIZE, IMSIZE)
+                example_images = BGR2RGB_pytorch(example_images)
+                plot_some_pictures(self.arguments.feedback, example_images, batches_passed)
+                # pass fake images to tensorboardx
+                self.writer.add_image('fake_samples', vutils.make_grid(example_images, normalize=True),
+                                      batches_passed)
 
             # empty cache
             torch.cuda.empty_cache()

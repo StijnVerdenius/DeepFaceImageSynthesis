@@ -116,7 +116,7 @@ def move_color_channel(image: np.ndarray) -> np.ndarray:
     return np.moveaxis(image, 0, -1)
 
 
-def BGR2RGB(image: np.ndarray) -> np.ndarray:
+def BGR2RGB_numpy(image: np.ndarray) -> np.ndarray:
     # for some reason,
     # image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     # throws an error but the code below achieves the same thing
@@ -124,6 +124,14 @@ def BGR2RGB(image: np.ndarray) -> np.ndarray:
     temp[:, :, 0] = image[:, :, 2]
     temp[:, :, 1] = image[:, :, 1]
     temp[:, :, 2] = image[:, :, 0]
+    return temp
+
+
+def BGR2RGB_pytorch(images: torch.Tensor) -> torch.Tensor:
+    temp = torch.empty_like(images)
+    temp[:, 0, :, :] = images[:, 2, :, :]
+    temp[:, 1, :, :] = images[:, 1, :, :]
+    temp[:, 2, :, :] = images[:, 0, :, :]
     return temp
 
 
