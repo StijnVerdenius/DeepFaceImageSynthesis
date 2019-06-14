@@ -192,6 +192,8 @@ class TrainingProcess:
                 self.writer.add_image('fake_samples', vutils.make_grid(example_images, normalize=True),
                                       batches_passed)
 
+
+
             # empty cache
             torch.cuda.empty_cache()
 
