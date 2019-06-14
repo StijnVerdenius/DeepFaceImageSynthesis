@@ -160,10 +160,10 @@ class ChangeChannels:
         return value
 
 
-def _test():
+def _test_augmentations():
     from data.Dataset300VW import X300VWDataset
 
-    dataset = X300VWDataset(constants.Dataset300VWMode.ALL)
+    dataset = X300VWDataset(constants.Dataset300VWMode.ALL, n_videos_limit=1)
     sample = dataset[0]
 
     image, landmarks = sample[0]['image'], sample[0]['landmarks']
@@ -192,5 +192,65 @@ def _test():
     plot(image, landmarks_in_channel=landmarks, title='all')
 
 
+def _test_values(batch_size: int = 32, n_videos_limit: Optional[int] = None) -> None:
+    from torch.utils.data import DataLoader
+    from tqdm import tqdm
+
+    from data.Dataset300VW import X300VWDataset
+
+    transform = transforms.Compose(
+        [
+            RandomHorizontalFlip(probability=1),
+            RandomRescale(probability=1),
+            RandomCrop(probability=1),
+            Resize(),
+            RescaleValues(),
+            ChangeChannels(),
+        ]
+    )
+
+    dataset = X300VWDataset(
+        constants.Dataset300VWMode.ALL, transform=transform, n_videos_limit=None
+    )
+    dataloader = DataLoader(
+        dataset, shuffle=False, batch_size=batch_size, num_workers=4, drop_last=False
+    )
+    for batch_index, batch in enumerate(tqdm(dataloader, desc='batch')):
+        actual_batch_sizes = [sample['image'].shape[0] for sample in batch] + [
+            sample['landmarks'].shape[0] for sample in batch
+        ]
+        assert len(set(actual_batch_sizes)) == 1
+
+        image_target_shape = (
+            actual_batch_sizes[0],
+            constants.INPUT_CHANNELS,
+            constants.IMSIZE,
+            constants.IMSIZE,
+        )
+        landmarks_target_shape = (
+            actual_batch_sizes[0],
+            constants.DATASET_300VW_N_LANDMARKS,
+            constants.IMSIZE,
+            constants.IMSIZE,
+        )
+        for sample in tqdm(batch, desc='sample', leave=False):
+            image, landmarks = sample['image'], sample['landmarks']
+
+            assert (
+                image.shape == image_target_shape
+            ), f'image shape should be {image_target_shape} but is {image.shape}'
+            assert torch.isfinite(image).all() and not torch.isnan(image).any()
+            assert -1 <= image.min() <= image.max() <= 1, image[
+                (image < -1) | (image > 1)
+            ]
+
+            assert (
+                landmarks.shape == landmarks_target_shape
+            ), f'landmarks shape should be {landmarks_target_shape} but is {landmarks.shape}'
+            assert torch.isfinite(landmarks).all() and not torch.isnan(landmarks).any()
+            # assert -1 <= landmarks.min() <= landmarks.max() <= 1, landmarks[(landmarks < 0) | (landmarks > 1)]
+
+
 if __name__ == '__main__':
-    _test()
+    # _test_augmentations()
+    _test_values()
