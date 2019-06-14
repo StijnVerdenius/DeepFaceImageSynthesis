@@ -110,19 +110,6 @@ class X300VWDataset(Dataset):
 
         return sample
 
-    # def _random_sample_indices(self, video_index: int, frame_index: int) -> List[int]:
-    #     frames_indices = torch.randint(
-    #         0,
-    #         self._n_images_per_video[video_index],
-    #         size=(self._n_images_per_sample,),
-    #         dtype=torch.int64,
-    #     ).numpy()
-    #     frames_indices += 1
-    #     frames_indices = [fi for fi in frames_indices if fi != frame_index]
-    #     frames_indices = [frame_index] + frames_indices[: self._n_images_per_sample - 1]
-    #     assert len(frames_indices) == self._n_images_per_sample
-    #     return frames_indices
-
     def _random_sample_indices(self, video_index: int, frame_index: int) -> List[int]:
         frames_indices = torch.randperm(self._n_images_per_video[video_index], dtype=torch.int64).numpy()
         frames_indices = frames_indices[: self._n_images_per_sample]
@@ -148,8 +135,7 @@ class X300VWDataset(Dataset):
         return image
 
     def _load_landmarks(self, video_index: int, frame_index: int) -> np.ndarray:
-        # single_dim_landmarks = self._all_landmarks[video_index][frame_index, :, :]
-        single_dim_landmarks = self._all_landmarks[video_index][frame_index-1, :, :]
+        single_dim_landmarks = self._all_landmarks[video_index][frame_index - 1, :, :]
         landmarks = np.empty(
             (constants.IMSIZE, constants.IMSIZE, constants.DATASET_300VW_N_LANDMARKS)
         )
