@@ -189,7 +189,7 @@ def parse():
     parser.add_argument('--device', default="cuda", type=str, help='device')
     parser.add_argument('--mode', default="train", type=str, help="'train', 'test' or 'finetune'")
     parser.add_argument('--learning_rate', type=float, default=1e-4, help='Learning rate')
-    parser.add_argument('--dropout', type=bool, default=False, help='Learning rate')
+    parser.add_argument('--dropout', type=bool, default=True, help='Learning rate')
     parser.add_argument('--max_training_minutes', type=int, default=-1,
                         help='After which process is killed automatically')
 
