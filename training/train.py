@@ -187,7 +187,7 @@ class TrainingProcess:
             if (batches_passed % self.arguments.plot_freq == 0):
                 example_images = fake_images[:16].view(-1, 3, IMSIZE, IMSIZE)
                 example_images = BGR2RGB_pytorch(example_images)
-                plot_some_pictures(self.arguments.feedback, example_images, batches_passed)
+                plot_some_pictures(example_images, batches_passed)
                 # pass fake images to tensorboardx
                 self.writer.add_image('fake_samples', vutils.make_grid(example_images, normalize=True),
                                       batches_passed)

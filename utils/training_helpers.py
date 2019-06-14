@@ -8,7 +8,7 @@ import torchvision.utils as vutils
 import random
 
 
-def plot_some_pictures(feedback, images, batches_done):
+def plot_some_pictures(images, batches_done):
     """
     save some plots in PIC_DIR
 
