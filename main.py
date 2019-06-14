@@ -1,14 +1,12 @@
 # torch debug
 import os
+from typing import Optional
 
 from torchvision import transforms
 
 import data.transformations as transformations
 
-
-
 os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
-
 
 from torch.utils.data import DataLoader
 
@@ -35,7 +33,7 @@ def dummy_batch(batch_size, channels):
     return np.random.normal(0, 1, (batch_size, channels, IMSIZE, IMSIZE))
 
 
-def load_data(keyword: str, batch_size: int, mode: str) -> DataLoader:  # todo @ klaus
+def load_data(keyword: str, batch_size: int, mode: str, n_videos_limit: Optional[int]) -> DataLoader:  # todo @ klaus
 
     data = None
 
@@ -58,17 +56,12 @@ def load_data(keyword: str, batch_size: int, mode: str) -> DataLoader:  # todo @
         ]
     )
 
-    if (keyword == "train"):
-        data = DataLoader(X300VWDataset(dataset_mode, transform=transform),
-                          shuffle=(False or mode == "test"), batch_size=batch_size,
-                          drop_last=True) #Changed to false!!!
+    shuffle = False or mode == "test"
 
-    elif (keyword == "validate"):
-        data = DataLoader(X300VWDataset(dataset_mode, transform=transform),
-                          shuffle=(False or mode == "test"), batch_size=batch_size,
-                          drop_last=True) #Changed to false!!!
-
-    elif (keyword == "debug"):
+    if keyword == "train" or keyword == "validate":
+        data = DataLoader(X300VWDataset(dataset_mode, transform=transform, n_videos_limit=n_videos_limit),
+                          shuffle=shuffle, batch_size=batch_size, drop_last=True)
+    elif keyword == "debug":
         data = [(dummy_batch(batch_size, INPUT_CHANNELS), dummy_batch(batch_size, INPUT_LANDMARK_CHANNELS)) for _ in
                 range(5)]
     else:
@@ -88,8 +81,8 @@ def main(arguments):
     print(f"Device used = {DEVICE}")
 
     # data
-    dataloader_train = load_data("train", arguments.batch_size, arguments.mode)
-    dataloader_validate = load_data("validate", arguments.batch_size, arguments.mode)
+    dataloader_train = load_data("train", arguments.batch_size, arguments.mode, arguments.n_videos_limit)
+    dataloader_validate = load_data("validate", arguments.batch_size, arguments.mode, arguments.n_videos_limit)
 
     # get models
     embedder = find_right_model(EMBED_DIR, arguments.embedder,
@@ -220,6 +213,8 @@ def parse():
 
     # data arguments
     parser.add_argument('--batch_size', type=int, default=DEBUG_BATCH_SIZE, help='Batch size to run trainer.')
+    parser.add_argument('--n-videos-limit', type=int, default=None,
+                        help='Limit the dataset to the first N videos. Use None to use all videos.')
 
     return parser.parse_args()
 

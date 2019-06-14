@@ -21,9 +21,14 @@ class X300VWDataset(Dataset):
         mu: float = 0.0,
         sigma: float = 1 / 3,
         transform: Optional = None,
+        n_videos_limit: Optional[int] = None,
     ) -> None:
         self._all_videos = all_video_paths(personal_constants.DATASET_300VW_OUTPUT_PATH)
-        self._all_videos = self._filter(mode)
+        if n_videos_limit is None:
+            self._all_videos = self._filter(mode)
+        else:
+            print(f'Limited dataset to first {n_videos_limit} videos!')
+            self._all_videos = self._all_videos[:n_videos_limit]
 
         self._n_images_per_video = count_images(
             self._all_videos,

@@ -252,11 +252,12 @@ def process_temp_folder(all_videos: List[Path]) -> None:
 
 
 def main() -> None:
+    n_videos_limit = None
     all_videos = all_video_paths(personal_constants.DATASET_300VW_RAW_PATH)
     assert len(all_videos) == constants.DATASET_300VW_N_VIDEOS
     print(f'n videos: {len(all_videos)}')
-    all_videos = all_videos[: constants.DATASET_300VW_LIMIT_N_VIDEOS]
-    print(f'Taking first n videos: {len(all_videos)}')
+    all_videos = all_videos[:n_videos_limit]
+    print(f'Taking first {len(all_videos)} videos!')
 
     print('Counting images...')
     n_images_per_video = count_images(
