@@ -88,9 +88,12 @@ def main(arguments):
     if (arguments.mode == "train" or arguments.mode == "finetune"):
 
         # init optimizers
-        generator_optimizer = opt.Adam(generator.parameters(), arguments.learning_rate)
-        discriminator_optimizer = opt.Adam(discriminator.parameters(), arguments.learning_rate)
-        embedder_optimizer = opt.Adam(embedder.parameters(), arguments.learning_rate)
+        generator_optimizer = find_right_model(OPTIMS, arguments.generator_optimizer, params=generator.parameters(),
+                                               lr=arguments.learning_rate)
+        discriminator_optimizer = find_right_model(OPTIMS, arguments.discriminator_optimizer,
+                                                   params=discriminator.parameters(), lr=arguments.learning_rate)
+        embedder_optimizer = find_right_model(OPTIMS, arguments.embedder_optimizer, params=embedder.parameters(),
+                                              lr=arguments.learning_rate)
 
         # define loss functions
         if (not arguments.loss_gen == TOTAL_LOSS):
@@ -174,8 +177,12 @@ def parse():
     parser.add_argument('--discriminator', default="PatchDiscriminator", type=str, help="name of objectclass")
     parser.add_argument('--generator', default="ResnetGenerator", type=str, help="name of objectclass")
 
+    # optimizer arguments
+    parser.add_argument('--discriminator_optimizer', default="SGD", type=str, help="name of objectclass")
+    parser.add_argument('--generator_optimizer', default="Adam", type=str, help="name of objectclass")
+    parser.add_argument('--embedder_optimizer', default="Adam", type=str, help="name of objectclass")
+
     # loss arguments
-    # parser.add_argument('--loss_gen', default="NonSaturatingGLoss", type=str,
     parser.add_argument('--loss_gen', default=TOTAL_LOSS, type=str,
                         help="Overwrites hyperparams generatorloss if not total")
     parser.add_argument('--loss_dis', default="HingeAdverserialDLoss", type=str, help="name of objectclass")

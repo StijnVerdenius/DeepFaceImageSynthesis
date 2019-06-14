@@ -10,6 +10,7 @@ PROGRESS_DIR = "training_progress"
 LOSS_DIR = "losses"
 EMBED_DIR = "embedders"
 GEN_DIR = "generators"
+OPTIMS = "optim"
 DIS_DIR = "discriminators"
 PREFIX_OUTPUT = "results/output"
 CODE_DIR = "codebase"
@@ -64,4 +65,3 @@ PRINTCOLOR_RED = '\033[91m'
 PRINTCOLOR_BOLD = '\033[1m'
 PRINTCOLOR_UNDERLINE = '\033[4m'
 PRINTCOLOR_END = '\033[0m'
-

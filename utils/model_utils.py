@@ -5,8 +5,15 @@ from utils.constants import *
 import importlib
 import os
 from utils.general_utils import ensure_current_directory
+import torch.optim as opt
 
-types = ["discriminators", "embedders", "generators", "losses"]
+LOSS_DIR = "losses"
+EMBED_DIR = "embedders"
+GEN_DIR = "generators"
+OPTIMS = "optim"
+DIS_DIR = "discriminators"
+
+types = [DIS_DIR, EMBED_DIR, GEN_DIR, LOSS_DIR]
 models = {x: {} for x in types}
 
 def _read_all_classnames():
@@ -23,6 +30,12 @@ def _read_all_classnames():
                 module = importlib.import_module(f"models.{typ}.{short_name}")
                 class_reference = getattr(module, short_name)
                 models[typ][short_name] = class_reference
+
+    models[OPTIMS] = {}
+    models[OPTIMS]["Adam"] = opt.Adam
+    models[OPTIMS]["RMSprop"] = opt.RMSprop
+    models[OPTIMS]["SGD"] = opt.SGD
+
 
 
 def find_right_model(type: str, name: str, **kwargs):
