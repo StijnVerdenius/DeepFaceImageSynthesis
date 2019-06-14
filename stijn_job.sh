@@ -24,6 +24,8 @@ cp -r $HOME/DeepFakes $TMPDIR/lgpu0386
 echo "cd inwards"
 cd $TMPDIR/lgpu0386/DeepFakes
 
+echo ""
+
 echo "activate env"
 source activate dl
 

@@ -5,20 +5,20 @@ from models.discriminators.GeneralDiscriminator import GeneralDiscriminator
 from models.embedders import GeneralEmbedder
 from models.generators.GeneralGenerator import GeneralGenerator
 from utils.constants import CHANNEL_DIM, DEVICE
-from utils.general_utils import ensure_current_directory, torch, denormalize_picture, de_torch
+from utils.general_utils import ensure_current_directory, torch, denormalize_picture, de_torch, BGR2RGB_numpy
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 import random
 
 
-def compare(dataloader: DataLoader, number_of_batches = 1, *args, **kwargs):
+def compare(dataloader: DataLoader, *args, number_of_batches = 1, **kwargs):
     """ visually compares generated images with target """
     for i, batch in enumerate(dataloader):
         if i >= number_of_batches:
             break
 
-        image = plot_batch(*batch, *args, **kwargs)
+        image = plot_batch(*batch, *args, number_of_batches=number_of_batches, **kwargs)
         plt.figure()
         ax = plt.gca()
         ax.axis('off')
@@ -52,11 +52,11 @@ def plot_batch(batch_1, batch_2, batch_3,
     canvas = FigureCanvasAgg(fig)
 
     for image_index in range(number_of_pictures):
-        plottable_generated = denormalize_picture(de_torch(generated_images[image_index, :, :, :]))
-        plottable_landmarks_1 = denormalize_picture(de_torch(-1 * landmarks_1[image_index, :, :]), binarised=True)
-        plottable_landmarks_2 = denormalize_picture(de_torch(-1 * landmarks_2[image_index, :, :]), binarised=True)
-        plottable_source = denormalize_picture(de_torch(image_1[image_index, :, :, :]))
-        plottable_target = denormalize_picture(de_torch(image_2[image_index, :, :, :]))
+        plottable_generated = BGR2RGB_numpy(denormalize_picture(de_torch(generated_images[image_index, :, :, :])))
+        plottable_landmarks_1 = (denormalize_picture(de_torch(-1 * landmarks_1[image_index, :, :]), binarised=True))
+        plottable_landmarks_2 = (denormalize_picture(de_torch(-1 * landmarks_2[image_index, :, :]), binarised=True))
+        plottable_source = BGR2RGB_numpy(denormalize_picture(de_torch(image_1[image_index, :, :, :])))
+        plottable_target = BGR2RGB_numpy(denormalize_picture(de_torch(image_2[image_index, :, :, :])))
 
 
         plt.subplot(number_of_pictures, plots, image_index * plots + 1)
@@ -90,7 +90,9 @@ def plot_batch(batch_1, batch_2, batch_3,
         plt.yticks([])
 
     canvas.draw()
-    return np.fromstring(canvas.tostring_rgb(), dtype='uint8')
+    _, (width, height) = canvas.print_to_buffer()
+    s = canvas.tostring_rgb()
+    return np.fromstring(s, dtype='uint8').reshape((height, width, 3))
 
 
 def local_test():

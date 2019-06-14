@@ -38,4 +38,3 @@ class TripleConsistencyLoss(GeneralLoss):
 
 if __name__ == '__main__':
     z = TripleConsistencyLoss(1)
-
