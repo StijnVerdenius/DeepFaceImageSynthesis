@@ -110,12 +110,18 @@ def main(arguments):
     if (arguments.mode == "train" or arguments.mode == "finetune"):
 
         # init optimizers
-        generator_optimizer = find_right_model(OPTIMS, arguments.generator_optimizer, params=generator.parameters(),
-                                               lr=arguments.learning_rate)
+        generator_optimizer = find_right_model(OPTIMS, arguments.generator_optimizer,
+                                               params=generator.parameters(),
+                                               lr=arguments.learning_rate,
+                                               n_hidden=arguments.n_hidden)
         discriminator_optimizer = find_right_model(OPTIMS, arguments.discriminator_optimizer,
-                                                   params=discriminator.parameters(), lr=arguments.learning_rate)
-        embedder_optimizer = find_right_model(OPTIMS, arguments.embedder_optimizer, params=embedder.parameters(),
-                                              lr=arguments.learning_rate)
+                                                   params=discriminator.parameters(),
+                                                   lr=arguments.learning_rate,
+                                                   n_hidden=arguments.n_hidden)
+        embedder_optimizer = find_right_model(OPTIMS, arguments.embedder_optimizer,
+                                              params=embedder.parameters(),
+                                              lr=arguments.learning_rate,
+                                              n_hidden=arguments.n_hidden)
 
         # define loss functions
         if (not arguments.loss_gen == TOTAL_LOSS):
@@ -159,7 +165,7 @@ def main(arguments):
                               arguments.test_model_date)
 
         # run test
-        compare(dataloader_validate, embedder, generator, arguments, number_of_batches = 10, number_of_pictures=3)
+        compare(dataloader_validate, embedder, generator, arguments, number_of_batches=10, number_of_pictures=3)
 
     else:
 
@@ -176,13 +182,15 @@ def parse():
     parser.add_argument('--epochs', default=100, type=int,
                         help='max number of epochs')
     parser.add_argument('--eval_freq', type=int, default=10, help='Frequency (batch-wise) of evaluation')
-    parser.add_argument('--plot_freq', type=int, default=1, help='Frequency (batch-wise) of plotting pictures')
-    parser.add_argument('--saving_freq', type=int, default=0, help='Frequency (epoch-wise) of saving models') ############################################################## change to 10
+    parser.add_argument('--plot_freq', type=int, default=100, help='Frequency (batch-wise) of plotting pictures')
+    parser.add_argument('--saving_freq', type=int, default=10,
+                        help='Frequency (epoch-wise) of saving models')  ############################################################## change to 10
     parser.add_argument('--device', default="cuda", type=str, help='device')
-    parser.add_argument('--mode', default="test", type=str, help="'train', 'test' or 'finetune'")
+    parser.add_argument('--mode', default="train", type=str, help="'train', 'test' or 'finetune'")
     parser.add_argument('--learning_rate', type=float, default=1e-4, help='Learning rate')
     parser.add_argument('--dropout', type=bool, default=False, help='Learning rate')
-    parser.add_argument('--max_training_minutes', type=int, default=-1, help='After which process is killed automatically')
+    parser.add_argument('--max_training_minutes', type=int, default=-1,
+                        help='After which process is killed automatically')
 
     # debug
     parser.add_argument('--timing', type=bool, default=False, help='are we measuring efficiency?')
@@ -198,6 +206,7 @@ def parse():
     parser.add_argument('--embedder', default="EmptyEmbedder", type=str, help="name of objectclass")
     parser.add_argument('--discriminator', default="PatchDiscriminator", type=str, help="name of objectclass")
     parser.add_argument('--generator', default="ResnetGenerator", type=str, help="name of objectclass")
+    parser.add_argument('--n_hidden', type=int, default=-24, help='features in the first hidden layer')
 
     # optimizer arguments
     parser.add_argument('--discriminator_optimizer', default="SGD", type=str, help="name of objectclass")
@@ -226,7 +235,7 @@ def parse():
     # data arguments
     parser.add_argument('--batch_size', type=int, default=DEBUG_BATCH_SIZE, help='Batch size to run trainer.')
     parser.add_argument('--batch-size-plotting', type=int, default=DEBUG_BATCH_SIZE, help='Batch size to run plotting.')
-    parser.add_argument('--n-videos-limit', type=int, default=5,
+    parser.add_argument('--n-videos-limit', type=int, default=10,
                         help='Limit the dataset to the first N videos. Use None to use all videos.')
 
     return parser.parse_args()
