@@ -189,7 +189,7 @@ def parse():
     parser.add_argument('--loss_dis', default="HingeAdverserialDLoss", type=str, help="name of objectclass")
 
     # hyperparams generatorloss  (-1 === DEFAULT)
-    parser.add_argument('--NonSaturatingGLoss_weight', default=10, type=float,
+    parser.add_argument('--NonSaturatingGLoss_weight', default=-1, type=float,
                         help="weight hyperparameter for specific generatorloss")
     parser.add_argument('--PerceptualLoss_weight', default=-1, type=float,
                         help="weight hyperparameter for specific generatorloss")
@@ -220,7 +220,7 @@ def manipulate_defaults_for_own_test(args):
 
 
 if __name__ == '__main__':
-    print("cuda_version", torch.version.cuda, "pytorch version", torch.__version__, "python version", sys.version)
+    print("cuda_version:", torch.version.cuda, "pytorch version:", torch.__version__, "python version:", sys.version)
     ensure_current_directory()
     args = parse()
     manipulate_defaults_for_own_test(args)
