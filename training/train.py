@@ -91,7 +91,7 @@ class TrainingProcess:
                         batch_2: Dict,
                         batch_3: Dict,
                         train=True) \
-            -> Tuple[Dict, Dict, torch.Tensor, torch.Tensor, torch.Tensor]:
+            -> Tuple[Dict, Dict, torch.Tensor, int]:
         """
          inner loop of epoch iteration
 
@@ -118,22 +118,26 @@ class TrainingProcess:
 
         # combine real and fake
         if (self.labels is None):
-            self.labels = torch.cat((torch.zeros(fake.shape[0]).to(DEVICE), torch.ones(fake.shape[0]).to(DEVICE)))
-        combined_set, labels = combine_real_and_fake(self.shuffle_indices, landmarked_truth.detach(),
-                                                     landmarked_fake.detach(), self.labels)
+            self.labels = torch.cat((torch.zeros(fake.shape[0]).to(DEVICE), torch.ones(fake.shape[0]).to(DEVICE)),
+                                    dim=0)
+        landmarked_truth = landmarked_truth.detach()
+        landmarked_fake = landmarked_fake.detach()
 
         # forward pass discriminator
-        predictions = self.discriminator.forward(combined_set.detach())
-        loss_dis, loss_dis_saving = self.loss_dis.forward(predictions, labels)
+        predictions_true = self.discriminator.forward(landmarked_truth.detach())
+        predictions_fake = self.discriminator.forward(landmarked_fake.detach())
+        predictions = torch.cat((predictions_fake, predictions_true), dim=0)
+        loss_dis, loss_dis_saving = self.loss_dis.forward(predictions, self.labels)
 
         if (train):
             # backward discriminator
             self.trainer_dis.do_backward(loss_dis)
 
+        accuracy_discriminator = calculate_accuracy(predictions, self.labels)
+
         # detaching
         fake = fake.detach()
         predictions = predictions.detach()
-        labels = labels.detach()
         loss_gen = loss_gen.detach()
         loss_dis = loss_dis.detach()
         landmarked_truth = landmarked_truth.detach()
@@ -142,7 +146,7 @@ class TrainingProcess:
         # print flush
         sys.stdout.flush()
 
-        return loss_gen_saving, loss_dis_saving, fake, predictions, labels
+        return loss_gen_saving, loss_dis_saving, fake, accuracy_discriminator
 
     def epoch_iteration(self, epoch_num: int) -> List[Statistic]:
         """
@@ -155,7 +159,7 @@ class TrainingProcess:
         for i, (batch_1, batch_2, batch_3) in enumerate(self.dataloader_train):
 
             # run batch iteration
-            loss_gen, loss_dis, fake_images, predictions, labels = self.batch_iteration(batch_1, batch_2, batch_3)
+            loss_gen, loss_dis, fake_images, accuracy_discriminator = self.batch_iteration(batch_1, batch_2, batch_3)
 
             # assertions
             assert_type(dict, loss_gen)
@@ -169,7 +173,6 @@ class TrainingProcess:
                 # convert dicts to ints
                 loss_gen_actual = sum(loss_gen.values())
                 loss_dis_actual = sum(loss_dis.values())
-                accuracy_discriminator = calculate_accuracy(predictions, labels)
 
                 # log to terminal and retrieve a statistics object
                 statistic = self.log(loss_gen_actual, loss_dis_actual, loss_gen, loss_dis, batches_passed,
@@ -215,11 +218,8 @@ class TrainingProcess:
 
         for i, (batch_1, batch_2, batch_3) in enumerate(self.dataloader_validation):
             # run batch iteration
-            loss_gen, loss_dis, _, predictions, actual_labels = self.batch_iteration(batch_1, batch_2, batch_3,
-                                                                                     train=False)
-
-            # also get accuracy
-            accuracy = calculate_accuracy(predictions, actual_labels)
+            loss_gen, loss_dis, _, accuracy_discriminator = self.batch_iteration(batch_1, batch_2, batch_3,
+                                                                                 train=False)
 
             # convert dicts to ints
             loss_gen_actual = sum(loss_gen.values())
@@ -228,10 +228,10 @@ class TrainingProcess:
             # assertions
             assert_type(float, loss_gen_actual)
             assert_type(float, loss_dis_actual)
-            assert_type(float, accuracy)
+            assert_type(float, accuracy_discriminator)
 
             # append findings to respective lists
-            total_accuracy.append(accuracy)
+            total_accuracy.append(accuracy_discriminator)
             total_loss_generator.append(loss_gen_actual)
             total_loss_discriminator.append(loss_dis_actual)
 
