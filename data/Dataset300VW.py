@@ -138,7 +138,7 @@ class X300VWDataset(Dataset):
     def _load_landmarks(self, video_index: int, frame_index: int) -> np.ndarray:
         single_dim_landmarks = self._all_landmarks[video_index][frame_index - 1, :, :]
         landmarks = np.empty(
-            (constants.IMSIZE, constants.IMSIZE, constants.DATASET_300VW_N_LANDMARKS)
+            (constants.DATASET_300VW_IMSIZE, constants.DATASET_300VW_IMSIZE, constants.DATASET_300VW_N_LANDMARKS)
         )
         assert single_dim_landmarks.shape == (constants.DATASET_300VW_N_LANDMARKS, 2)
         for landmark_index in range(single_dim_landmarks.shape[0]):
@@ -151,12 +151,12 @@ class X300VWDataset(Dataset):
 
     @lru_cache()
     def _landmark_to_channel(self, x_1: int, y_1: int) -> np.ndarray:
-        landmark_channel = np.zeros((constants.IMSIZE, constants.IMSIZE))
+        landmark_channel = np.zeros((constants.DATASET_300VW_IMSIZE, constants.DATASET_300VW_IMSIZE))
         start_indices_landmarks = np.asarray([x_1, y_1], dtype=int)
         start_indices_landmarks -= self._window_radius
 
         end_indices_landmarks = start_indices_landmarks + self._window_size_gaussian
-        if any(start_indices_landmarks > constants.IMSIZE) or any(
+        if any(start_indices_landmarks > constants.DATASET_300VW_IMSIZE) or any(
             end_indices_landmarks < 0
         ):
             return landmark_channel
@@ -168,13 +168,13 @@ class X300VWDataset(Dataset):
             start_indices_landmarks < 0, 0, start_indices_landmarks
         )
         end_indices_gaussian = self._window_size_gaussian - np.where(
-            end_indices_landmarks > constants.IMSIZE,
-            end_indices_landmarks - constants.IMSIZE,
+            end_indices_landmarks > constants.DATASET_300VW_IMSIZE,
+            end_indices_landmarks - constants.DATASET_300VW_IMSIZE,
             0,
         )
         end_indices_landmarks = np.where(
-            end_indices_landmarks > constants.IMSIZE,
-            constants.IMSIZE,
+            end_indices_landmarks > constants.DATASET_300VW_IMSIZE,
+            constants.DATASET_300VW_IMSIZE,
             end_indices_landmarks,
         )
 
@@ -203,13 +203,13 @@ def _test_return() -> None:
         for sample_index, sample in enumerate(batch):
             image, landmarks = sample['image'], sample['landmarks']
             assert image.shape == (
-                constants.IMSIZE,
-                constants.IMSIZE,
+                constants.DATASET_300VW_IMSIZE,
+                constants.DATASET_300VW_IMSIZE,
                 constants.INPUT_CHANNELS,
             )
             assert landmarks.shape == (
-                constants.IMSIZE,
-                constants.IMSIZE,
+                constants.DATASET_300VW_IMSIZE,
+                constants.DATASET_300VW_IMSIZE,
                 constants.DATASET_300VW_N_LANDMARKS,
             )
             print((batch_index, sample_index), image.shape, landmarks.shape)
