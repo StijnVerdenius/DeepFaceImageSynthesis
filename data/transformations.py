@@ -1,6 +1,5 @@
-from typing import Callable, Dict, List, Optional
+from typing import Callable, List, Optional
 
-import numpy as np
 from torchvision import transforms
 
 from data import plot
@@ -30,6 +29,7 @@ class RandomHorizontalFlip:
     """RandomHorizontalFlip should be applied to all n images together, not just one
 
     """
+
     def __init__(self, probability: float = 0.5):
         self._probability = probability
 
