@@ -11,18 +11,6 @@ from typing import Tuple, Dict
 
 class PerceptualLoss(GeneralLoss):
 
-    # def __init__(self, weight: float, feature_selection: Tuple=(3, 8, 15, 24), **kwargs):
-    #     self.feature_selection = feature_selection
-    #     super(PerceptualLoss, self).__init__(weight=weight)
-    #
-    # def custom_forward(self, batch: torch.Tensor, generated_images: torch.Tensor)\
-    #         -> torch.Tensor:
-    #     """ forward pass """
-    #
-    #     # get vgg feats
-    #     real_feats, fake_feats = self.get_features(batch, generated_images)
-
-
     def __init__(self, weight: float, **kwargs):
         super(PerceptualLoss, self).__init__(weight=weight)
 
@@ -67,33 +55,6 @@ class PerceptualLoss(GeneralLoss):
         # by dividing by the number of element in each feature maps. todo: is this necessary?
         return G.div(a * b * c * d)
 
-    # def get_features(self, batch: torch.Tensor, generated_images: torch.Tensor, ) \
-    #         -> Tuple[
-    #             Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor],
-    #             Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]
-    #         ]:
-    #     """ extracts features from vgg network """
-    #
-    #     usable_feats = VGG.features[:self.feature_selection[-1] + 1]
-    #
-    #     feat_1_2 = usable_feats[:self.feature_selection[0] + 1]
-    #     feat_2_2 = usable_feats[self.feature_selection[0] + 1:self.feature_selection[1] + 1]
-    #     feat_3_3 = usable_feats[self.feature_selection[1] + 1:self.feature_selection[2] + 1]
-    #     feat_4_3 = usable_feats[self.feature_selection[2] + 1:]
-    #
-    #     a_1_2_real = feat_1_2.forward(batch)
-    #     a_1_2_fake = feat_1_2.forward(generated_images)
-    #
-    #     a_2_2_real = feat_2_2.forward(a_1_2_real)
-    #     a_2_2_fake = feat_2_2.forward(a_1_2_fake)
-    #
-    #     a_3_3_real = feat_3_3.forward(a_2_2_real)
-    #     a_3_3_fake = feat_3_3.forward(a_2_2_fake)
-    #
-    #     a_4_3_real = feat_4_3.forward(a_3_3_real)
-    #     a_4_3_fake = feat_4_3.forward(a_3_3_fake)
-    #
-    #     return (a_1_2_real, a_2_2_real, a_3_3_real, a_4_3_real), (a_1_2_fake, a_2_2_fake, a_3_3_fake, a_4_3_fake)
 
 
 if __name__ == '__main__':
