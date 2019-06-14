@@ -232,6 +232,7 @@ def parse():
     parser.add_argument('--IdLoss_weight', default=0, type=float,
                         help="weight hyperparameter for specific generatorloss")
 
+
     # data arguments
     parser.add_argument('--batch_size', type=int, default=DEBUG_BATCH_SIZE, help='Batch size to run trainer.')
     parser.add_argument('--batch-size-plotting', type=int, default=DEBUG_BATCH_SIZE, help='Batch size to run plotting.')
