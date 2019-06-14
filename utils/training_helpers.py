@@ -5,6 +5,7 @@ from torch import __init__
 from torchvision.utils import save_image
 from utils.constants import *
 import torchvision.utils as vutils
+import numpy as np
 import random
 
 
@@ -69,13 +70,17 @@ def combine_real_and_fake(indices, real: torch.Tensor, fake: torch.Tensor, label
 
 
 def L2_distance(tensor1, tensor2, batch_dim=0):
+
     # get number of dimensions
     n_dims = len(tensor1.shape)
 
     # get dims to sum over
     dims = tuple([n for n in range(n_dims) if n != batch_dim])
 
-    distance = torch.sqrt(torch.sum((tensor1 - tensor2).pow(2), dim=dims))
+    # get normalization term
+    n_term = np.prod([dim for i,dim in enumerate(tensor1.shape) if i != batch_dim])
+
+    distance = torch.sqrt(torch.sum((tensor1 - tensor2).pow(2), dim=dims))/n_term
 
     return distance
 
@@ -87,6 +92,6 @@ def L1_distance(tensor1, tensor2, batch_dim=0):
     # get dims to sum over
     dims = tuple([n for n in range(n_dims) if n != batch_dim])
 
-    distance = torch.sum(torch.abs(tensor1 - tensor2), dim=dims)
+    distance = torch.mean(torch.abs(tensor1 - tensor2), dim=dims) # changed from sum to mean
 
     return distance
