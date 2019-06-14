@@ -4,6 +4,7 @@ from models.general.statistic import Statistic
 from models.generators.GeneralGenerator import GeneralGenerator
 from models.losses.GeneralLoss import GeneralLoss
 from models.losses.TotalGeneratorLoss import TotalGeneratorLoss
+from testing.test import plot_batch
 from utils.general_utils import *
 from utils.constants import *
 from models.general.trainer import Trainer
@@ -65,6 +66,8 @@ class TrainingProcess:
         self.shuffle_indices = list(range(int(self.combined_batch_size)))
 
         # initialize tensorboardx
+        # self.writer = SummaryWriter(
+        #     f"results/output/tensorboardx/{DATA_MANAGER.stamp}")
         self.writer = SummaryWriter(
             f"/home/lgpu0293/ProjectAI/DeepFakes/results/output/tensorboardx/{DATA_MANAGER.stamp}")  ############## ADD DIRECTORY
 
@@ -202,9 +205,14 @@ class TrainingProcess:
                 example_images = example_images.view(-1, 3, IMSIZE, IMSIZE)
                 example_images = BGR2RGB_pytorch(example_images)
                 plot_some_pictures(example_images, batches_passed)
-                # pass fake images to tensorboardx
                 self.writer.add_image('fake_samples', vutils.make_grid(example_images, normalize=True),
                                       batches_passed)
+
+                big_image = plot_batch(self.plotting_batch_1, self.plotting_batch_2, self.plotting_batch_3,
+                                       self.embedder, self.generator, self.arguments, number_of_pictures=3)
+                self.writer.add_image('landmark_comparison', big_image, batches_passed)
+
+
 
             # empty cache
             torch.cuda.empty_cache()
