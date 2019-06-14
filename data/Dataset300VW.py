@@ -143,7 +143,11 @@ class X300VWDataset(Dataset):
     def _load_landmarks(self, video_index: int, frame_index: int) -> np.ndarray:
         single_dim_landmarks = self._all_landmarks[video_index][frame_index - 1, :, :]
         landmarks = np.empty(
-            (constants.DATASET_300VW_IMSIZE, constants.DATASET_300VW_IMSIZE, constants.DATASET_300VW_N_LANDMARKS)
+            (
+                constants.DATASET_300VW_IMSIZE,
+                constants.DATASET_300VW_IMSIZE,
+                constants.DATASET_300VW_N_LANDMARKS,
+            )
         )
         assert single_dim_landmarks.shape == (constants.DATASET_300VW_N_LANDMARKS, 2)
         for landmark_index in range(single_dim_landmarks.shape[0]):
@@ -156,7 +160,9 @@ class X300VWDataset(Dataset):
 
     @lru_cache()
     def _landmark_to_channel(self, x_1: int, y_1: int) -> np.ndarray:
-        landmark_channel = np.zeros((constants.DATASET_300VW_IMSIZE, constants.DATASET_300VW_IMSIZE))
+        landmark_channel = np.zeros(
+            (constants.DATASET_300VW_IMSIZE, constants.DATASET_300VW_IMSIZE)
+        )
         start_indices_landmarks = np.asarray([x_1, y_1], dtype=int)
         start_indices_landmarks -= self._window_radius
 
