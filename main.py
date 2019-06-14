@@ -199,7 +199,7 @@ def parse():
     # test arguments
     parser.add_argument('--test_model_date', default="week_2", type=str,
                         help='date_stamp string for which model to load')
-    parser.add_argument('--test_model_suffix', default="Models_at_epoch_49", type=str,
+    parser.add_argument('--test_model_suffix', default="CRASH_at_epoch_0", type=str,
                         help='filename string for which model to load')
 
     # model arguments
@@ -232,6 +232,7 @@ def parse():
                         help="weight hyperparameter for specific generatorloss")
     parser.add_argument('--IdLoss_weight', default=-1, type=float,
                         help="weight hyperparameter for specific generatorloss")
+
 
     # data arguments
     parser.add_argument('--batch_size', type=int, default=DEBUG_BATCH_SIZE, help='Batch size to run trainer.')

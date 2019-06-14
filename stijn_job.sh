@@ -32,7 +32,7 @@ source activate dl
 echo " ------ Job is started ------- "
 echo " "
 
-srun python3 main.py --
+srun python3 main.py
 
 cp -r $TMPDIR/lgpu0386/DeepFakes/results/output/* $HOME/DeepFakes/results/output
 
