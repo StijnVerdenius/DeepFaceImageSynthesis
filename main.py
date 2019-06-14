@@ -176,7 +176,7 @@ def parse():
     parser.add_argument('--epochs', default=100, type=int,
                         help='max number of epochs')
     parser.add_argument('--eval_freq', type=int, default=10, help='Frequency (batch-wise) of evaluation')
-    parser.add_argument('--plot_freq', type=int, default=100, help='Frequency (batch-wise) of plotting pictures')
+    parser.add_argument('--plot_freq', type=int, default=1, help='Frequency (batch-wise) of plotting pictures')
     parser.add_argument('--saving_freq', type=int, default=0, help='Frequency (epoch-wise) of saving models') ############################################################## change to 10
     parser.add_argument('--device', default="cuda", type=str, help='device')
     parser.add_argument('--mode', default="train", type=str, help="'train', 'test' or 'finetune'")
@@ -225,8 +225,8 @@ def parse():
 
     # data arguments
     parser.add_argument('--batch_size', type=int, default=DEBUG_BATCH_SIZE, help='Batch size to run trainer.')
-    parser.add_argument('--batch-size-plotting', type=int, default=9, help='Batch size to run plotting.')
-    parser.add_argument('--n-videos-limit', type=int, default=None,
+    parser.add_argument('--batch-size-plotting', type=int, default=DEBUG_BATCH_SIZE, help='Batch size to run plotting.')
+    parser.add_argument('--n-videos-limit', type=int, default=5,
                         help='Limit the dataset to the first N videos. Use None to use all videos.')
 
     return parser.parse_args()

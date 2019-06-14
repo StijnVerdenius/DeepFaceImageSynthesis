@@ -66,12 +66,11 @@ class TrainingProcess:
         self.shuffle_indices = list(range(int(self.combined_batch_size)))
 
         # initialize tensorboardx
-        # self.writer = SummaryWriter(
-        #     f"results/output/tensorboardx/{DATA_MANAGER.stamp}")
         self.writer = SummaryWriter(
-            f"/home/lgpu0293/ProjectAI/DeepFakes/results/output/tensorboardx/{DATA_MANAGER.stamp}")  ############## ADD DIRECTORY
+            f"results/output/{DATA_MANAGER.stamp}/tensorboardx/")
 
-        self.labels = None
+        self.labels_train = None
+        self.labels_validate = None
 
         self.plotting_batch_1, self.plotting_batch_2, self.plotting_batch_3 = next(iter(self.dataloader_validation))
 
@@ -122,9 +121,16 @@ class TrainingProcess:
             self.trainer_gen.prepare_evaluation()
 
         # combine real and fake
-        if (self.labels is None):
-            self.labels = torch.cat((torch.zeros(fake.shape[0]).to(DEVICE), torch.ones(fake.shape[0]).to(DEVICE)),
-                                    dim=0)
+        if (self.labels_train is None and train):
+            self.labels_train = torch.cat((torch.zeros(fake.shape[0]).to(DEVICE), torch.ones(fake.shape[0]).to(DEVICE)),
+                                          dim=0)  # combine real and fake
+        if (self.labels_validate is None and not train):
+            self.labels_validate = torch.cat(
+                (torch.zeros(fake.shape[0]).to(DEVICE), torch.ones(fake.shape[0]).to(DEVICE)),
+                dim=0)
+
+        usable_labels = self.labels_train if (train) else self.labels_validate
+
         landmarked_truth = landmarked_truth.detach()
         landmarked_fake = landmarked_fake.detach()
 
@@ -132,13 +138,14 @@ class TrainingProcess:
         predictions_true = self.discriminator.forward(landmarked_truth.detach())
         predictions_fake = self.discriminator.forward(landmarked_fake.detach())
         predictions = torch.cat((predictions_fake, predictions_true), dim=0)
-        loss_dis, loss_dis_saving = self.loss_dis.forward(predictions, self.labels)
+
+        loss_dis, loss_dis_saving = self.loss_dis.forward(predictions, usable_labels)
 
         if (train):
             # backward discriminator
             self.trainer_dis.do_backward(loss_dis)
 
-        accuracy_discriminator = calculate_accuracy(predictions, self.labels)
+        accuracy_discriminator = calculate_accuracy(predictions, self.labels_train)
 
         # detaching
         fake = fake.detach()
@@ -200,7 +207,7 @@ class TrainingProcess:
             # save a set of pictures
             if (batches_passed % self.arguments.plot_freq == 0):
                 _, _, example_images, _ = self.batch_iteration(self.plotting_batch_1, self.plotting_batch_2,
-                                                                  self.plotting_batch_3, train=False)
+                                                               self.plotting_batch_3, train=False)
 
                 example_images = example_images.view(-1, 3, IMSIZE, IMSIZE)
                 example_images = BGR2RGB_pytorch(example_images)
@@ -210,9 +217,9 @@ class TrainingProcess:
 
                 big_image = plot_batch(self.plotting_batch_1, self.plotting_batch_2, self.plotting_batch_3,
                                        self.embedder, self.generator, self.arguments, number_of_pictures=3)
-                self.writer.add_image('landmark_comparison', big_image, batches_passed)
+                big_image = torch.from_numpy(np.moveaxis(big_image, -1, 0)).float()
 
-
+                self.writer.add_image('landmark_comparison', vutils.make_grid(big_image, normalize=True), batches_passed,)
 
             # empty cache
             torch.cuda.empty_cache()
