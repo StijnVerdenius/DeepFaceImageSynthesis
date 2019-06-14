@@ -6,7 +6,7 @@ import torch
 class PatchDiscriminator(GeneralDiscriminator):
     """ Defines a PatchGAN discriminator"""
 
-    def __init__(self, n_channels_in:int=3, n_hidden:int=64, n_layers:int=3, norm_layer: nn.Module=nn.BatchNorm2d, use_dropout: bool=False,
+    def __init__(self, n_channels_in:int=3, n_hidden:int=24, n_layers:int=3, norm_layer: nn.Module=nn.BatchNorm2d, use_dropout: bool=False,
                  device: str="cpu", **kwargs):
         """
         n_channels_in (int)      - no. of channels in input images
