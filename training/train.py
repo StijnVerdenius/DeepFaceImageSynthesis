@@ -72,6 +72,8 @@ class TrainingProcess:
 
         self.labels = None
 
+        self.plotting_batch_1, self.plotting_batch_2, self.plotting_batch_3 = next(iter(self.dataloader_validation))
+
         # assert type
         assert_type(GeneralGenerator, generator)
         assert_type(GeneralEmbedder, embedder)
@@ -185,7 +187,10 @@ class TrainingProcess:
 
             # save a set of pictures
             if (batches_passed % self.arguments.plot_freq == 0):
-                example_images = fake_images[:16].view(-1, 3, IMSIZE, IMSIZE)
+                _, _, example_images, _, _ = self.batch_iteration(self.plotting_batch_1, self.plotting_batch_2,
+                                                                  self.plotting_batch_3, train=False)
+
+                example_images = example_images.view(-1, 3, IMSIZE, IMSIZE)
                 example_images = BGR2RGB_pytorch(example_images)
                 plot_some_pictures(example_images, batches_passed)
                 # pass fake images to tensorboardx

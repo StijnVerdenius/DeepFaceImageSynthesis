@@ -56,7 +56,7 @@ def load_data(keyword: str, batch_size: int, mode: str, n_videos_limit: Optional
         ]
     )
 
-    shuffle = False or mode == "test"
+    shuffle = keyword == "train"
 
     if keyword == "train" or keyword == "validate":
         data = DataLoader(X300VWDataset(dataset_mode, transform=transform, n_videos_limit=n_videos_limit),
@@ -82,7 +82,7 @@ def main(arguments):
 
     # data
     dataloader_train = load_data("train", arguments.batch_size, arguments.mode, arguments.n_videos_limit)
-    dataloader_validate = load_data("validate", arguments.batch_size, arguments.mode, arguments.n_videos_limit)
+    dataloader_validate = load_data("validate", arguments.batch_size_plotting, arguments.mode, arguments.n_videos_limit)
 
     # get models
     embedder = find_right_model(EMBED_DIR, arguments.embedder,
@@ -213,6 +213,7 @@ def parse():
 
     # data arguments
     parser.add_argument('--batch_size', type=int, default=DEBUG_BATCH_SIZE, help='Batch size to run trainer.')
+    parser.add_argument('--batch-size-plotting', type=int, default=9, help='Batch size to run plotting.')
     parser.add_argument('--n-videos-limit', type=int, default=None,
                         help='Limit the dataset to the first N videos. Use None to use all videos.')
 
