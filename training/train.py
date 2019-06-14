@@ -257,8 +257,6 @@ class TrainingProcess:
         # validate on validationset
         loss_gen_validate, loss_dis_validate, _ = 0, 0, 0  # self.validate() todo: do we want to restore this?
 
-        print(loss_gen_dict)
-
         stat = Statistic(loss_gen_train=loss_gen,
                          loss_dis_train=loss_dis,
                          loss_gen_val=loss_gen_validate,
