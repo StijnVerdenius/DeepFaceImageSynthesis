@@ -159,7 +159,7 @@ def main(arguments):
                               arguments.test_model_date)
 
         # run test
-        compare(dataloader_validate, embedder, generator, arguments, number_of_batches=10, number_of_pictures=3)
+        compare(dataloader_validate, embedder, generator, arguments, number_of_batches = 10, number_of_pictures=3)
 
     else:
 
@@ -179,7 +179,7 @@ def parse():
     parser.add_argument('--plot_freq', type=int, default=1, help='Frequency (batch-wise) of plotting pictures')
     parser.add_argument('--saving_freq', type=int, default=0, help='Frequency (epoch-wise) of saving models') ############################################################## change to 10
     parser.add_argument('--device', default="cuda", type=str, help='device')
-    parser.add_argument('--mode', default="train", type=str, help="'train', 'test' or 'finetune'")
+    parser.add_argument('--mode', default="test", type=str, help="'train', 'test' or 'finetune'")
     parser.add_argument('--learning_rate', type=float, default=1e-4, help='Learning rate')
     parser.add_argument('--dropout', type=bool, default=False, help='Learning rate')
     parser.add_argument('--max_training_minutes', type=int, default=-1, help='After which process is killed automatically')
@@ -188,9 +188,9 @@ def parse():
     parser.add_argument('--timing', type=bool, default=False, help='are we measuring efficiency?')
 
     # test arguments
-    parser.add_argument('--test_model_date', default="2019-06-14_13:17:17", type=str,
+    parser.add_argument('--test_model_date', default="week_2", type=str,
                         help='date_stamp string for which model to load')
-    parser.add_argument('--test_model_suffix', default="KILLED_at_epoch_0", type=str,
+    parser.add_argument('--test_model_suffix', default="Models_at_epoch_49", type=str,
                         help='filename string for which model to load')
 
     # model arguments

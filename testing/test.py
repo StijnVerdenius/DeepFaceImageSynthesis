@@ -12,13 +12,13 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg
 import random
 
 
-def compare(dataloader: DataLoader, number_of_batches = 1, *args, **kwargs):
+def compare(dataloader: DataLoader, *args, number_of_batches = 1, **kwargs):
     """ visually compares generated images with target """
     for i, batch in enumerate(dataloader):
         if i >= number_of_batches:
             break
 
-        image = plot_batch(*batch, *args, **kwargs)
+        image = plot_batch(*batch, *args, number_of_batches=number_of_batches, **kwargs)
         plt.figure()
         ax = plt.gca()
         ax.axis('off')
