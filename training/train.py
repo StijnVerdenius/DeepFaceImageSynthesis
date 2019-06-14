@@ -248,14 +248,12 @@ class TrainingProcess:
 
         # pass stats to tensorboardX
         for e in list(loss_gen_dict.keys()):
-            self.writer.add_scalar(str(e), loss_gen_dict[e], batches_passed)
+            self.writer.add_scalar(f'loss/gen/{e}', loss_gen_dict[e], batches_passed)
         for e in list(loss_dis_dict.keys()):
-            self.writer.add_scalar(str(e), loss_dis_dict[e], batches_passed)
+            self.writer.add_scalar(f'loss/dis/{e}', loss_dis_dict[e], batches_passed)
 
-
-
-        self.writer.add_scalar("disc_acc", discriminator_accuracy, batches_passed)
-        self.writer.add_scalar("total_loss_generator", loss_gen, batches_passed)
+        self.writer.add_scalar("loss/gen/total", loss_gen, batches_passed)
+        self.writer.add_scalar("accuracy/dis", discriminator_accuracy, batches_passed)
 
         # validate on validationset
         loss_gen_validate, loss_dis_validate, _ = 0, 0, 0  # self.validate() todo: do we want to restore this?
