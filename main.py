@@ -160,15 +160,16 @@ def parse():
     parser.add_argument('--feedback', default=False, type=bool, help='whether to plot or not during training')
     parser.add_argument('--mode', default="train", type=str, help="'train', 'test' or 'finetune'")
     parser.add_argument('--learning_rate', type=float, default=1e-4, help='Learning rate')
-    parser.add_argument('--dropout', type=bool, default=True, help='Learning rate')
+    parser.add_argument('--dropout', type=bool, default=False, help='Learning rate')
+    parser.add_argument('--max_training_minutes', type=int, default=-1, help='After which process is killed automatically')
 
     # debug
     parser.add_argument('--timing', type=bool, default=False, help='are we measuring efficiency?')
 
     # test arguments
-    parser.add_argument('--test_model_date', default="2019-06-13_15:45:03", type=str,
+    parser.add_argument('--test_model_date', default="week_2", type=str,
                         help='date_stamp string for which model to load')
-    parser.add_argument('--test_model_suffix', default="KILLED_at_epoch_0", type=str,
+    parser.add_argument('--test_model_suffix', default="Models_at_epoch_49", type=str,
                         help='filename string for which model to load')
 
     # model arguments

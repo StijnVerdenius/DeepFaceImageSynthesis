@@ -34,7 +34,7 @@ class TrainingProcess:
                  loss_dis: GeneralLoss,
                  arguments):
 
-        DATA_MANAGER.date_stamp()
+        DATA_MANAGER.set_date_stamp()
 
         # models
         self.generator = generator
@@ -66,7 +66,7 @@ class TrainingProcess:
 
         # initialize tensorboardx
         self.writer = SummaryWriter(
-            f"results/output/tensorboardx/{DATA_MANAGER.stamp}")  ############## ADD DIRECTORY
+            f"results/output/{DATA_MANAGER.stamp}/tensorboardx/")  ############## ADD DIRECTORY
 
         self.labels = None
 
@@ -181,6 +181,14 @@ class TrainingProcess:
                 # append statistic to list
                 progress.append(statistic)
 
+                time_passed = datetime.now() - DATA_MANAGER.actual_date
+
+                if (
+                        (time_passed.total_seconds() > (
+                                self.arguments.max_training_minutes * 60)) and self.arguments.max_training_minutes > 0):
+                    raise KeyboardInterrupt(
+                        f"Process killed because {self.arguments.max_training_minutes} minutes passed since {DATA_MANAGER.actual_date}. Time now is {datetime.now()}")
+
             # save a set of pictures
             if (batches_passed % self.arguments.plot_freq == 0):
                 plot_some_pictures(self.arguments.feedback, fake_images, batches_passed)
@@ -249,8 +257,6 @@ class TrainingProcess:
         for e in list(loss_dis_dict.keys()):
             self.writer.add_scalar(str(e), loss_dis_dict[e], batches_passed)
 
-
-
         self.writer.add_scalar("disc_acc", discriminator_accuracy, batches_passed)
         self.writer.add_scalar("total_loss_generator", loss_gen, batches_passed)
 
@@ -318,8 +324,8 @@ class TrainingProcess:
                 sys.stdout.flush()
 
 
-        except KeyboardInterrupt:
-            print("Killed by user")
+        except KeyboardInterrupt as e:
+            print(f"Killed by user: {e}")
             save_models(self.discriminator, self.generator, self.embedder, f"KILLED_at_epoch_{epoch}")
             return False
         except Exception as e:
