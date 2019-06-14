@@ -8,7 +8,7 @@ from utils.constants import IMSIZE
 class PixelDiscriminator(GeneralDiscriminator):
     """ Defines a PixelGAN discriminator"""
 
-    def __init__(self, n_channels_in: int=3, n_hidden: int=64, norm_layer: nn.Module=nn.BatchNorm2d, use_dropout: bool=False, device: str="cpu",
+    def __init__(self, n_channels_in: int=3, n_hidden: int=64, norm_layer: nn.Module=nn.BatchNorm2d, use_dropout: bool=True, device: str="cpu",
                  **kwargs):
         """
         n_input (int)      - no. of channels in input images
