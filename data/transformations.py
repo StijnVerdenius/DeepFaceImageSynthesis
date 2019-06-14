@@ -1,6 +1,5 @@
-from typing import Callable, Dict, List, Optional
+from typing import Callable, List, Optional
 
-import numpy as np
 from torchvision import transforms
 
 from data import plot
@@ -27,16 +26,20 @@ def _process_all(s: Dict[str, np.ndarray]) -> Tuple[bool, None]:
 
 
 class RandomHorizontalFlip:
+    """RandomHorizontalFlip should be applied to all n images together, not just one
+
+    """
+
     def __init__(self, probability: float = 0.5):
         self._probability = probability
 
     def __call__(
         self, sample: List[Dict[str, np.ndarray]]
     ) -> List[Dict[str, np.ndarray]]:
-        return _loop_all(sample, self._process_s, self._f)
-
-    def _process_s(self, s: Dict[str, np.ndarray]) -> Tuple[bool, None]:
-        return random.random() < self._probability, None
+        if random.random() < self._probability:
+            return _loop_all(sample, _process_all, self._f)
+        else:
+            return sample
 
     @staticmethod
     def _f(value: np.ndarray, *args) -> np.ndarray:
@@ -173,9 +176,9 @@ def _test():
 
     transform = transforms.Compose(
         [
-            # RandomHorizontalFlip(probability=1),
-            # RandomRescale(probability=1),
-            # RandomCrop(probability=1),
+            RandomHorizontalFlip(probability=1),
+            RandomRescale(probability=1),
+            RandomCrop(probability=1),
             Resize(),
             RescaleValues(),
             ChangeChannels(),

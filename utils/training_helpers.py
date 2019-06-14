@@ -9,14 +9,13 @@ import numpy as np
 import random
 
 
-def plot_some_pictures(feedback, images, batches_done):
+def plot_some_pictures(images, batches_done):
     """
     save some plots in PIC_DIR
 
     """
 
-    save_image(images[:16].view(-1, 3, IMSIZE, IMSIZE),
-               f'./{PREFIX_OUTPUT}/{DATA_MANAGER.stamp}/{PIC_DIR}/{batches_done}.png',
+    save_image(images, f'./{PREFIX_OUTPUT}/{DATA_MANAGER.stamp}/{PIC_DIR}/{batches_done}.png',
                nrow=4, normalize=True)
 
     if (feedback):
