@@ -5,26 +5,19 @@ from torch import __init__
 from torchvision.utils import save_image
 from utils.constants import *
 import torchvision.utils as vutils
+import numpy as np
 import random
 import numpy as np
 
 
-def plot_some_pictures(feedback, images, batches_done):
+def plot_some_pictures(images, batches_done):
     """
     save some plots in PIC_DIR
 
     """
 
-    save_image(images[:16].view(-1, 3, IMSIZE, IMSIZE),
-               f'./{PREFIX_OUTPUT}/{DATA_MANAGER.stamp}/{PIC_DIR}/{batches_done}.png',
+    save_image(images, f'./{PREFIX_OUTPUT}/{DATA_MANAGER.stamp}/{PIC_DIR}/{batches_done}.png',
                nrow=4, normalize=True)
-
-    if (feedback):
-        # TODO: if feedback is on, run the following script from the result-image directory in terminal while it is running:
-        # watch xdg-open latests_plot.png
-        save_image(images[:16].view(-1, 3, IMSIZE, IMSIZE),
-                   f'./{PREFIX_OUTPUT}/{DATA_MANAGER.stamp}/{PIC_DIR}/latests_plot.png',
-                   nrow=4, normalize=True)
 
 
 def calculate_accuracy(predictions, targets):

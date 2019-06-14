@@ -1,5 +1,10 @@
 # torch debug
 import os
+from typing import Optional
+
+from torchvision import transforms
+
+import data.transformations as transformations
 
 os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
 
@@ -28,18 +33,35 @@ def dummy_batch(batch_size, channels):
     return np.random.normal(0, 1, (batch_size, channels, IMSIZE, IMSIZE))
 
 
-def load_data(keyword: str, batch_size: int, mode: str) -> DataLoader:  # todo @ klaus
+def load_data(keyword: str, batch_size: int, mode: str, n_videos_limit: Optional[int]) -> DataLoader:  # todo @ klaus
 
     data = None
 
-    if (keyword == "train"):
-        data = DataLoader(X300VWDataset(), shuffle=(False or mode == "test"), batch_size=batch_size,
-                          drop_last=True)  # Changed to false!!!
+    if mode == "test":
+        dataset_mode = Dataset300VWMode.TEST_1
+    elif keyword == "train":
+        dataset_mode = Dataset300VWMode.TRAIN
+    elif keyword == "validate":
+        dataset_mode = Dataset300VWMode.TEST_3
+    else:
+        raise Exception("Unknown dataset_mode")
 
-    elif (keyword == "validate"):
-        data = DataLoader(X300VWDataset(), shuffle=(False or mode == "test"), batch_size=batch_size,
-                          drop_last=True)  # Changed to false!!!
-    elif (keyword == "debug"):
+    transform = transforms.Compose(
+        [
+            transformations.RandomHorizontalFlip(),
+            transformations.RandomCrop(),
+            transformations.Resize(),
+            transformations.RescaleValues(),
+            transformations.ChangeChannels(),
+        ]
+    )
+
+    shuffle = keyword == "train"
+
+    if keyword == "train" or keyword == "validate":
+        data = DataLoader(X300VWDataset(dataset_mode, transform=transform, n_videos_limit=n_videos_limit),
+                          shuffle=shuffle, batch_size=batch_size, drop_last=True)
+    elif keyword == "debug":
         data = [(dummy_batch(batch_size, INPUT_CHANNELS), dummy_batch(batch_size, INPUT_LANDMARK_CHANNELS)) for _ in
                 range(5)]
     else:
@@ -59,8 +81,8 @@ def main(arguments):
     print(f"Device used = {DEVICE}")
 
     # data
-    dataloader_train = load_data("train", arguments.batch_size, arguments.mode)
-    dataloader_validate = load_data("validate", arguments.batch_size, arguments.mode)
+    dataloader_train = load_data("train", arguments.batch_size, arguments.mode, arguments.n_videos_limit)
+    dataloader_validate = load_data("validate", arguments.batch_size_plotting, arguments.mode, arguments.n_videos_limit)
 
     # get models
     embedder = find_right_model(EMBED_DIR, arguments.embedder,
@@ -155,9 +177,8 @@ def parse():
                         help='max number of epochs')
     parser.add_argument('--eval_freq', type=int, default=10, help='Frequency (batch-wise) of evaluation')
     parser.add_argument('--plot_freq', type=int, default=100, help='Frequency (batch-wise) of plotting pictures')
-    parser.add_argument('--saving_freq', type=int, default=10, help='Frequency (epoch-wise) of saving models')
+    parser.add_argument('--saving_freq', type=int, default=0, help='Frequency (epoch-wise) of saving models') ############################################################## change to 10
     parser.add_argument('--device', default="cuda", type=str, help='device')
-    parser.add_argument('--feedback', default=False, type=bool, help='whether to plot or not during training')
     parser.add_argument('--mode', default="train", type=str, help="'train', 'test' or 'finetune'")
     parser.add_argument('--learning_rate', type=float, default=1e-4, help='Learning rate')
     parser.add_argument('--dropout', type=bool, default=False, help='Learning rate')
@@ -204,6 +225,9 @@ def parse():
 
     # data arguments
     parser.add_argument('--batch_size', type=int, default=DEBUG_BATCH_SIZE, help='Batch size to run trainer.')
+    parser.add_argument('--batch-size-plotting', type=int, default=9, help='Batch size to run plotting.')
+    parser.add_argument('--n-videos-limit', type=int, default=None,
+                        help='Limit the dataset to the first N videos. Use None to use all videos.')
 
     return parser.parse_args()
 

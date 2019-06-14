@@ -9,7 +9,7 @@ class ResnetGenerator(GeneralGenerator):
     """ Defines the pix2pix (CycleGAN) Generator"""
 
     # CHECK DEFAULT VALUES!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    def __init__(self, n_channels_in: int = 71, n_channels_out: int = 3, n_hidden: int = 64,
+    def __init__(self, n_channels_in: int = 71, n_channels_out: int = 3, n_hidden: int = 24,
                  norm_layer: nn.Module = nn.InstanceNorm2d, use_dropout: bool = True,
                  n_downsampling: int = 2, n_blocks: int = 6, padding_type: str = 'reflect', device: str = "cpu",
                  **kwargs):

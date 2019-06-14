@@ -123,13 +123,15 @@ def _landmarks_to_box(
 
     # landmarks can be out of image, but that's okay, we'll still export them.
     image_height, image_width, _ = image_size
-    center_x, center_y = (x1 + x2) // 2, (y1 + y2) // 2
+    # // 2 returns numpy float but we need ints
+    center_x, center_y = int((x1 + x2) / 2), int((y1 + y2) / 2)
     box_radius = min(
         box_radius, center_x, center_y, image_width - center_x, image_height - center_y
     )
+    box_radius = int(box_radius)
     x1, y1 = [t - box_radius for t in (center_x, center_y)]
     x2, y2 = [t + box_radius for t in (center_x, center_y)]
-    x1, y1, x2, y2 = [int(t) for t in (x1, y1, x2, y2)]
+    assert all(isinstance(t, int) for t in (x1, y1, x2, y2))
 
     assert abs((x2 - x1) - (y2 - y1)) == 0
     assert 0 <= x1 <= x2 <= image_width and 0 <= y1 <= y2 <= image_height
@@ -157,7 +159,9 @@ def _rescale_image(image: np.ndarray) -> np.ndarray:
     output_width, output_height = constants.IMSIZE, constants.IMSIZE
     _, _, n_channels = image.shape
     image = cv2.resize(
-        image, dsize=(output_width, output_height), interpolation=cv2.INTER_CUBIC
+        image,
+        dsize=(output_width, output_height),
+        interpolation=constants.INTERPOLATION,
     )
     # notice that the order is swapped
     assert image.shape == (output_height, output_width, n_channels)
@@ -183,36 +187,34 @@ def process_temp_folder(all_videos: List[Path]) -> None:
         video_output_path = (
             personal_constants.DATASET_300VW_OUTPUT_PATH / video_input_path.stem
         )
-        annotations_output_dir = (
-            video_output_path / constants.DATASET_300VW_ANNOTATIONS_OUTPUT_FOLDER
-        )
-        annotations_output_dir.mkdir(exist_ok=True, parents=True)
+        annotation_file_output_path = video_output_path / 'annotations.npy'
         frames_output_dir = (
             video_output_path / constants.DATASET_300VW_IMAGES_OUTPUT_FOLDER
         )
         frames_output_dir.mkdir(exist_ok=True, parents=True)
 
-        for annotation_input_path in tqdm(
-            sorted(
-                list(
-                    (
-                        video_input_path
-                        / constants.DATASET_300VW_ANNOTATIONS_INPUT_FOLDER
-                    ).glob(f'*.{constants.DATASET_300VW_ANNOTATIONS_INPUT_EXTENSION}')
-                )
-            ),
-            desc=constants.DATASET_300VW_INNER_LOOP_DESCRIPTION,
-            leave=False,
+        annotations_paths = sorted(
+            list(
+                (
+                    video_input_path / constants.DATASET_300VW_ANNOTATIONS_INPUT_FOLDER
+                ).glob(f'*.{constants.DATASET_300VW_ANNOTATIONS_INPUT_EXTENSION}')
+            )
+        )
+        landmarks = np.empty(
+            (len(annotations_paths), constants.DATASET_300VW_N_LANDMARKS, 2)
+        )
+        for frame_index, annotation_input_path in enumerate(
+            tqdm(
+                annotations_paths,
+                desc=constants.DATASET_300VW_INNER_LOOP_DESCRIPTION,
+                leave=False,
+            )
         ):
             frame_output_path = (
                 frames_output_dir
                 / f'{annotation_input_path.stem}.{constants.DATASET_300VW_IMAGES_OUTPUT_EXTENSION}'
             )
-            annotation_output_path = (
-                annotations_output_dir
-                / f'{annotation_input_path.stem}.{constants.DATASET_300VW_ANNOTATIONS_OUTPUT_EXTENSION}'
-            )
-            if frame_output_path.exists() and annotation_output_path.exists():
+            if frame_output_path.exists() and annotation_file_output_path.exists():
                 continue
 
             frame_input_path = (
@@ -239,19 +241,23 @@ def process_temp_folder(all_videos: List[Path]) -> None:
                     ],
                 )
 
-            if not annotation_output_path.exists():
-                output_landmarks = _rescale_landmarks(
-                    extraction_landmarks, extraction.shape
-                )
-                np.savetxt(str(annotation_output_path), output_landmarks)
+            output_landmarks = _rescale_landmarks(
+                extraction_landmarks, extraction.shape
+            )
+
+            landmarks[frame_index, :, :] = output_landmarks
+
+        if not annotation_file_output_path.exists():
+            np.save(str(annotation_file_output_path), landmarks)
 
 
 def main() -> None:
+    n_videos_limit = None
     all_videos = all_video_paths(personal_constants.DATASET_300VW_RAW_PATH)
     assert len(all_videos) == constants.DATASET_300VW_N_VIDEOS
     print(f'n videos: {len(all_videos)}')
-    all_videos = all_videos[: constants.DATASET_300VW_LIMIT_N_VIDEOS]
-    print(f'Taking first n videos: {len(all_videos)}')
+    all_videos = all_videos[:n_videos_limit]
+    print(f'Taking first {len(all_videos)} videos!')
 
     print('Counting images...')
     n_images_per_video = count_images(
