@@ -34,7 +34,7 @@ class TrainingProcess:
                  loss_dis: GeneralLoss,
                  arguments):
 
-        DATA_MANAGER.date_stamp()
+        DATA_MANAGER.set_date_stamp()
 
         # models
         self.generator = generator
@@ -65,8 +65,6 @@ class TrainingProcess:
         self.shuffle_indices = list(range(int(self.combined_batch_size)))
 
         # initialize tensorboardx
-        # self.writer = SummaryWriter(
-        #     f"results/output/tensorboardx/{DATA_MANAGER.stamp}")  ############## ADD DIRECTORY
         self.writer = SummaryWriter(
             f"/home/lgpu0293/ProjectAI/DeepFakes/results/output/tensorboardx/{DATA_MANAGER.stamp}")  ############## ADD DIRECTORY
 
@@ -95,7 +93,7 @@ class TrainingProcess:
                         batch_2: Dict,
                         batch_3: Dict,
                         train=True) \
-            -> Tuple[Dict, Dict, torch.Tensor, torch.Tensor, torch.Tensor]:
+            -> Tuple[Dict, Dict, torch.Tensor, int]:
         """
          inner loop of epoch iteration
 
@@ -122,22 +120,26 @@ class TrainingProcess:
 
         # combine real and fake
         if (self.labels is None):
-            self.labels = torch.cat((torch.zeros(fake.shape[0]).to(DEVICE), torch.ones(fake.shape[0]).to(DEVICE)))
-        combined_set, labels = combine_real_and_fake(self.shuffle_indices, landmarked_truth.detach(),
-                                                     landmarked_fake.detach(), self.labels)
+            self.labels = torch.cat((torch.zeros(fake.shape[0]).to(DEVICE), torch.ones(fake.shape[0]).to(DEVICE)),
+                                    dim=0)
+        landmarked_truth = landmarked_truth.detach()
+        landmarked_fake = landmarked_fake.detach()
 
         # forward pass discriminator
-        predictions = self.discriminator.forward(combined_set.detach())
-        loss_dis, loss_dis_saving = self.loss_dis.forward(predictions, labels)
+        predictions_true = self.discriminator.forward(landmarked_truth.detach())
+        predictions_fake = self.discriminator.forward(landmarked_fake.detach())
+        predictions = torch.cat((predictions_fake, predictions_true), dim=0)
+        loss_dis, loss_dis_saving = self.loss_dis.forward(predictions, self.labels)
 
         if (train):
             # backward discriminator
             self.trainer_dis.do_backward(loss_dis)
 
+        accuracy_discriminator = calculate_accuracy(predictions, self.labels)
+
         # detaching
         fake = fake.detach()
         predictions = predictions.detach()
-        labels = labels.detach()
         loss_gen = loss_gen.detach()
         loss_dis = loss_dis.detach()
         landmarked_truth = landmarked_truth.detach()
@@ -146,7 +148,7 @@ class TrainingProcess:
         # print flush
         sys.stdout.flush()
 
-        return loss_gen_saving, loss_dis_saving, fake, predictions, labels
+        return loss_gen_saving, loss_dis_saving, fake, accuracy_discriminator
 
     def epoch_iteration(self, epoch_num: int) -> List[Statistic]:
         """
@@ -159,7 +161,7 @@ class TrainingProcess:
         for i, (batch_1, batch_2, batch_3) in enumerate(self.dataloader_train):
 
             # run batch iteration
-            loss_gen, loss_dis, fake_images, predictions, labels = self.batch_iteration(batch_1, batch_2, batch_3)
+            loss_gen, loss_dis, fake_images, accuracy_discriminator = self.batch_iteration(batch_1, batch_2, batch_3)
 
             # assertions
             assert_type(dict, loss_gen)
@@ -173,7 +175,6 @@ class TrainingProcess:
                 # convert dicts to ints
                 loss_gen_actual = sum(loss_gen.values())
                 loss_dis_actual = sum(loss_dis.values())
-                accuracy_discriminator = calculate_accuracy(predictions, labels)
 
                 # log to terminal and retrieve a statistics object
                 statistic = self.log(loss_gen_actual, loss_dis_actual, loss_gen, loss_dis, batches_passed,
@@ -185,9 +186,17 @@ class TrainingProcess:
                 # append statistic to list
                 progress.append(statistic)
 
+                time_passed = datetime.now() - DATA_MANAGER.actual_date
+
+                if (
+                        (time_passed.total_seconds() > (
+                                self.arguments.max_training_minutes * 60)) and self.arguments.max_training_minutes > 0):
+                    raise KeyboardInterrupt(
+                        f"Process killed because {self.arguments.max_training_minutes} minutes passed since {DATA_MANAGER.actual_date}. Time now is {datetime.now()}")
+
             # save a set of pictures
             if (batches_passed % self.arguments.plot_freq == 0):
-                _, _, example_images, _, _ = self.batch_iteration(self.plotting_batch_1, self.plotting_batch_2,
+                _, _, example_images, _ = self.batch_iteration(self.plotting_batch_1, self.plotting_batch_2,
                                                                   self.plotting_batch_3, train=False)
 
                 example_images = example_images.view(-1, 3, IMSIZE, IMSIZE)
@@ -196,8 +205,6 @@ class TrainingProcess:
                 # pass fake images to tensorboardx
                 self.writer.add_image('fake_samples', vutils.make_grid(example_images, normalize=True),
                                       batches_passed)
-
-
 
             # empty cache
             torch.cuda.empty_cache()
@@ -217,11 +224,8 @@ class TrainingProcess:
 
         for i, (batch_1, batch_2, batch_3) in enumerate(self.dataloader_validation):
             # run batch iteration
-            loss_gen, loss_dis, _, predictions, actual_labels = self.batch_iteration(batch_1, batch_2, batch_3,
-                                                                                     train=False)
-
-            # also get accuracy
-            accuracy = calculate_accuracy(predictions, actual_labels)
+            loss_gen, loss_dis, _, accuracy_discriminator = self.batch_iteration(batch_1, batch_2, batch_3,
+                                                                                 train=False)
 
             # convert dicts to ints
             loss_gen_actual = sum(loss_gen.values())
@@ -230,10 +234,10 @@ class TrainingProcess:
             # assertions
             assert_type(float, loss_gen_actual)
             assert_type(float, loss_dis_actual)
-            assert_type(float, accuracy)
+            assert_type(float, accuracy_discriminator)
 
             # append findings to respective lists
-            total_accuracy.append(accuracy)
+            total_accuracy.append(accuracy_discriminator)
             total_loss_generator.append(loss_gen_actual)
             total_loss_discriminator.append(loss_dis_actual)
 
@@ -264,8 +268,6 @@ class TrainingProcess:
 
         # validate on validationset
         loss_gen_validate, loss_dis_validate, _ = 0, 0, 0  # self.validate() todo: do we want to restore this?
-
-        print(loss_gen_dict)
 
         stat = Statistic(loss_gen_train=loss_gen,
                          loss_dis_train=loss_dis,
@@ -328,8 +330,8 @@ class TrainingProcess:
                 sys.stdout.flush()
 
 
-        except KeyboardInterrupt:
-            print("Killed by user")
+        except KeyboardInterrupt as e:
+            print(f"Killed by user: {e}")
             save_models(self.discriminator, self.generator, self.embedder, f"KILLED_at_epoch_{epoch}")
             return False
         except Exception as e:

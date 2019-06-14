@@ -12,6 +12,7 @@ class DataManager:
         # determines relative disk directory for saving/loading
         self.directory = directory
         self.stamp = ""
+        self.actual_date = None
 
     def save_python_obj(self, obj, name, print_success=True):
         """ Saves python object to disk in pickle """
@@ -77,10 +78,14 @@ class DataManager:
             plt.axis('off')
         plt.savefig(self.directory + name + ".png", bbox_inches='tight')
 
-    def date_stamp(self):
+    def set_date_stamp(self):
         """ generates printable date stamp"""
 
-        self.stamp = str(datetime.now()).split(".")[0].replace(" ", "_")
+        if (len(self.stamp) > 2):
+            raise Exception("Attempting to reset datestamp, but it was already set")
+
+        self.actual_date = datetime.now()
+        self.stamp = str(self.actual_date).split(".")[0].replace(" ", "_")
         return self.stamp
 
     def create_dir(self, name):

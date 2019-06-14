@@ -7,6 +7,7 @@ from utils.constants import *
 import torchvision.utils as vutils
 import numpy as np
 import random
+import numpy as np
 
 
 def plot_some_pictures(images, batches_done):

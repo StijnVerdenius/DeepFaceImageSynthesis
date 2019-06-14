@@ -128,6 +128,8 @@ class TotalGeneratorLoss(GeneralLoss):
 
         total_loss = 0
 
+        real_feats, fake_feats = None, None
+
         if self.pp.active or self.id.active:
             if self.pp.active and self.id.active:
                 feature_selection=(13, 3, 8, 15, 24)
@@ -136,49 +138,42 @@ class TotalGeneratorLoss(GeneralLoss):
             elif self.id.active:
                 feature_selection=(13)
 
-        real_feats, fake_feats = self.get_features(image_1, fake, feature_selection)
+            real_feats, fake_feats = self.get_features(image_1, fake, feature_selection)
 
 
         # adverserial loss
         loss_adv, save_adv = self.adv(target_landmarked_fake, discriminator)
         total_loss += loss_adv
-        loss_adv.detach()
         del loss_adv
         target_landmarked_fake.detach()
 
         # consistency losses
         loss_self, save_self = self.self(image_1, fake, landmarks_1, generator)
         total_loss += loss_self
-        loss_self.detach()
         del loss_self
         landmarks_1.detach()
         del landmarks_1
 
         loss_triple, save_triple = self.trip.forward(image_1, fake, landmarks_3, landmarks_2, generator)
         total_loss += loss_triple
-        loss_triple.detach()
         del loss_triple
         landmarks_2.detach()
         del landmarks_2
 
         loss_pix, save_pix = self.pix(image_2, fake)
         total_loss += loss_pix
-        loss_pix.detach()
         del loss_pix
         image_2.detach()
         del image_2
 
         # style losses
         loss_pp, save_pp = self.pp.forward(real_feats, fake_feats)
-        # loss_pp, save_pp = self.pp.forward(image_1, fake)
         total_loss += loss_pp
-        loss_pp.detach()
         del loss_pp
 
         # loss_id, save_id = self.id(image_1, fake)
         loss_id, save_id = self.id(real_feats, fake_feats)
         total_loss += loss_id
-        loss_id.detach()
         del loss_id
 
         # merge dicts

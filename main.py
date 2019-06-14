@@ -88,15 +88,18 @@ def main(arguments):
     embedder = find_right_model(EMBED_DIR, arguments.embedder,
                                 device=DEVICE,
                                 n_channels_in=INPUT_SIZE,
-                                n_channels_out=arguments.embedding_size).to(DEVICE)
+                                n_channels_out=arguments.embedding_size,
+                                use_dropout=arguments.dropout).to(DEVICE)
 
     generator = find_right_model(GEN_DIR, arguments.generator,
                                  device=DEVICE,
-                                 n_channels_in=INPUT_SIZE).to(DEVICE)
+                                 n_channels_in=INPUT_SIZE,
+                                 use_dropout=arguments.dropout).to(DEVICE)
 
     discriminator = find_right_model(DIS_DIR, arguments.discriminator,
                                      device=DEVICE,
-                                     n_channels_in=INPUT_SIZE).to(DEVICE)
+                                     n_channels_in=INPUT_SIZE,
+                                     use_dropout=arguments.dropout).to(DEVICE)
 
     # assertions
     assert_type(GeneralGenerator, generator)
@@ -107,9 +110,12 @@ def main(arguments):
     if (arguments.mode == "train" or arguments.mode == "finetune"):
 
         # init optimizers
-        generator_optimizer = opt.Adam(generator.parameters(), arguments.learning_rate)
-        discriminator_optimizer = opt.Adam(discriminator.parameters(), arguments.learning_rate)
-        embedder_optimizer = opt.Adam(embedder.parameters(), arguments.learning_rate)
+        generator_optimizer = find_right_model(OPTIMS, arguments.generator_optimizer, params=generator.parameters(),
+                                               lr=arguments.learning_rate)
+        discriminator_optimizer = find_right_model(OPTIMS, arguments.discriminator_optimizer,
+                                                   params=discriminator.parameters(), lr=arguments.learning_rate)
+        embedder_optimizer = find_right_model(OPTIMS, arguments.embedder_optimizer, params=embedder.parameters(),
+                                              lr=arguments.learning_rate)
 
         # define loss functions
         if (not arguments.loss_gen == TOTAL_LOSS):
@@ -153,7 +159,7 @@ def main(arguments):
                               arguments.test_model_date)
 
         # run test
-        compare(dataloader_validate, embedder, generator, arguments, number_of_batches=30, number_of_pictures=3)
+        compare(dataloader_validate, embedder, generator, arguments, number_of_batches=10, number_of_pictures=3)
 
     else:
 
@@ -175,12 +181,14 @@ def parse():
     parser.add_argument('--device', default="cuda", type=str, help='device')
     parser.add_argument('--mode', default="train", type=str, help="'train', 'test' or 'finetune'")
     parser.add_argument('--learning_rate', type=float, default=1e-4, help='Learning rate')
+    parser.add_argument('--dropout', type=bool, default=False, help='Learning rate')
+    parser.add_argument('--max_training_minutes', type=int, default=-1, help='After which process is killed automatically')
 
     # debug
     parser.add_argument('--timing', type=bool, default=False, help='are we measuring efficiency?')
 
     # test arguments
-    parser.add_argument('--test_model_date', default="2019-06-13_15:45:03", type=str,
+    parser.add_argument('--test_model_date', default="2019-06-14_13:17:17", type=str,
                         help='date_stamp string for which model to load')
     parser.add_argument('--test_model_suffix', default="KILLED_at_epoch_0", type=str,
                         help='filename string for which model to load')
@@ -191,24 +199,28 @@ def parse():
     parser.add_argument('--discriminator', default="PatchDiscriminator", type=str, help="name of objectclass")
     parser.add_argument('--generator', default="ResnetGenerator", type=str, help="name of objectclass")
 
+    # optimizer arguments
+    parser.add_argument('--discriminator_optimizer', default="SGD", type=str, help="name of objectclass")
+    parser.add_argument('--generator_optimizer', default="Adam", type=str, help="name of objectclass")
+    parser.add_argument('--embedder_optimizer', default="Adam", type=str, help="name of objectclass")
+
     # loss arguments
-    # parser.add_argument('--loss_gen', default="NonSaturatingGLoss", type=str,
     parser.add_argument('--loss_gen', default=TOTAL_LOSS, type=str,
                         help="Overwrites hyperparams generatorloss if not total")
-    parser.add_argument('--loss_dis', default="HingeAdverserialDLoss", type=str, help="name of objectclass")
+    parser.add_argument('--loss_dis', default="DefaultDLoss", type=str, help="name of objectclass")
 
     # hyperparams generatorloss  (-1 === DEFAULT)
-    parser.add_argument('--NonSaturatingGLoss_weight', default=10, type=float,
+    parser.add_argument('--NonSaturatingGLoss_weight', default=-1, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--PerceptualLoss_weight', default=-1, type=float,
+    parser.add_argument('--PerceptualLoss_weight', default=0, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--PixelLoss_weight', default=-1, type=float,
+    parser.add_argument('--PixelLoss_weight', default=1000, type=float,
                         help="weight hyperparameter for specific generatorloss")
     parser.add_argument('--ConsistencyLoss_weight', default=-1, type=float,
                         help="weight hyperparameter for specific generatorloss")
     parser.add_argument('--TripleConsistencyLoss_weight', default=-1, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--IdLoss_weight', default=-1, type=float,
+    parser.add_argument('--IdLoss_weight', default=0, type=float,
                         help="weight hyperparameter for specific generatorloss")
 
     # data arguments
@@ -232,7 +244,7 @@ def manipulate_defaults_for_own_test(args):
 
 
 if __name__ == '__main__':
-    print("cuda_version", torch.version.cuda, "pytorch version", torch.__version__, "python version", sys.version)
+    print("cuda_version:", torch.version.cuda, "pytorch version:", torch.__version__, "python version:", sys.version)
     ensure_current_directory()
     args = parse()
     manipulate_defaults_for_own_test(args)

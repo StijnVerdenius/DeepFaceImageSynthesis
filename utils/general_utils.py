@@ -144,5 +144,4 @@ def get_generator_loss_weights(arguments):
         for key in default_returnvalue:
             if (not arguments.loss_gen in key):
                 default_returnvalue[key] = 0.0
-    print(default_returnvalue)
     return default_returnvalue
