@@ -9,6 +9,9 @@
 #SBATCH --partition=gpu_shared_course
 #SBATCH --gres=gpu:1
 
+echo "scratch_dir"
+echo $TMPDIR
+
 #Loading modules
 module load Miniconda3/4.3.27
 module load CUDA/9.0.176
@@ -24,7 +27,6 @@ cp -r $HOME/DeepFakes $TMPDIR/lgpu0386
 echo "cd inwards"
 cd $TMPDIR/lgpu0386/DeepFakes
 
-echo ""
 
 echo "activate env"
 source activate dl
