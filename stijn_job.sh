@@ -32,7 +32,10 @@ echo "activate env"
 source activate dl
 
 echo " ------ Job is started ------- "
-echo " "
+echo "dir: "
+
+echo $TMPDIR
+echo $(pwd)
 
 srun python3 main.py
 
