@@ -186,7 +186,7 @@ def parse():
     parser.add_argument('--plot_freq', type=int, default=100, help='Frequency (batch-wise) of plotting pictures')
     parser.add_argument('--saving_freq', type=int, default=10, help='Frequency (epoch-wise) of saving models')
     parser.add_argument('--device', default="cuda", type=str, help='device')
-    parser.add_argument('--mode', default="test", type=str, help="'train', 'test' or 'finetune'")
+    parser.add_argument('--mode', default="train", type=str, help="'train', 'test' or 'finetune'")
     parser.add_argument('--learning_rate', type=float, default=1e-4, help='Learning rate')
     parser.add_argument('--dropout', type=bool, default=False, help='Learning rate')
     parser.add_argument('--max_training_minutes', type=int, default=-1,
@@ -219,17 +219,17 @@ def parse():
     parser.add_argument('--loss_dis', default="DefaultDLoss", type=str, help="name of objectclass")
 
     # hyperparams generatorloss  (-1 === DEFAULT)
-    parser.add_argument('--NonSaturatingGLoss_weight', default=-1, type=float,
+    parser.add_argument('--NonSaturatingGLoss_weight', default=1, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--PixelLoss_weight', default=-1, type=float,
+    parser.add_argument('--PixelLoss_weight', default=10, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--PerceptualLoss_weight', default=0, type=float,
+    parser.add_argument('--PerceptualLoss_weight', default=10, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--ConsistencyLoss_weight', default=0, type=float,
+    parser.add_argument('--ConsistencyLoss_weight', default=100, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--TripleConsistencyLoss_weight', default=0, type=float,
+    parser.add_argument('--TripleConsistencyLoss_weight', default=100, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--IdLoss_weight', default=0, type=float,
+    parser.add_argument('--IdLoss_weight', default=1, type=float,
                         help="weight hyperparameter for specific generatorloss")
 
 
