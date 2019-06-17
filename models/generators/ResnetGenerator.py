@@ -153,6 +153,8 @@ if __name__ == '__main__':
 
     gen_imgs = G.forward(dummy_batch)
 
+    print(gen_imgs.shape)
+
     get_loss = GLoss(1)
 
     loss = get_loss.forward(gen_imgs, D)[0]

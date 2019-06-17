@@ -43,7 +43,7 @@ class PatchDiscriminator(GeneralDiscriminator):
 
             layers += [norm_layer(n_hidden * mult_out)]
             layers += [nn.LeakyReLU(0.2, inplace=True)]
-            layers += [nn.Dropout(0.33*int(use_dropout))] # todo: revisit dropout rate
+            layers += [nn.Dropout(0.33*int(use_dropout))]
 
         # Add output layer (1 channel prediction map)
         layers += [nn.Conv2d(n_hidden * mult_out, 1, kernel_size=4, stride=1, padding=1)]
