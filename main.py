@@ -196,9 +196,9 @@ def parse():
     parser.add_argument('--timing', type=bool, default=False, help='are we measuring efficiency?')
 
     # test arguments
-    parser.add_argument('--test_model_date', default="temp", type=str,
+    parser.add_argument('--test_model_date', default="2019-06-14_17:27:45(best)", type=str,
                         help='date_stamp string for which model to load')
-    parser.add_argument('--test_model_suffix', default="Models_at_epoch_39", type=str,
+    parser.add_argument('--test_model_suffix', default="Models_at_epoch_79", type=str,
                         help='filename string for which model to load')
 
     # model arguments
