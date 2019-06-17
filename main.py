@@ -187,18 +187,18 @@ def parse():
     parser.add_argument('--saving_freq', type=int, default=10, help='Frequency (epoch-wise) of saving models')
     parser.add_argument('--device', default="cuda", type=str, help='device')
     parser.add_argument('--mode', default="train", type=str, help="'train', 'test' or 'finetune'")
-    parser.add_argument('--learning_rate', type=float, default=1e-4, help='Learning rate')
-    parser.add_argument('--dropout', type=bool, default=False, help='Learning rate')
-    parser.add_argument('--max_training_minutes', type=int, default=-1,
+    parser.add_argument('--learning_rate', type=float, default=2e-5, help='Learning rate')
+    parser.add_argument('--dropout', type=bool, default=True, help='Learning rate')
+    parser.add_argument('--max_training_minutes', type=int, default=2760,
                         help='After which process is killed automatically')
 
     # debug
     parser.add_argument('--timing', type=bool, default=False, help='are we measuring efficiency?')
 
     # test arguments
-    parser.add_argument('--test_model_date', default="2019-06-14_17:27:45(best)", type=str,
+    parser.add_argument('--test_model_date', default="temp", type=str,
                         help='date_stamp string for which model to load')
-    parser.add_argument('--test_model_suffix', default="Models_at_epoch_79", type=str,
+    parser.add_argument('--test_model_suffix', default="Models_at_epoch_39", type=str,
                         help='filename string for which model to load')
 
     # model arguments
@@ -258,6 +258,7 @@ def manipulate_defaults_for_own_test(args):
 
 if __name__ == '__main__':
     print("cuda_version:", torch.version.cuda, "pytorch version:", torch.__version__, "python version:", sys.version)
+    print("Working directory: ", os.getcwd())
     ensure_current_directory()
     args = parse()
     manipulate_defaults_for_own_test(args)
