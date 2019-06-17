@@ -3,7 +3,7 @@ from models.losses.GeneralLoss import GeneralLoss
 import torch.nn as nn
 import torch
 from models.generators.ResnetGenerator import ResnetGenerator as G
-from utils.training_helpers import L2_distance, CHANNEL_DIM, L1_distance
+from utils.training_helpers import L1_distance, CHANNEL_DIM
 
 
 class PixelLoss(GeneralLoss):
@@ -13,7 +13,7 @@ class PixelLoss(GeneralLoss):
 
     def custom_forward(self, image: torch.Tensor, gen_img: torch.Tensor) \
             -> torch.Tensor:
-        # Get L2 **2 distance between generated approx. and original input img
+        # Get L1 **2 distance between generated approx. and original input img
         loss = L1_distance(gen_img, image).pow(2).mean()  # todo: squaring and square rooting?
 
         return loss

@@ -100,7 +100,7 @@ class TotalGeneratorLoss(GeneralLoss):
             a_2_3_fake = feat_2_3.forward(generated_images)
 
 
-        return (a_2_3_real, a_1_2_real, a_2_2_real, a_3_3_real, a_4_3_real), (a_2_3_fake, a_1_2_fake, a_2_2_fake, a_3_3_fake, a_4_3_fake) ###########################################
+        return (a_2_3_real, a_1_2_real, a_2_2_real, a_3_3_real, a_4_3_real), (a_2_3_fake, a_1_2_fake, a_2_2_fake, a_3_3_fake, a_4_3_fake)
 
 
     def forward(self, generator: GeneralGenerator,
@@ -160,6 +160,7 @@ class TotalGeneratorLoss(GeneralLoss):
         landmarks_2.detach()
         del landmarks_2
 
+        # pixel losses
         loss_pix, save_pix = self.pix(image_2, fake)
         total_loss += loss_pix
         del loss_pix

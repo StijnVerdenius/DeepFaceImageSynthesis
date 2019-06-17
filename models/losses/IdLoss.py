@@ -11,17 +11,7 @@ from typing import Tuple, Dict
 
 class IdLoss(GeneralLoss):
 
-    # def __init__(self, weight: float, feature_selection: Tuple=(13), **kwargs): ####Use ReLU 2.3 - layer 13!!!!!!!!!!!!!!!!!!
-    #     self.feature_selection = feature_selection
-    #     super(IdLoss, self).__init__(weight=weight)
-    #
-    # def custom_forward(self, batch: torch.Tensor, generated_images: torch.Tensor):
-    #     """ forward pass """
-    #
-    #     # get vgg feats
-    #     real_feats, fake_feats = self.get_features(batch, generated_images)
-
-    def __init__(self, weight: float, **kwargs): ####Use ReLU 2.3 - layer 13!!!!!!!!!!!!!!!!!!
+    def __init__(self, weight: float, **kwargs):
         super(IdLoss, self).__init__(weight=weight)
 
     def custom_forward(self, real_feats: Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor],
@@ -39,22 +29,7 @@ class IdLoss(GeneralLoss):
 
         return l1
 
-    # def get_features(self, batch: torch.Tensor, generated_images: torch.Tensor) \
-    #         -> Tuple[
-    #             torch.Tensor,
-    #             torch.Tensor
-    #         ]:
-    #     """ extracts features from vgg network """
-    #
-    #     usable_feats = VGG.features
-    #
-    #     feat_r2_3 = usable_feats[:self.feature_selection + 1]
-    #
-    #
-    #     a_r2_3_real = feat_r2_3.forward(batch)
-    #     a_r2_3_fake = feat_r2_3.forward(generated_images)
-    #
-    #     return (a_r2_3_real), (a_r2_3_fake)
+
 
 
 if __name__ == '__main__':

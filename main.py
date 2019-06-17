@@ -184,11 +184,10 @@ def parse():
                         help='max number of epochs')
     parser.add_argument('--eval_freq', type=int, default=10, help='Frequency (batch-wise) of evaluation')
     parser.add_argument('--plot_freq', type=int, default=100, help='Frequency (batch-wise) of plotting pictures')
-    parser.add_argument('--saving_freq', type=int, default=10,
-                        help='Frequency (epoch-wise) of saving models')  ############################################################## change to 10
+    parser.add_argument('--saving_freq', type=int, default=10, help='Frequency (epoch-wise) of saving models')
     parser.add_argument('--device', default="cuda", type=str, help='device')
     parser.add_argument('--mode', default="train", type=str, help="'train', 'test' or 'finetune'")
-    parser.add_argument('--learning_rate', type=float, default=5e-5, help='Learning rate')
+    parser.add_argument('--learning_rate', type=float, default=2e-5, help='Learning rate')
     parser.add_argument('--dropout', type=bool, default=True, help='Learning rate')
     parser.add_argument('--max_training_minutes', type=int, default=2760,
                         help='After which process is killed automatically')
@@ -206,7 +205,7 @@ def parse():
     parser.add_argument('--embedding_size', default=2, type=int, help='dimensionality of latent embedding space')
     parser.add_argument('--embedder', default="EmptyEmbedder", type=str, help="name of objectclass")
     parser.add_argument('--discriminator', default="PatchDiscriminator", type=str, help="name of objectclass")
-    parser.add_argument('--generator', default="UNetGenerator", type=str, help="name of objectclass")
+    parser.add_argument('--generator', default="ResnetGenerator", type=str, help="name of objectclass")
     parser.add_argument('--n_hidden', type=int, default=24, help='features in the first hidden layer')
 
     # optimizer arguments
@@ -220,15 +219,15 @@ def parse():
     parser.add_argument('--loss_dis', default="DefaultDLoss", type=str, help="name of objectclass")
 
     # hyperparams generatorloss  (-1 === DEFAULT)
-    parser.add_argument('--NonSaturatingGLoss_weight', default=200, type=float,
+    parser.add_argument('--NonSaturatingGLoss_weight', default=150, type=float,
                         help="weight hyperparameter for specific generatorloss")
     parser.add_argument('--PerceptualLoss_weight', default=2, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--PixelLoss_weight', default=4000, type=float,
+    parser.add_argument('--PixelLoss_weight', default=3500, type=float,
                         help="weight hyperparameter for specific generatorloss")
     parser.add_argument('--ConsistencyLoss_weight', default=100, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--TripleConsistencyLoss_weight', default=300, type=float,
+    parser.add_argument('--TripleConsistencyLoss_weight', default=250, type=float,
                         help="weight hyperparameter for specific generatorloss")
     parser.add_argument('--IdLoss_weight', default=1, type=float,
                         help="weight hyperparameter for specific generatorloss")
