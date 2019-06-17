@@ -232,6 +232,9 @@ def parse():
     parser.add_argument('--IdLoss_weight', default=0.5, type=float,
                         help="weight hyperparameter for specific generatorloss")
 
+    # hyperparams discriminatorcap
+    parser.add_argument('--DiscAccCap', default=0.9, type=float,
+                        help="cap the discriminator accuracy at input value")
 
     # data arguments
     parser.add_argument('--batch_size', type=int, default=DEBUG_BATCH_SIZE, help='Batch size to run trainer.')

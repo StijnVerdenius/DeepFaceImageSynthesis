@@ -146,8 +146,7 @@ class TrainingProcess:
 
         if (train):
 
-            if accuracy_discriminator < 0.9:
-
+            if accuracy_discriminator < self.arguments.DiscAccCap:
                 # backward discriminator
                 self.trainer_dis.do_backward(loss_dis)
 
