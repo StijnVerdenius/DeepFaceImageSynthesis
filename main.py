@@ -187,18 +187,18 @@ def parse():
     parser.add_argument('--saving_freq', type=int, default=10, help='Frequency (epoch-wise) of saving models')
     parser.add_argument('--device', default="cuda", type=str, help='device')
     parser.add_argument('--mode', default="train", type=str, help="'train', 'test' or 'finetune'")
-    parser.add_argument('--learning_rate', type=float, default=1e-4, help='Learning rate')
-    parser.add_argument('--dropout', type=bool, default=False, help='Learning rate')
-    parser.add_argument('--max_training_minutes', type=int, default=-1,
+    parser.add_argument('--learning_rate', type=float, default=2e-5, help='Learning rate')
+    parser.add_argument('--dropout', type=bool, default=True, help='Learning rate')
+    parser.add_argument('--max_training_minutes', type=int, default=2760,
                         help='After which process is killed automatically')
 
     # debug
     parser.add_argument('--timing', type=bool, default=False, help='are we measuring efficiency?')
 
     # test arguments
-    parser.add_argument('--test_model_date', default="temp", type=str,
+    parser.add_argument('--test_model_date', default="week_2", type=str,
                         help='date_stamp string for which model to load')
-    parser.add_argument('--test_model_suffix', default="Models_at_epoch_39", type=str,
+    parser.add_argument('--test_model_suffix', default="CRASH_at_epoch_0", type=str,
                         help='filename string for which model to load')
 
     # model arguments
@@ -219,17 +219,17 @@ def parse():
     parser.add_argument('--loss_dis', default="DefaultDLoss", type=str, help="name of objectclass")
 
     # hyperparams generatorloss  (-1 === DEFAULT)
-    parser.add_argument('--NonSaturatingGLoss_weight', default=1, type=float,
+    parser.add_argument('--NonSaturatingGLoss_weight', default=150, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--PixelLoss_weight', default=4000, type=float,
+    parser.add_argument('--PerceptualLoss_weight', default=2, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--PerceptualLoss_weight', default= 1, type=float,
+    parser.add_argument('--PixelLoss_weight', default=3500, type=float,
                         help="weight hyperparameter for specific generatorloss")
     parser.add_argument('--ConsistencyLoss_weight', default=100, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--TripleConsistencyLoss_weight', default=1000, type=float,
+    parser.add_argument('--TripleConsistencyLoss_weight', default=250, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--IdLoss_weight', default=0.5, type=float,
+    parser.add_argument('--IdLoss_weight', default=1, type=float,
                         help="weight hyperparameter for specific generatorloss")
 
     # hyperparams discriminatorcap
@@ -258,6 +258,7 @@ def manipulate_defaults_for_own_test(args):
 
 if __name__ == '__main__':
     print("cuda_version:", torch.version.cuda, "pytorch version:", torch.__version__, "python version:", sys.version)
+    print("Working directory: ", os.getcwd())
     ensure_current_directory()
     args = parse()
     manipulate_defaults_for_own_test(args)

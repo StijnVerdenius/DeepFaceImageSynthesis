@@ -4,10 +4,13 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4
 #SBATCH --ntasks-per-node=1
-#SBATCH --time=60:00:00
+#SBATCH --time=47:00:00
 #SBATCH --mem=60000M
 #SBATCH --partition=gpu_shared_course
 #SBATCH --gres=gpu:1
+
+echo "scratch_dir"
+echo $TMPDIR
 
 #Loading modules
 module load Miniconda3/4.3.27
@@ -24,13 +27,15 @@ cp -r $HOME/DeepFakes $TMPDIR/lgpu0386
 echo "cd inwards"
 cd $TMPDIR/lgpu0386/DeepFakes
 
-echo ""
 
 echo "activate env"
 source activate dl
 
 echo " ------ Job is started ------- "
-echo " "
+echo "dir: "
+
+echo $TMPDIR
+echo $(pwd)
 
 srun python3 main.py
 
