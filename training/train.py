@@ -96,7 +96,8 @@ class TrainingProcess:
                         batch_1: Dict,
                         batch_2: Dict,
                         batch_3: Dict,
-                        train=True) \
+                        train=True,
+                        accuracy_discriminator =0) \
             -> Tuple[Dict, Dict, torch.Tensor, int]:
         """
          inner loop of epoch iteration
@@ -144,8 +145,11 @@ class TrainingProcess:
         loss_dis, loss_dis_saving = self.loss_dis.forward(predictions, usable_labels)
 
         if (train):
-            # backward discriminator
-            self.trainer_dis.do_backward(loss_dis)
+
+            if accuracy_discriminator < 0.9:
+
+                # backward discriminator
+                self.trainer_dis.do_backward(loss_dis)
 
         accuracy_discriminator = calculate_accuracy(predictions, self.labels_train)
 

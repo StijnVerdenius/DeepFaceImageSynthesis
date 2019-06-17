@@ -223,13 +223,13 @@ def parse():
                         help="weight hyperparameter for specific generatorloss")
     parser.add_argument('--PixelLoss_weight', default=4000, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--PerceptualLoss_weight', default=0.5, type=float,
+    parser.add_argument('--PerceptualLoss_weight', default= 1, type=float,
                         help="weight hyperparameter for specific generatorloss")
     parser.add_argument('--ConsistencyLoss_weight', default=100, type=float,
                         help="weight hyperparameter for specific generatorloss")
     parser.add_argument('--TripleConsistencyLoss_weight', default=1000, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--IdLoss_weight', default=1, type=float,
+    parser.add_argument('--IdLoss_weight', default=0.5, type=float,
                         help="weight hyperparameter for specific generatorloss")
 
 
