@@ -64,11 +64,11 @@ def visualize(video_id: str, frame_id: str) -> None:
     image_landmarks = _load_pts_file(annotation_input_path)
     image_box = _landmarks_to_box(image_landmarks, image.shape)
 
-    extraction = _extract(image, image_box)
-    extraction_landmarks = _offset_landmarks(image_landmarks, image_box)
+    extracted_image = _extract(image, image_box)
+    extracted_landmarks = _offset_landmarks(image_landmarks, image_box)
 
-    output = _rescale_image(extraction)
-    output_landmarks = _rescale_landmarks(extraction_landmarks, extraction.shape)
+    output = _rescale_image(extracted_image)
+    output_landmarks = _rescale_landmarks(extracted_landmarks, extracted_image.shape)
 
     # plot(image)
     # plot(image, image_landmarks)
@@ -139,17 +139,17 @@ def _landmarks_to_box(
     return x1, y1, x2, y2
 
 
-def _extract(image: np.ndarray, box: Tuple[float, float, float, float]) -> np.ndarray:
+def _extract(image: np.ndarray, box: Tuple[int, int, int, int]) -> np.ndarray:
     x1, y1, x2, y2 = box
     extraction = image[y1 : y2 + 1, x1 : x2 + 1, ...]
     return extraction
 
 
 def _offset_landmarks(
-    landmarks: np.ndarray, box: Tuple[float, float, float, float]
+    landmarks: np.ndarray, box: Tuple[int, int, int, int]
 ) -> np.ndarray:
     x1, y1, x2, y2 = box
-    landmarks = copy.copy(landmarks)
+    landmarks = np.copy(landmarks)
     landmarks[:, 0] -= x1
     landmarks[:, 1] -= y1
     return landmarks

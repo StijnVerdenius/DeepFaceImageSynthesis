@@ -14,5 +14,5 @@ DATASET_300VW_OUTPUT_PATH = Path(f'PATH_TO_DATASETS/datasets/300VW_Dataset_proce
 # download from http://dlib.net/files/shape_predictor_68_face_landmarks.dat.bz2
 DLIB_PREDICTOR_PATH = Path('./data/local_data/shape_predictor_68_face_landmarks.dat')
 
-check_paths = (DATASET_300VW_OUTPUT_PATH, DLIB_PREDICTOR_PATH)
-assert all((p.exists() for p in check_paths))
+check_paths = [DATASET_300VW_OUTPUT_PATH, DLIB_PREDICTOR_PATH]
+assert all([p.exists() for p in check_paths])

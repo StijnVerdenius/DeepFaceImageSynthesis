@@ -1,10 +1,10 @@
 import argparse
 import os
 import sys
-from pathlib import Path
-from typing import Optional
+from typing import Optional, Tuple
 
 import dlib
+import numpy as np
 from tqdm import tqdm
 
 import cv2
@@ -55,34 +55,106 @@ def show_image(
 ) -> int:
     image_success, image = cam.read()
     if not image_success:
-        return
+        return 0
 
     if use_mirror:
         image = cv2.flip(image, 1)
 
-    dets = detector(image, 1)
-    n_rectangles = len(dets)
-    for rectangle in dets:
+    bounding_boxes = detector(image, 1)
+    n_rectangles = len(bounding_boxes)
+
+    display_image = np.copy(image)
+    for rectangle in bounding_boxes:
         top_left = rectangle.tl_corner()
         bottom_right = rectangle.br_corner()
         cv2.rectangle(
-            image,
+            display_image,
             (top_left.x, top_left.y),
             (bottom_right.x, bottom_right.y),
             RECTANGLE_COLOR,
             RECTANGLE_THICKNESS,
         )
 
-        landsmarks = predictor(image, rectangle).parts()
+        landsmarks = predictor(display_image, rectangle).parts()
         assert len(landsmarks) == 68  # change to from constants
         for lm in landsmarks:
             cv2.circle(
-                image, (lm.x, lm.y), LANDMARK_RADIUS, LANDMARK_COLOR, LANDMARK_THICKNESS
+                display_image,
+                (lm.x, lm.y),
+                LANDMARK_RADIUS,
+                LANDMARK_COLOR,
+                LANDMARK_THICKNESS,
             )
 
-    cv2.imshow('pix2pix', image)
+    cv2.imshow('display_image', display_image)
+
+    if n_rectangles != 1:
+        return n_rectangles
+
+    output_landmarks = extract(image, bounding_boxes[0], predictor)
 
     return n_rectangles
+
+
+def extract(
+    image: np.ndarray, bounding_box, predictor
+) -> Tuple[np.ndarray, np.ndarray]:
+    top_left = bounding_box.tl_corner()
+    bottom_right = bounding_box.br_corner()
+    image_box = (top_left.x, top_left.y, bottom_right.x, bottom_right.y)
+    landmarks = predictor(image, bounding_box).parts()
+    assert len(landmarks) == 68  # change to from constants
+    image_landmarks = np.asarray([(lm.x, lm.y) for lm in landmarks], dtype=float)
+
+    extracted_image = _extract(image, image_box)
+    extracted_landmarks = _offset_landmarks(image_landmarks, image_box)
+
+    # output_image = _rescale_image(extracted_image)
+    output_landmarks = _rescale_landmarks(extracted_landmarks, extracted_image.shape)
+
+    # return output_image, output_landmarks
+    return output_landmarks
+
+
+def _extract(image: np.ndarray, box: Tuple[int, int, int, int]) -> np.ndarray:
+    x1, y1, x2, y2 = box
+    extraction = image[y1 : y2 + 1, x1 : x2 + 1, ...]
+    return extraction
+
+
+def _offset_landmarks(
+    landmarks: np.ndarray, box: Tuple[int, int, int, int]
+) -> np.ndarray:
+    x1, y1, x2, y2 = box
+    landmarks = np.copy(landmarks)
+    landmarks[:, 0] -= x1
+    landmarks[:, 1] -= y1
+    return landmarks
+
+
+def _rescale_image(image: np.ndarray) -> np.ndarray:
+    output_width, output_height = 128, 128  # change to constants
+    _, _, n_channels = image.shape
+    image = cv2.resize(
+        image,
+        dsize=(output_width, output_height),
+        interpolation=cv2.INTER_CUBIC,  # change to constants
+    )
+    # notice that the order is swapped
+    assert image.shape == (output_height, output_width, n_channels)
+    return image
+
+
+def _rescale_landmarks(
+    landmarks: np.ndarray, image_shape: Tuple[int, int, int]
+) -> np.ndarray:
+    height, width, n_channels = image_shape
+    landmarks = np.copy(landmarks)
+    height_factor = 1 / height * 128  # change to constants
+    width_factor = 1 / width * 128  # change to constants
+    landmarks[:, 0] *= width_factor
+    landmarks[:, 1] *= height_factor
+    return landmarks
 
 
 def parse():
