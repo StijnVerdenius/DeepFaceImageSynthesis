@@ -9,8 +9,10 @@ import numpy as np
 import torch
 from tqdm import tqdm
 
+import _pickle as pickle
 import cv2
 from data import transformations
+from models.generators.ResnetGenerator import ResnetGenerator as Generator
 from utils import constants, general_utils, personal_constants
 
 ESCAPE_KEY_CODE = 27
@@ -23,7 +25,9 @@ LANDMARK_THICKNESS = -1
 
 
 def main(arguments: argparse.Namespace) -> None:
-    network = get_network(arguments.use_network, arguments.use_cuda)
+    network = get_network(
+        arguments.network_path, arguments.use_network, arguments.device
+    )
     detector = dlib.get_frontal_face_detector()
     predictor = dlib.shape_predictor(str(personal_constants.DLIB_PREDICTOR_PATH))
 
@@ -31,11 +35,13 @@ def main(arguments: argparse.Namespace) -> None:
         transformations.Resize._f,
         transformations.RescaleValues._f,
         transformations.ChangeChannels._f,
-        lambda image: torch.from_numpy(image[np.newaxis, ...]),
+        lambda image: torch.from_numpy(image[np.newaxis, ...])
+        .float()
+        .to(arguments.device),
     ]
     transform_from_input = [
-        # network,
-        lambda x: x[0, :3, :, :],
+        network,
+        lambda batch: batch[0],
         general_utils.de_torch,
         general_utils.denormalize_picture,
     ]
@@ -55,6 +61,7 @@ def main(arguments: argparse.Namespace) -> None:
             predictor,
             transform_to_input,
             from_image,
+            arguments.device,
             transform_from_input,
         )
         bar.update(1)
@@ -66,14 +73,16 @@ def main(arguments: argparse.Namespace) -> None:
     cv2.destroyAllWindows()
 
 
-def get_network(use_network: bool, use_cuda: bool) -> Optional:
+def get_network(network_path: str, use_network: bool, device: str) -> Optional:
     if use_network:
-        net = ''
-        if use_cuda:
-            net = net.cuda()
+        with (open(network_path, 'rb')) as openfile:
+            weights = pickle.load(openfile)
+        network = Generator(n_hidden=24, use_dropout=False)
+        network.load_state_dict(weights['generator'])
+        network = network.to(device)
     else:
-        net = None
-    return net
+        network = None
+    return network
 
 
 def show_image(
@@ -83,6 +92,7 @@ def show_image(
     predictor,
     transform_to_input: List[Callable],
     from_image: torch.Tensor,
+    device: str,
     transform_from_input: List[Callable],
 ) -> int:
     image_success, image = cam.read()
@@ -127,7 +137,9 @@ def show_image(
     for t in transform_to_input:
         multi_dim_landmarks = t(multi_dim_landmarks)
 
-    output = torch.cat((from_image, multi_dim_landmarks), dim=constants.CHANNEL_DIM)
+    output = torch.cat(
+        (from_image, multi_dim_landmarks.to(device)), dim=constants.CHANNEL_DIM
+    )
     for t in transform_from_input:
         output = t(output)
 
@@ -242,8 +254,8 @@ def parse():
 
     parser.add_argument('--webcam', default=0, type=int)
     parser.add_argument('--mirror', type=bool, default=False)
-    parser.add_argument('--use-network', dest='use_network', action='store_true')
-    parser.add_argument('--no-use-cuda', dest='use_cuda', action='store_false')
+    parser.add_argument('--no-use-network', dest='use_network', action='store_false')
+    parser.add_argument('--device', default='cuda', type=str)
     parser.add_argument('--no-use-mirror', dest='use_mirror', action='store_false')
     parser.add_argument('--overlay', type=bool, default=True)
     parser.add_argument('--overlay-color', type=str, default='r')
@@ -251,6 +263,9 @@ def parse():
     parser.add_argument('--predictor-path', type=str, default=1.0)
     parser.add_argument(
         '--from-image-path', type=str, default='./data/local_data/0.jpg'
+    )
+    parser.add_argument(
+        '--network-path', type=str, default='./data/local_data/weights.pickle'
     )
 
     return parser.parse_args()
