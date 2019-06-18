@@ -3,22 +3,27 @@ import os
 import sys
 from typing import Optional
 
+import dlib
 from tqdm import tqdm
 
 import cv2
 
 ESCAPE_KEY_CODE = 27
+RECTANGLE_COLOR = (0, 0, 255)
+RECTANGLE_THICKNESS = 3
 
 
 def main(arguments: argparse.Namespace) -> None:
-    get_network(arguments.use_network, arguments.use_cuda)
+    network = get_network(arguments.use_network, arguments.use_cuda)
+    detector = dlib.get_frontal_face_detector()
 
     cam = cv2.VideoCapture(arguments.webcam)
     bar = tqdm()
 
     while True:
-        show_image(cam, arguments.use_mirror)
+        n_bounding_boxes = show_image(cam, arguments.use_mirror, network, detector)
         bar.update(1)
+        bar.set_postfix(n_bounding_boxes=n_bounding_boxes)
         if cv2.waitKey(1) == ESCAPE_KEY_CODE:
             break
 
@@ -36,14 +41,32 @@ def get_network(use_network: bool, use_cuda: bool) -> Optional:
     return net
 
 
-def show_image(cam: cv2.VideoCapture, use_mirror: bool) -> None:
+def show_image(
+    cam: cv2.VideoCapture, use_mirror: bool, network: Optional, detector
+) -> int:
     image_success, image = cam.read()
     if not image_success:
         return
 
     if use_mirror:
         image = cv2.flip(image, 1)
+
+    dets = detector(image, 0)
+    n_rectangles = len(dets)
+    for rectangle in dets:
+        top_left = rectangle.tl_corner()
+        bottom_right = rectangle.br_corner()
+        cv2.rectangle(
+            image,
+            (top_left.x, top_left.y),
+            (bottom_right.x, bottom_right.y),
+            RECTANGLE_COLOR,
+            RECTANGLE_THICKNESS,
+        )
+
     cv2.imshow('pix2pix', image)
+
+    return n_rectangles
 
 
 def parse():
