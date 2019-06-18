@@ -84,7 +84,8 @@ def main(arguments):
     dataloader_train = load_data("train", arguments.batch_size, arguments.mode, arguments.n_videos_limit)
     dataloader_validate = load_data("validate", arguments.batch_size_plotting, arguments.mode, arguments.n_videos_limit)
 
-    # get models
+
+
     embedder = find_right_model(EMBED_DIR, arguments.embedder,
                                 device=DEVICE,
                                 n_channels_in=INPUT_SIZE,
@@ -103,6 +104,16 @@ def main(arguments):
                                      n_channels_in=INPUT_SIZE,
                                      use_dropout=arguments.dropout,
                                      n_hidden=arguments.n_hidden).to(DEVICE)
+
+    # get models
+    if arguments.pretrained:
+
+        # load in state dicts
+        load_models_and_state(discriminator,
+                              generator,
+                              embedder,
+                              arguments.pretrained_model_suffix,
+                              arguments.pretrained_model_date)
 
     # assertions
     assert_type(GeneralGenerator, generator)
@@ -187,10 +198,18 @@ def parse():
     parser.add_argument('--saving_freq', type=int, default=10, help='Frequency (epoch-wise) of saving models')
     parser.add_argument('--device', default="cuda", type=str, help='device')
     parser.add_argument('--mode', default="train", type=str, help="'train', 'test' or 'finetune'")
-    parser.add_argument('--learning_rate', type=float, default=2e-5, help='Learning rate')
+    parser.add_argument('--learning_rate', type=float, default=5e-5, help='Learning rate')
     parser.add_argument('--dropout', type=bool, default=True, help='Learning rate')
     parser.add_argument('--max_training_minutes', type=int, default=2760,
                         help='After which process is killed automatically')
+
+    # pretraining
+    parser.add_argument('--pretrained', type=bool, default=False, help='Determines if we load a trained model or not')
+    parser.add_argument('--pretrained_model_date', default="temp", type=str,
+                        help='date_stamp string for which model to load')
+    parser.add_argument('--pretrained_model_suffix', default="Models_at_epoch_39", type=str,
+                        help='filename string for which model to load')
+
 
     # debug
     parser.add_argument('--timing', type=bool, default=False, help='are we measuring efficiency?')
