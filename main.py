@@ -204,10 +204,10 @@ def parse():
                         help='After which process is killed automatically')
 
     # pretraining
-    parser.add_argument('--pretrained', type=bool, default=False, help='Determines if we load a trained model or not')
-    parser.add_argument('--pretrained_model_date', default="temp", type=str,
+    parser.add_argument('--pretrained', type=bool, default=True, help='Determines if we load a trained model or not')
+    parser.add_argument('--pretrained_model_date', type=str, default="2019-06-17_15:45:14",
                         help='date_stamp string for which model to load')
-    parser.add_argument('--pretrained_model_suffix', default="Models_at_epoch_39", type=str,
+    parser.add_argument('--pretrained_model_suffix', type=str, default="Models_at_epoch_99",
                         help='filename string for which model to load')
 
 
@@ -248,7 +248,7 @@ def parse():
                         help="weight hyperparameter for specific generatorloss")
     parser.add_argument('--TripleConsistencyLoss_weight', default=1000, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--IdLoss_weight', default=0.5, type=float,
+    parser.add_argument('--IdLoss_weight', default=1, type=float,
                         help="weight hyperparameter for specific generatorloss")
 
     # hyperparams discriminatorcap
