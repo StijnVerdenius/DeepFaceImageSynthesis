@@ -73,7 +73,7 @@ class RandomRescale:
 
 class RandomCrop:
     def __init__(
-        self, probability: float = 1, scales: Optional[List[float]] = None
+        self, probability: float = 1/2, scales: Optional[List[float]] = None
     ):
         self._probability = probability
         if scales is None:
