@@ -2,6 +2,7 @@ import argparse
 import os
 import sys
 from functools import lru_cache
+from pathlib import Path
 from typing import Callable, List, Optional, Tuple
 
 import dlib
@@ -46,9 +47,15 @@ def main(arguments: argparse.Namespace) -> None:
         general_utils.denormalize_picture,
     ]
 
-    from_image = cv2.imread(str(arguments.from_image_path))
+    from_image_path = Path(arguments.from_image_path)
+    from_image = cv2.imread(str(from_image_path))
     for t in transform_to_input:
         from_image = t(from_image)
+
+    base_image_path = from_image_path.parent / (
+        from_image_path.stem + '_base' + from_image_path.suffix
+    )
+    base_image = cv2.imread(str(base_image_path))
 
     cam = cv2.VideoCapture(arguments.webcam)
     bar = tqdm()
@@ -63,6 +70,7 @@ def main(arguments: argparse.Namespace) -> None:
             from_image,
             arguments.device,
             transform_from_input,
+            base_image,
         )
         bar.update(1)
         bar.set_postfix(n_bounding_boxes=n_bounding_boxes)
@@ -94,6 +102,7 @@ def show_image(
     from_image: torch.Tensor,
     device: str,
     transform_from_input: List[Callable],
+    base_image: np.ndarray,
 ) -> int:
     image_success, image = cam.read()
     if not image_success:
@@ -106,19 +115,22 @@ def show_image(
     n_rectangles = len(bounding_boxes)
 
     display_image = np.copy(image)
-    for rectangle in bounding_boxes:
-        top_left = rectangle.tl_corner()
-        bottom_right = rectangle.br_corner()
+    dlib_landmarks = [predictor(display_image, rectangle).parts() for rectangle in bounding_boxes]
+    for dl in dlib_landmarks:
+        assert len(dl) == constants.DATASET_300VW_N_LANDMARKS
+        image_landmarks = np.asarray([(lm.x, lm.y) for lm in dl], dtype=float)
+        image_box = _landmarks_to_box(image_landmarks, image.shape)
+
         cv2.rectangle(
             display_image,
-            (top_left.x, top_left.y),
-            (bottom_right.x, bottom_right.y),
+            (image_box[0], image_box[1]),
+            (image_box[2], image_box[3]),
             RECTANGLE_COLOR,
             RECTANGLE_THICKNESS,
         )
 
-        landsmarks = predictor(display_image, rectangle).parts()
-        for lm in landsmarks:
+    for dl in dlib_landmarks:
+        for lm in dl:
             cv2.circle(
                 display_image,
                 (lm.x, lm.y),
@@ -133,6 +145,7 @@ def show_image(
         return n_rectangles
 
     single_dim_landmarks = extract(image, bounding_boxes[0], predictor)
+
     multi_dim_landmarks = single_to_multi_dim_landmarks(single_dim_landmarks)
     for t in transform_to_input:
         multi_dim_landmarks = t(multi_dim_landmarks)
@@ -143,18 +156,29 @@ def show_image(
     for t in transform_from_input:
         output = t(output)
 
-    cv2.imshow('output', output)
+    original_image_box = (671, 95, 949, 373)
+    target_width = original_image_box[2] - original_image_box[0]
+    target_height = original_image_box[3] - original_image_box[1]
+    output = cv2.resize(
+        output,
+        dsize=(target_width, target_height),
+        interpolation=constants.INTERPOLATION,
+    )
+    base_image[
+        original_image_box[1] : original_image_box[3],
+        original_image_box[0] : original_image_box[2],
+        ...,
+    ] = output
+    cv2.imshow('merged', base_image)
 
     return n_rectangles
 
 
 def extract(image: np.ndarray, bounding_box, predictor) -> np.ndarray:
-    top_left = bounding_box.tl_corner()
-    bottom_right = bounding_box.br_corner()
-    image_box = (top_left.x, top_left.y, bottom_right.x, bottom_right.y)
     landmarks = predictor(image, bounding_box).parts()
     assert len(landmarks) == constants.DATASET_300VW_N_LANDMARKS
     image_landmarks = np.asarray([(lm.x, lm.y) for lm in landmarks], dtype=float)
+    image_box = _landmarks_to_box(image_landmarks, image.shape)
 
     extracted_image = _extract(image, image_box)
     extracted_landmarks = _offset_landmarks(image_landmarks, image_box)
@@ -165,6 +189,42 @@ def extract(image: np.ndarray, bounding_box, predictor) -> np.ndarray:
 
     return output_landmarks
 
+
+def _landmarks_to_box(
+    landmarks: np.ndarray, image_size: Tuple[int, int, int]
+) -> Tuple[int, int, int, int]:
+    x1, y1, x2, y2 = [
+        landmarks[:, 0].min(),
+        landmarks[:, 1].min(),
+        landmarks[:, 0].max(),
+        landmarks[:, 1].max(),
+    ]
+
+    x1, y1 = [t - constants.DATASET_300VW_PADDING for t in (x1, y1)]
+    x2, y2 = [t + constants.DATASET_300VW_PADDING for t in (x2, y2)]
+
+    box_height, box_width = y2 - y1 + 1, x2 - x1 + 1
+    assert box_height > 1 and box_width > 1
+    box_radius = box_height if box_height > box_width else box_width
+    box_radius /= 2
+    box_radius *= constants.DATASET_300VW_EXPAND_RATIO
+
+    # landmarks can be out of image, but that's okay, we'll still export them.
+    image_height, image_width, _ = image_size
+    # // 2 returns numpy float but we need ints
+    center_x, center_y = int((x1 + x2) / 2), int((y1 + y2) / 2)
+    box_radius = min(
+        box_radius, center_x, center_y, image_width - center_x, image_height - center_y
+    )
+    box_radius = int(box_radius)
+    x1, y1 = [t - box_radius for t in (center_x, center_y)]
+    x2, y2 = [t + box_radius for t in (center_x, center_y)]
+    assert all(isinstance(t, int) for t in (x1, y1, x2, y2))
+
+    assert abs((x2 - x1) - (y2 - y1)) == 0
+    assert 0 <= x1 <= x2 <= image_width and 0 <= y1 <= y2 <= image_height
+
+    return x1, y1, x2, y2
 
 def _extract(image: np.ndarray, box: Tuple[int, int, int, int]) -> np.ndarray:
     x1, y1, x2, y2 = box
