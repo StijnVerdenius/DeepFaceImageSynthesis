@@ -203,7 +203,7 @@ def parse():
     parser.add_argument('--max_training_minutes', type=int, default=2760,
                         help='After which process is killed automatically')
 
-    # pretraining
+    # pretraining arguments
     parser.add_argument('--pretrained', type=bool, default=False, help='Determines if we load a trained model or not')
     parser.add_argument('--pretrained_model_date', type=str, default="2019-06-17_15:45:14",
                         help='date_stamp string for which model to load')
