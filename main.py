@@ -204,7 +204,7 @@ def parse():
                         help='After which process is killed automatically')
 
     # pretraining
-    parser.add_argument('--pretrained', type=bool, default=True, help='Determines if we load a trained model or not')
+    parser.add_argument('--pretrained', type=bool, default=False, help='Determines if we load a trained model or not')
     parser.add_argument('--pretrained_model_date', type=str, default="2019-06-17_15:45:14",
                         help='date_stamp string for which model to load')
     parser.add_argument('--pretrained_model_suffix', type=str, default="Models_at_epoch_99",
