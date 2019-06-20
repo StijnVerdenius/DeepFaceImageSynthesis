@@ -17,9 +17,11 @@ from utils import constants, data_utils, general_utils, personal_constants
 
 ESCAPE_KEY_CODE = 27
 RECTANGLE_COLOR = (0, 0, 255)
-RECTANGLE_THICKNESS = 3
+RECTANGLE_THICKNESS_SELECTED = 3
+RECTANGLE_THICKNESS_OTHER = 1
 LANDMARK_COLOR = (0, 255, 0)
-LANDMARK_RADIUS = 3
+LANDMARK_RADIUS_SELECTED = 3
+LANDMARK_RADIUS_OTHER = 1
 LANDMARK_THICKNESS = -1
 # negative thickness means fill
 original_image_box = (671, 95, 949, 373)
@@ -121,14 +123,34 @@ def show_image(
     bounding_boxes = detector(image, 1)
     n_rectangles = len(bounding_boxes)
 
-    display_webcam_image(image, bounding_boxes, predictor)
+    if n_rectangles == 0:
+        selected_bounding_box_index = -1
+    else:
+        bounding_boxes_sizes = [
+            (
+                bounding_boxes[bb_index].br_corner().x
+                - bounding_boxes[bb_index].tl_corner().x
+            )
+            * (
+                bounding_boxes[bb_index].br_corner().y
+                - bounding_boxes[bb_index].tl_corner().y
+            )
+            for bb_index in range(n_rectangles)
+        ]
+        selected_bounding_box_index = bounding_boxes_sizes.index(
+            max(bounding_boxes_sizes)
+        )
 
-    if n_rectangles == 1:
+    display_webcam_image(image, predictor, bounding_boxes, selected_bounding_box_index)
+
+    if n_rectangles > 0:
+        landmarks = predictor(
+            image, bounding_boxes[selected_bounding_box_index]
+        ).parts()
         display_output_image(
             image,
-            bounding_boxes,
             base_image,
-            predictor,
+            landmarks,
             device,
             from_image,
             transform_from_input,
@@ -139,16 +161,15 @@ def show_image(
 
 
 def display_output_image(
-    image,
-    bounding_boxes,
-    base_image,
-    predictor,
-    device,
-    from_image,
-    transform_from_input,
-    transform_to_input,
+    image: np.ndarray,
+    base_image: np.ndarray,
+    landmarks,
+    device: str,
+    from_image: torch.Tensor,
+    transform_from_input: List[Callable],
+    transform_to_input: List[Callable],
 ):
-    single_dim_landmarks = extract(image, bounding_boxes[0], predictor)
+    single_dim_landmarks = extract(image, landmarks)
     multi_dim_landmarks = data_utils.single_to_multi_dim_landmarks(
         single_dim_landmarks, constants.IMSIZE
     )
@@ -174,37 +195,43 @@ def display_output_image(
     cv2.imshow('merged', base_image)
 
 
-def display_webcam_image(image, bounding_boxes, predictor):
+def display_webcam_image(image, predictor, bounding_boxes, selected_bounding_box_index):
     display_image = np.copy(image)
     dlib_landmarks = [
         predictor(display_image, rectangle).parts() for rectangle in bounding_boxes
     ]
-    for dl in dlib_landmarks:
+    for dl_index, dl in enumerate(dlib_landmarks):
         assert len(dl) == constants.DATASET_300VW_N_LANDMARKS
         image_landmarks = np.asarray([(lm.x, lm.y) for lm in dl], dtype=float)
         image_box = data_utils.landmarks_to_box(image_landmarks, image.shape)
 
+        thickness = (
+            RECTANGLE_THICKNESS_SELECTED
+            if dl_index == selected_bounding_box_index
+            else RECTANGLE_THICKNESS_OTHER
+        )
         cv2.rectangle(
             display_image,
             (image_box[0], image_box[1]),
             (image_box[2], image_box[3]),
             RECTANGLE_COLOR,
-            RECTANGLE_THICKNESS,
+            thickness,
         )
-    for dl in dlib_landmarks:
+
+    for dl_index, dl in enumerate(dlib_landmarks):
+        radius = (
+            LANDMARK_RADIUS_SELECTED
+            if dl_index == selected_bounding_box_index
+            else LANDMARK_RADIUS_OTHER
+        )
         for lm in dl:
             cv2.circle(
-                display_image,
-                (lm.x, lm.y),
-                LANDMARK_RADIUS,
-                LANDMARK_COLOR,
-                LANDMARK_THICKNESS,
+                display_image, (lm.x, lm.y), radius, LANDMARK_COLOR, LANDMARK_THICKNESS
             )
     cv2.imshow('display_image', display_image)
 
 
-def extract(image: np.ndarray, bounding_box, predictor) -> np.ndarray:
-    landmarks = predictor(image, bounding_box).parts()
+def extract(image: np.ndarray, landmarks) -> np.ndarray:
     assert len(landmarks) == constants.DATASET_300VW_N_LANDMARKS
     image_landmarks = np.asarray([(lm.x, lm.y) for lm in landmarks], dtype=float)
     image_box = data_utils.landmarks_to_box(image_landmarks, image.shape)
