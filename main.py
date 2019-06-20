@@ -198,7 +198,7 @@ def parse():
     parser.add_argument('--saving_freq', type=int, default=10, help='Frequency (epoch-wise) of saving models')
     parser.add_argument('--device', default="cuda", type=str, help='device')
     parser.add_argument('--mode', default="train", type=str, help="'train', 'test' or 'finetune'")
-    parser.add_argument('--learning_rate', type=float, default=5e-5, help='Learning rate')
+    parser.add_argument('--learning_rate', type=float, default=2e-4, help='Learning rate')
     parser.add_argument('--dropout', type=bool, default=True, help='Learning rate')
     parser.add_argument('--max_training_minutes', type=int, default=2760,
                         help='After which process is killed automatically')
@@ -225,7 +225,7 @@ def parse():
     parser.add_argument('--embedder', default="EmptyEmbedder", type=str, help="name of objectclass")
     parser.add_argument('--discriminator', default="PatchDiscriminator", type=str, help="name of objectclass")
     parser.add_argument('--generator', default="UNetGenerator", type=str, help="name of objectclass")
-    parser.add_argument('--n_hidden', type=int, default=24, help='features in the first hidden layer')
+    parser.add_argument('--n_hidden', type=int, default=64, help='features in the first hidden layer')
 
     # optimizer arguments
     parser.add_argument('--discriminator_optimizer', default="SGD", type=str, help="name of objectclass")
