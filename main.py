@@ -224,8 +224,8 @@ def parse():
     parser.add_argument('--embedding_size', default=2, type=int, help='dimensionality of latent embedding space')
     parser.add_argument('--embedder', default="EmptyEmbedder", type=str, help="name of objectclass")
     parser.add_argument('--discriminator', default="PatchDiscriminator", type=str, help="name of objectclass")
-    parser.add_argument('--generator', default="UNetGenerator", type=str, help="name of objectclass")
-    parser.add_argument('--n_hidden', type=int, default=64, help='features in the first hidden layer')
+    parser.add_argument('--generator', default="ResnetGenerator", type=str, help="name of objectclass")
+    parser.add_argument('--n_hidden', type=int, default=24, help='features in the first hidden layer')
 
     # optimizer arguments
     parser.add_argument('--discriminator_optimizer', default="SGD", type=str, help="name of objectclass")
