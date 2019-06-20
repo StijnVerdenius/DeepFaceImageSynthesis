@@ -2,14 +2,14 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Dict, List, Optional
 
-import cv2
 import numpy as np
 import torch
 from torch.utils.data import Dataset
 from tqdm import tqdm
 
+import cv2
 from data import all_video_paths, count_images, plot
-from utils import constants, personal_constants
+from utils import constants, data_utils, personal_constants
 
 
 class X300VWDataset(Dataset):
@@ -42,11 +42,6 @@ class X300VWDataset(Dataset):
 
         self._all_landmarks = self._load_all_landmarks()
 
-        self._window_size_gaussian = window_size_gaussian
-        assert self._window_size_gaussian > 0 and self._window_size_gaussian % 2 == 1
-        self._window_radius = self._window_size_gaussian // 2
-        self._gaussian = self._precompute_gaussian(mu, sigma)
-
         self._transform = transform
 
     def _filter(self, mode: constants.Dataset300VWMode) -> List[Path]:
@@ -78,14 +73,6 @@ class X300VWDataset(Dataset):
 
         return cumulative_n_images
 
-    def _precompute_gaussian(self, mu: float, sigma: float) -> np.ndarray:
-        x, y = np.meshgrid(
-            np.linspace(-1, 1, self._window_size_gaussian),
-            np.linspace(-1, 1, self._window_size_gaussian),
-        )
-        d = np.sqrt(x * x + y * y)
-        return np.exp(-((d - mu) ** 2 / (2.0 * sigma ** 2)))
-
     def __len__(self):
         return self._n_images
 
@@ -105,7 +92,10 @@ class X300VWDataset(Dataset):
         sample = [
             {
                 'image': self._load_image(video_index, fi),
-                'landmarks': self._load_landmarks(video_index, fi),
+                'landmarks': data_utils.single_to_multi_dim_landmarks(
+                    self._all_landmarks[video_index][fi - 1, :, :],
+                    constants.DATASET_300VW_IMSIZE,
+                ),
             }
             for fi in frames_indices
         ]
@@ -139,70 +129,6 @@ class X300VWDataset(Dataset):
             raise Exception(f'Image does not exist: {frame_input_path}')
         image = cv2.imread(str(frame_input_path))
         return image
-
-    def _load_landmarks(self, video_index: int, frame_index: int) -> np.ndarray:
-        single_dim_landmarks = self._all_landmarks[video_index][frame_index - 1, :, :]
-        landmarks = np.empty(
-            (
-                constants.DATASET_300VW_IMSIZE,
-                constants.DATASET_300VW_IMSIZE,
-                constants.DATASET_300VW_N_LANDMARKS,
-            )
-        )
-        assert single_dim_landmarks.shape == (constants.DATASET_300VW_N_LANDMARKS, 2)
-        for landmark_index in range(single_dim_landmarks.shape[0]):
-            start_indices = single_dim_landmarks[landmark_index, :]
-            landmarks[:, :, landmark_index] = self._landmark_to_channel(
-                start_indices[0], start_indices[1]
-            )
-
-        return landmarks
-
-    @lru_cache()
-    def _landmark_to_channel(self, x_1: int, y_1: int) -> np.ndarray:
-        landmark_channel = np.zeros(
-            (constants.DATASET_300VW_IMSIZE, constants.DATASET_300VW_IMSIZE)
-        )
-        start_indices_landmarks = np.asarray([x_1, y_1], dtype=int)
-        start_indices_landmarks -= self._window_radius
-
-        end_indices_landmarks = start_indices_landmarks + self._window_size_gaussian
-        if any(start_indices_landmarks > constants.DATASET_300VW_IMSIZE) or any(
-            end_indices_landmarks < 0
-        ):
-            return landmark_channel
-
-        start_indices_gaussian = np.where(
-            start_indices_landmarks < 0, abs(start_indices_landmarks), 0
-        )
-        start_indices_landmarks = np.where(
-            start_indices_landmarks < 0, 0, start_indices_landmarks
-        )
-        end_indices_gaussian = self._window_size_gaussian - np.where(
-            end_indices_landmarks > constants.DATASET_300VW_IMSIZE,
-            end_indices_landmarks - constants.DATASET_300VW_IMSIZE,
-            0,
-        )
-        end_indices_landmarks = np.where(
-            end_indices_landmarks > constants.DATASET_300VW_IMSIZE,
-            constants.DATASET_300VW_IMSIZE,
-            end_indices_landmarks,
-        )
-
-        assert all(
-            (end_indices_landmarks - start_indices_landmarks)
-            == (end_indices_gaussian - start_indices_gaussian)
-        )
-
-        landmark_channel[
-            start_indices_landmarks[1] : end_indices_landmarks[1],
-            start_indices_landmarks[0] : end_indices_landmarks[0],
-        ] = self._gaussian[
-            start_indices_gaussian[1] : end_indices_gaussian[1],
-            start_indices_gaussian[0] : end_indices_gaussian[0],
-        ]
-
-        return landmark_channel
 
 
 def _test_return() -> None:
