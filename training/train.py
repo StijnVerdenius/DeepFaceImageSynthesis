@@ -66,10 +66,10 @@ class TrainingProcess:
         self.shuffle_indices = list(range(int(self.combined_batch_size)))
 
         # initialize tensorboardx
-        # self.writer = SummaryWriter(
-        #     f"results/output/{DATA_MANAGER.stamp}/tensorboardx/"
         self.writer = SummaryWriter(
-            f"/home/lgpu0293/ProjectAI/DeepFakes/results/output/tensorboardx/{DATA_MANAGER.stamp}/tensorboardx/")
+            f"results/output/{DATA_MANAGER.stamp}/tensorboardx/")
+        # self.writer = SummaryWriter(
+        #     f"/home/lgpu0293/ProjectAI/DeepFakes/results/output/tensorboardx/{DATA_MANAGER.stamp}/tensorboardx/")
 
         self.labels_train = None
         self.labels_validate = None

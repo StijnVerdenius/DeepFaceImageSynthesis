@@ -224,7 +224,7 @@ def parse():
     parser.add_argument('--embedding_size', default=2, type=int, help='dimensionality of latent embedding space')
     parser.add_argument('--embedder', default="EmptyEmbedder", type=str, help="name of objectclass")
     parser.add_argument('--discriminator', default="PatchDiscriminator", type=str, help="name of objectclass")
-    parser.add_argument('--generator', default="ResnetGenerator", type=str, help="name of objectclass")
+    parser.add_argument('--generator', default="UNetGenerator", type=str, help="name of objectclass")
     parser.add_argument('--n_hidden', type=int, default=24, help='features in the first hidden layer')
 
     # optimizer arguments
@@ -238,17 +238,17 @@ def parse():
     parser.add_argument('--loss_dis', default="DefaultDLoss", type=str, help="name of objectclass")
 
     # hyperparams generatorloss  (-1 === DEFAULT)
-    parser.add_argument('--NonSaturatingGLoss_weight', default=1, type=float,
+    parser.add_argument('--NonSaturatingGLoss_weight', default=-1, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--PixelLoss_weight', default=10, type=float,
+    parser.add_argument('--PixelLoss_weight', default=-1, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--PerceptualLoss_weight', default= 10, type=float,
+    parser.add_argument('--PerceptualLoss_weight', default= -1, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--ConsistencyLoss_weight', default=100, type=float,
+    parser.add_argument('--ConsistencyLoss_weight', default=-1, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--TripleConsistencyLoss_weight', default=100, type=float,
+    parser.add_argument('--TripleConsistencyLoss_weight', default=-1, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--IdLoss_weight', default=1, type=float,
+    parser.add_argument('--IdLoss_weight', default=-1, type=float,
                         help="weight hyperparameter for specific generatorloss")
 
     # hyperparams discriminatorcap
