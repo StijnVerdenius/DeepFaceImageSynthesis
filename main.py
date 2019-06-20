@@ -84,7 +84,8 @@ def main(arguments):
     dataloader_train = load_data("train", arguments.batch_size, arguments.mode, arguments.n_videos_limit)
     dataloader_validate = load_data("validate", arguments.batch_size_plotting, arguments.mode, arguments.n_videos_limit)
 
-    # get models
+
+
     embedder = find_right_model(EMBED_DIR, arguments.embedder,
                                 device=DEVICE,
                                 n_channels_in=INPUT_SIZE,
@@ -103,6 +104,16 @@ def main(arguments):
                                      n_channels_in=INPUT_SIZE,
                                      use_dropout=arguments.dropout,
                                      n_hidden=arguments.n_hidden).to(DEVICE)
+
+    # get models
+    if arguments.pretrained:
+
+        # load in state dicts
+        load_models_and_state(discriminator,
+                              generator,
+                              embedder,
+                              arguments.pretrained_model_suffix,
+                              arguments.pretrained_model_date)
 
     # assertions
     assert_type(GeneralGenerator, generator)
@@ -187,26 +198,34 @@ def parse():
     parser.add_argument('--saving_freq', type=int, default=10, help='Frequency (epoch-wise) of saving models')
     parser.add_argument('--device', default="cuda", type=str, help='device')
     parser.add_argument('--mode', default="train", type=str, help="'train', 'test' or 'finetune'")
-    parser.add_argument('--learning_rate', type=float, default=2e-5, help='Learning rate')
+    parser.add_argument('--learning_rate', type=float, default=2e-4, help='Learning rate')
     parser.add_argument('--dropout', type=bool, default=True, help='Learning rate')
     parser.add_argument('--max_training_minutes', type=int, default=2760,
                         help='After which process is killed automatically')
+
+    # pretraining arguments
+    parser.add_argument('--pretrained', type=bool, default=False, help='Determines if we load a trained model or not')
+    parser.add_argument('--pretrained_model_date', type=str, default="2019-06-17_15:45:14",
+                        help='date_stamp string for which model to load')
+    parser.add_argument('--pretrained_model_suffix', type=str, default="Models_at_epoch_99",
+                        help='filename string for which model to load')
+
 
     # debug
     parser.add_argument('--timing', type=bool, default=False, help='are we measuring efficiency?')
 
     # test arguments
-    parser.add_argument('--test_model_date', default="week_2", type=str,
+    parser.add_argument('--test_model_date', default="temp", type=str,
                         help='date_stamp string for which model to load')
-    parser.add_argument('--test_model_suffix', default="CRASH_at_epoch_0", type=str,
+    parser.add_argument('--test_model_suffix', default="Models_at_epoch_39", type=str,
                         help='filename string for which model to load')
 
     # model arguments
     parser.add_argument('--embedding_size', default=2, type=int, help='dimensionality of latent embedding space')
     parser.add_argument('--embedder', default="EmptyEmbedder", type=str, help="name of objectclass")
     parser.add_argument('--discriminator', default="PatchDiscriminator", type=str, help="name of objectclass")
-    parser.add_argument('--generator', default="ResnetGenerator", type=str, help="name of objectclass")
-    parser.add_argument('--n_hidden', type=int, default=24, help='features in the first hidden layer')
+    parser.add_argument('--generator', default="UNetGenerator", type=str, help="name of objectclass")
+    parser.add_argument('--n_hidden', type=int, default=64, help='features in the first hidden layer')
 
     # optimizer arguments
     parser.add_argument('--discriminator_optimizer', default="SGD", type=str, help="name of objectclass")
@@ -219,17 +238,17 @@ def parse():
     parser.add_argument('--loss_dis', default="DefaultDLoss", type=str, help="name of objectclass")
 
     # hyperparams generatorloss  (-1 === DEFAULT)
-    parser.add_argument('--NonSaturatingGLoss_weight', default=150, type=float,
+    parser.add_argument('--NonSaturatingGLoss_weight', default=-1, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--PerceptualLoss_weight', default=2, type=float,
+    parser.add_argument('--PixelLoss_weight', default=-1, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--PixelLoss_weight', default=3500, type=float,
+    parser.add_argument('--PerceptualLoss_weight', default= -1, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--ConsistencyLoss_weight', default=100, type=float,
+    parser.add_argument('--ConsistencyLoss_weight', default=-1, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--TripleConsistencyLoss_weight', default=250, type=float,
+    parser.add_argument('--TripleConsistencyLoss_weight', default=-1, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--IdLoss_weight', default=1, type=float,
+    parser.add_argument('--IdLoss_weight', default=-1, type=float,
                         help="weight hyperparameter for specific generatorloss")
 
     # hyperparams discriminatorcap

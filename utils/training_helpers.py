@@ -10,13 +10,13 @@ import random
 import numpy as np
 
 
-def plot_some_pictures(images, batches_done):
+def plot_some_pictures(images, batches_done, suffix, filesort):
     """
     save some plots in PIC_DIR
 
     """
 
-    save_image(images, f'./{PREFIX_OUTPUT}/{DATA_MANAGER.stamp}/{PIC_DIR}/{batches_done}.png',
+    save_image(images, f'./{PREFIX_OUTPUT}/{DATA_MANAGER.stamp}/{PIC_DIR}/{batches_done}_{suffix}.{filesort}',
                nrow=4, normalize=True)
 
 

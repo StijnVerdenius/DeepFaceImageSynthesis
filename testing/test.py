@@ -19,12 +19,12 @@ def compare(dataloader: DataLoader, *args, number_of_batches = 1, **kwargs):
             break
 
         image = plot_batch(*batch, *args, number_of_batches=number_of_batches, **kwargs)
-        plt.figure()
+        fig = plt.figure()
         ax = plt.gca()
         ax.axis('off')
         plt.imshow(image)
         plt.show()
-
+        plt.close(fig)
 
 def plot_batch(batch_1, batch_2, batch_3,
                embedder: GeneralEmbedder,
@@ -92,6 +92,7 @@ def plot_batch(batch_1, batch_2, batch_3,
     canvas.draw()
     _, (width, height) = canvas.print_to_buffer()
     s = canvas.tostring_rgb()
+    plt.close(fig)
     return np.fromstring(s, dtype='uint8').reshape((height, width, 3))
 
 

@@ -19,7 +19,7 @@ class HingeAdverserialDLoss(GeneralLoss):
         fake_scores = combined[:split_index]
         real_scores = combined[split_index:]
 
-        loss = torch.min(self.zero, -1 + fake_scores).mean() + \
+        loss = - torch.min(self.zero, -1 + fake_scores).mean() - \
                torch.min(self.zero, -real_scores - 1).mean()
 
         return loss
