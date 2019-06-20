@@ -195,7 +195,7 @@ def parse():
                         help='max number of epochs')
     parser.add_argument('--eval_freq', type=int, default=10, help='Frequency (batch-wise) of evaluation')
     parser.add_argument('--plot_freq', type=int, default=100, help='Frequency (batch-wise) of plotting pictures')
-    parser.add_argument('--saving_freq', type=int, default=10, help='Frequency (epoch-wise) of saving models')
+    parser.add_argument('--saving_freq', type=int, default=1, help='Frequency (epoch-wise) of saving models')
     parser.add_argument('--device', default="cuda", type=str, help='device')
     parser.add_argument('--mode', default="train", type=str, help="'train', 'test' or 'finetune'")
     parser.add_argument('--learning_rate', type=float, default=2e-4, help='Learning rate')
@@ -204,10 +204,10 @@ def parse():
                         help='After which process is killed automatically')
 
     # pretraining arguments
-    parser.add_argument('--pretrained', type=bool, default=False, help='Determines if we load a trained model or not')
-    parser.add_argument('--pretrained_model_date', type=str, default="2019-06-17_15:45:14",
+    parser.add_argument('--pretrained', type=bool, default=True, help='Determines if we load a trained model or not')
+    parser.add_argument('--pretrained_model_date', type=str, default="2019-06-19_21:57:51",
                         help='date_stamp string for which model to load')
-    parser.add_argument('--pretrained_model_suffix', type=str, default="Models_at_epoch_99",
+    parser.add_argument('--pretrained_model_suffix', type=str, default="Models_at_epoch_9",
                         help='filename string for which model to load')
 
 
@@ -217,7 +217,7 @@ def parse():
     # test arguments
     parser.add_argument('--test_model_date', default="temp", type=str,
                         help='date_stamp string for which model to load')
-    parser.add_argument('--test_model_suffix', default="Models_at_epoch_39", type=str,
+    parser.add_argument('--test_model_suffix', default="Models_at_epoch_59", type=str,
                         help='filename string for which model to load')
 
     # model arguments
