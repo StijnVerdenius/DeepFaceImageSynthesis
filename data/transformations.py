@@ -240,15 +240,13 @@ def _test_values(batch_size: int = 32, n_videos_limit: Optional[int] = None) -> 
                 image.shape == image_target_shape
             ), f'image shape should be {image_target_shape} but is {image.shape}'
             assert torch.isfinite(image).all() and not torch.isnan(image).any()
-            assert -1 <= image.min() <= image.max() <= 1, image[
-                (image < -1) | (image > 1)
-            ]
+            assert (image >= -1).all() and (image <= 1).all()
 
             assert (
                 landmarks.shape == landmarks_target_shape
             ), f'landmarks shape should be {landmarks_target_shape} but is {landmarks.shape}'
             assert torch.isfinite(landmarks).all() and not torch.isnan(landmarks).any()
-            # assert -1 <= landmarks.min() <= landmarks.max() <= 1, landmarks[(landmarks < 0) | (landmarks > 1)]
+            # assert (landmarks >= -1).all() and (landmarks <= 1).all()
 
 
 if __name__ == '__main__':
