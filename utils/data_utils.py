@@ -79,7 +79,7 @@ def single_to_multi_dim_landmarks(
     for landmark_index in range(single_dim_landmarks.shape[0]):
         start_indices = single_dim_landmarks[landmark_index, :]
         landmarks[:, :, landmark_index] = _landmark_to_channel(
-            start_indices[0], start_indices[1], constants.IMSIZE
+            start_indices[0], start_indices[1], image_size
         )
 
     return landmarks

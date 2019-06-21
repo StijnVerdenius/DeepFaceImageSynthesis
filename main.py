@@ -195,7 +195,7 @@ def parse():
                         help='max number of epochs')
     parser.add_argument('--eval_freq', type=int, default=10, help='Frequency (batch-wise) of evaluation')
     parser.add_argument('--plot_freq', type=int, default=100, help='Frequency (batch-wise) of plotting pictures')
-    parser.add_argument('--saving_freq', type=int, default=1, help='Frequency (epoch-wise) of saving models')
+    parser.add_argument('--saving_freq', type=int, default=5, help='Frequency (epoch-wise) of saving models')
     parser.add_argument('--device', default="cuda", type=str, help='device')
     parser.add_argument('--mode', default="train", type=str, help="'train', 'test' or 'finetune'")
     parser.add_argument('--learning_rate', type=float, default=2e-4, help='Learning rate')
@@ -204,7 +204,7 @@ def parse():
                         help='After which process is killed automatically')
 
     # pretraining arguments
-    parser.add_argument('--pretrained', type=bool, default=True, help='Determines if we load a trained model or not')
+    parser.add_argument('--pretrained', type=bool, default=False, help='Determines if we load a trained model or not')
     parser.add_argument('--pretrained_model_date', type=str, default="2019-06-19_21:57:51",
                         help='date_stamp string for which model to load')
     parser.add_argument('--pretrained_model_suffix', type=str, default="Models_at_epoch_9",
@@ -224,7 +224,7 @@ def parse():
     parser.add_argument('--embedding_size', default=2, type=int, help='dimensionality of latent embedding space')
     parser.add_argument('--embedder', default="EmptyEmbedder", type=str, help="name of objectclass")
     parser.add_argument('--discriminator', default="PatchDiscriminator", type=str, help="name of objectclass")
-    parser.add_argument('--generator', default="ResnetGenerator", type=str, help="name of objectclass")
+    parser.add_argument('--generator', default="UNetGenerator", type=str, help="name of objectclass")
     parser.add_argument('--n_hidden', type=int, default=24, help='features in the first hidden layer')
 
     # optimizer arguments
