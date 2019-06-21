@@ -12,7 +12,7 @@ from tqdm import tqdm
 import _pickle as pickle
 import cv2
 from data import transformations
-from models.generators.ResnetGenerator import ResnetGenerator as Generator
+from models.generators.UNetGenerator import UNetGenerator as Generator
 from utils import constants, data_utils, general_utils, personal_constants
 
 ESCAPE_KEY_CODE = 27
@@ -92,9 +92,10 @@ def get_network(network_path: str, use_network: bool, device: str) -> Optional:
     if use_network:
         with (open(network_path, 'rb')) as openfile:
             weights = pickle.load(openfile)
-        network = Generator(n_hidden=24, use_dropout=False)
+        network = Generator(n_hidden=64, use_dropout=True)
         network.load_state_dict(weights['generator'])
         network = network.to(device)
+        network.eval()
     else:
         network = None
     return network
@@ -235,7 +236,7 @@ def parse():
         '--from-image-path', type=str, default='./data/local_data/0.jpg'
     )
     parser.add_argument(
-        '--network-path', type=str, default='./data/local_data/weights.pickle'
+        '--network-path', type=str, default='./data/local_data/banana.pickle'
     )
 
     return parser.parse_args()
