@@ -147,7 +147,7 @@ class TrainingProcess:
 
         elif self.arguments.loss_dis == "HingeAdverserialDLoss":
             loss_dis, loss_dis_saving = self.loss_dis.forward(predictions_true, predictions_fake)
-
+            predictions = torch.cat((predictions_fake, predictions_true), dim=0)
 
         if (train):
 
