@@ -91,19 +91,19 @@ def main(arguments):
                                 n_channels_in=INPUT_SIZE,
                                 n_channels_out=arguments.embedding_size,
                                 use_dropout=arguments.dropout,
-                                n_hidden=arguments.n_hidden).to(DEVICE)
+                                n_hidden=arguments.n_hidden_gen).to(DEVICE)
 
     generator = find_right_model(GEN_DIR, arguments.generator,
                                  device=DEVICE,
                                  n_channels_in=INPUT_SIZE,
                                  use_dropout=arguments.dropout,
-                                 n_hidden=arguments.n_hidden).to(DEVICE)
+                                 n_hidden=arguments.n_hidden_dis).to(DEVICE)
 
     discriminator = find_right_model(DIS_DIR, arguments.discriminator,
                                      device=DEVICE,
                                      n_channels_in=INPUT_SIZE,
                                      use_dropout=arguments.dropout,
-                                     n_hidden=arguments.n_hidden).to(DEVICE)
+                                     n_hidden=arguments.n_hidden_gen).to(DEVICE)
 
     # get models
     if arguments.pretrained:
@@ -226,7 +226,8 @@ def parse():
     parser.add_argument('--embedder', default="EmptyEmbedder", type=str, help="name of objectclass")
     parser.add_argument('--discriminator', default="PatchDiscriminator", type=str, help="name of objectclass")
     parser.add_argument('--generator', default="UNetGenerator", type=str, help="name of objectclass")
-    parser.add_argument('--n_hidden', type=int, default=24, help='features in the first hidden layer')
+    parser.add_argument('--n_hidden_gen', type=int, default=64, help='features in the first hidden layer')
+    parser.add_argument('--n_hidden_dis', type=int, default=24, help='features in the first hidden layer')
 
     # optimizer arguments
     parser.add_argument('--discriminator_optimizer', default="SGD", type=str, help="name of objectclass")
