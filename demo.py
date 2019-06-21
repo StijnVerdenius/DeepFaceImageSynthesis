@@ -2,7 +2,7 @@ import argparse
 import os
 import sys
 from pathlib import Path
-from typing import Callable, List, Optional
+from typing import Callable, List, Optional, Tuple
 
 import dlib
 import numpy as np
@@ -14,17 +14,17 @@ import cv2
 from data import transformations
 from models.generators.ResnetGenerator import ResnetGenerator as Generator
 from utils import constants, data_utils, general_utils, personal_constants
-
-ESCAPE_KEY_CODE = 27
-RECTANGLE_COLOR = (0, 0, 255)
-RECTANGLE_THICKNESS_SELECTED = 3
-RECTANGLE_THICKNESS_OTHER = 1
-LANDMARK_COLOR = (0, 255, 0)
-LANDMARK_RADIUS_SELECTED = 3
-LANDMARK_RADIUS_OTHER = 1
-LANDMARK_THICKNESS = -1
-# negative thickness means fill
-original_image_box = (671, 95, 949, 373)
+from utils.constants import (
+    ESCAPE_KEY_CODE,
+    LANDMARK_COLOR,
+    LANDMARK_RADIUS_OTHER,
+    LANDMARK_RADIUS_SELECTED,
+    LANDMARK_THICKNESS,
+    ORIGINAL_IMAGE_BOX,
+    RECTANGLE_COLOR,
+    RECTANGLE_THICKNESS_OTHER,
+    RECTANGLE_THICKNESS_SELECTED,
+)
 
 
 def main(arguments: argparse.Namespace) -> None:
@@ -57,6 +57,32 @@ def main(arguments: argparse.Namespace) -> None:
         from_image_path.stem + '_base' + from_image_path.suffix
     )
     base_image = cv2.imread(str(base_image_path))
+    if arguments.image_to_box_size:
+        rescale_factor_x = constants.IMSIZE / (
+            ORIGINAL_IMAGE_BOX[2] - ORIGINAL_IMAGE_BOX[0]
+        )
+        rescale_factor_y = constants.IMSIZE / (
+            ORIGINAL_IMAGE_BOX[3] - ORIGINAL_IMAGE_BOX[1]
+        )
+        base_image_box = [
+            ORIGINAL_IMAGE_BOX[0] * rescale_factor_x,
+            ORIGINAL_IMAGE_BOX[1] * rescale_factor_y,
+            ORIGINAL_IMAGE_BOX[2] * rescale_factor_x,
+            ORIGINAL_IMAGE_BOX[3] * rescale_factor_y,
+        ]
+        base_image_box = [int(bib) for bib in base_image_box]
+        target_height, target_width, _ = base_image.shape
+        target_height, target_width = (
+            int(target_height * rescale_factor_y),
+            int(target_width * rescale_factor_x),
+        )
+        base_image = cv2.resize(
+            base_image,
+            dsize=(target_width, target_height),
+            interpolation=constants.INTERPOLATION,
+        )
+    else:
+        base_image_box = ORIGINAL_IMAGE_BOX
 
     cam = cv2.VideoCapture(arguments.webcam)
     bar = tqdm()
@@ -72,6 +98,7 @@ def main(arguments: argparse.Namespace) -> None:
             arguments.device,
             transform_from_input,
             base_image,
+            base_image_box,
         )
         bar.update(1)
         bar.set_postfix(n_bounding_boxes=n_bounding_boxes)
@@ -112,6 +139,7 @@ def show_image(
     device: str,
     transform_from_input: List[Callable],
     base_image: np.ndarray,
+    base_image_box: Tuple[int, int, int, int],
 ) -> int:
     image_success, image = cam.read()
     if not image_success:
@@ -155,6 +183,7 @@ def show_image(
             from_image,
             transform_from_input,
             transform_to_input,
+            base_image_box,
         )
 
     return n_rectangles
@@ -168,6 +197,7 @@ def display_output_image(
     from_image: torch.Tensor,
     transform_from_input: List[Callable],
     transform_to_input: List[Callable],
+    base_image_box: Tuple[int, int, int, int],
 ):
     single_dim_landmarks = extract(image, landmarks)
     multi_dim_landmarks = data_utils.single_to_multi_dim_landmarks(
@@ -180,16 +210,16 @@ def display_output_image(
     )
     for t in transform_from_input:
         output = t(output)
-    target_width = original_image_box[2] - original_image_box[0]
-    target_height = original_image_box[3] - original_image_box[1]
+    target_width = base_image_box[2] - base_image_box[0]
+    target_height = base_image_box[3] - base_image_box[1]
     output = cv2.resize(
         output,
         dsize=(target_width, target_height),
         interpolation=constants.INTERPOLATION,
     )
     base_image[
-        original_image_box[1] : original_image_box[3],
-        original_image_box[0] : original_image_box[2],
+        base_image_box[1] : base_image_box[3],
+        base_image_box[0] : base_image_box[2],
         ...,
     ] = output
     cv2.imshow('merged', base_image)
@@ -254,10 +284,8 @@ def parse():
     parser.add_argument('--no-use-network', dest='use_network', action='store_false')
     parser.add_argument('--device', default='cuda', type=str)
     parser.add_argument('--no-use-mirror', dest='use_mirror', action='store_false')
-    parser.add_argument('--overlay', type=bool, default=True)
-    parser.add_argument('--overlay-color', type=str, default='r')
-    parser.add_argument('--overlay-alpha', type=float, default=1.0)
     parser.add_argument('--predictor-path', type=str, default=1.0)
+    parser.add_argument('--image-to-box-size', dest='image_to_box_size', action='store_true')
     parser.add_argument(
         '--from-image-path', type=str, default='./data/local_data/0.jpg'
     )

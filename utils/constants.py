@@ -1,10 +1,10 @@
 from enum import Enum
 
-import cv2
 import numpy as np
 import torch
 import torchvision.models.vgg as vgg
 
+import cv2
 from models.general.data_management import DataManager
 
 # directories
@@ -50,9 +50,23 @@ PRINTCOLOR_BOLD = '\033[1m'
 PRINTCOLOR_UNDERLINE = '\033[4m'
 PRINTCOLOR_END = '\033[0m'
 
+# demo
+ESCAPE_KEY_CODE = 27
+RECTANGLE_COLOR = (0, 0, 255)
+RECTANGLE_THICKNESS_SELECTED = 3
+RECTANGLE_THICKNESS_OTHER = 1
+LANDMARK_COLOR = (0, 255, 0)
+LANDMARK_RADIUS_SELECTED = 3
+LANDMARK_RADIUS_OTHER = 1
+LANDMARK_THICKNESS = -1
+# negative thickness means fill
+ORIGINAL_IMAGE_BOX = (671, 95, 949, 373)
+
 
 # dataset
-def _precompute_gaussian(mu: float, sigma: float, window_size_gaussian: int) -> np.ndarray:
+def _precompute_gaussian(
+    mu: float, sigma: float, window_size_gaussian: int
+) -> np.ndarray:
     x, y = np.meshgrid(
         np.linspace(-1, 1, window_size_gaussian),
         np.linspace(-1, 1, window_size_gaussian),
@@ -83,11 +97,16 @@ DATASET_300VW_INNER_LOOP_DESCRIPTION = 'frame'
 DATASET_300VW_NUMBER_FORMAT = '06d'
 
 DATASET_300VW_WINDOW_SIZE_GAUSSIAN = 7
-assert DATASET_300VW_WINDOW_SIZE_GAUSSIAN > 0 and DATASET_300VW_WINDOW_SIZE_GAUSSIAN % 2 == 1
+assert (
+    DATASET_300VW_WINDOW_SIZE_GAUSSIAN > 0
+    and DATASET_300VW_WINDOW_SIZE_GAUSSIAN % 2 == 1
+)
 DATASET_300VW_WINDOW_RADIUS_GAUSSIAN = DATASET_300VW_WINDOW_SIZE_GAUSSIAN // 2
 DATASET_300VW_MU = 0.0
-DATASET_300VW_SIGMA = 1/3
-DATASET_300VW_GAUSSIAN = _precompute_gaussian(DATASET_300VW_MU, DATASET_300VW_SIGMA, DATASET_300VW_WINDOW_SIZE_GAUSSIAN)
+DATASET_300VW_SIGMA = 1 / 3
+DATASET_300VW_GAUSSIAN = _precompute_gaussian(
+    DATASET_300VW_MU, DATASET_300VW_SIGMA, DATASET_300VW_WINDOW_SIZE_GAUSSIAN
+)
 
 
 class Dataset300VWMode(Enum):
@@ -217,4 +236,3 @@ class Dataset300VWMode(Enum):
 
 
 assert len(Dataset300VWMode.ALL.value) == DATASET_300VW_N_VIDEOS
-
