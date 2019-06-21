@@ -49,7 +49,7 @@ def load_data(keyword: str, batch_size: int, mode: str, n_videos_limit: Optional
     transform = transforms.Compose(
         [
             transformations.RandomHorizontalFlip(),
-            transformations.RandomCrop(),
+            # transformations.RandomCrop(),
             transformations.Resize(),
             transformations.RescaleValues(),
             transformations.ChangeChannels(),
