@@ -16,8 +16,8 @@ class HingeAdverserialDLoss(GeneralLoss):
             -> torch.Tensor:
 
 
-        loss = - torch.min(self.zero, -1 + fake_scores).mean() - \
-               torch.min(self.zero, -real_scores - 1).mean()
+        loss = torch.min(self.zero,1 + fake_scores).mean() + \
+               torch.min(self.zero, 1 - real_scores).mean()
 
         return loss
 
