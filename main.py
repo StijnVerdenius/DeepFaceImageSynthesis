@@ -91,19 +91,22 @@ def main(arguments):
                                 n_channels_in=INPUT_SIZE,
                                 n_channels_out=arguments.embedding_size,
                                 use_dropout=arguments.dropout,
-                                n_hidden=arguments.n_hidden).to(DEVICE)
+                                n_hidden=arguments.n_hidden_gen).to(DEVICE)
 
     generator = find_right_model(GEN_DIR, arguments.generator,
                                  device=DEVICE,
                                  n_channels_in=INPUT_SIZE,
                                  use_dropout=arguments.dropout,
-                                 n_hidden=arguments.n_hidden).to(DEVICE)
+                                 n_hidden=arguments.n_hidden_dis).to(DEVICE)
 
     discriminator = find_right_model(DIS_DIR, arguments.discriminator,
                                      device=DEVICE,
                                      n_channels_in=INPUT_SIZE,
                                      use_dropout=arguments.dropout,
-                                     n_hidden=arguments.n_hidden).to(DEVICE)
+                                     n_hidden=arguments.n_hidden_gen,
+                                     n_layers=2).to(DEVICE)
+
+    print(discriminator)
 
     # get models
     if arguments.pretrained:
@@ -126,15 +129,15 @@ def main(arguments):
         # init optimizers
         generator_optimizer = find_right_model(OPTIMS, arguments.generator_optimizer,
                                                params=generator.parameters(),
-                                               lr=arguments.learning_rate
+                                               lr=arguments.learning_rate_gen
                                                )
         discriminator_optimizer = find_right_model(OPTIMS, arguments.discriminator_optimizer,
                                                    params=discriminator.parameters(),
-                                                   lr=arguments.learning_rate)
+                                                   lr=arguments.learning_rate_dis)
 
         embedder_optimizer = find_right_model(OPTIMS, arguments.embedder_optimizer,
                                               params=embedder.parameters(),
-                                              lr=arguments.learning_rate)
+                                              lr=arguments.learning_rate_gen)
         # define loss functions
         if (not arguments.loss_gen == TOTAL_LOSS):
             print(
@@ -191,14 +194,15 @@ def parse():
     parser = argparse.ArgumentParser()
 
     # training arguments
-    parser.add_argument('--epochs', default=100, type=int,
+    parser.add_argument('--epochs', default=6, type=int,
                         help='max number of epochs')
     parser.add_argument('--eval_freq', type=int, default=10, help='Frequency (batch-wise) of evaluation')
     parser.add_argument('--plot_freq', type=int, default=100, help='Frequency (batch-wise) of plotting pictures')
-    parser.add_argument('--saving_freq', type=int, default=5, help='Frequency (epoch-wise) of saving models')
+    parser.add_argument('--saving_freq', type=int, default=1, help='Frequency (epoch-wise) of saving models')
     parser.add_argument('--device', default="cuda", type=str, help='device')
     parser.add_argument('--mode', default="train", type=str, help="'train', 'test' or 'finetune'")
-    parser.add_argument('--learning_rate', type=float, default=2e-4, help='Learning rate')
+    parser.add_argument('--learning_rate_gen', type=float, default=2e-4, help='Learning rate')
+    parser.add_argument('--learning_rate_dis', type=float, default=5e-6, help='Learning rate')
     parser.add_argument('--dropout', type=bool, default=True, help='Learning rate')
     parser.add_argument('--max_training_minutes', type=int, default=2760,
                         help='After which process is killed automatically')
@@ -225,17 +229,18 @@ def parse():
     parser.add_argument('--embedder', default="EmptyEmbedder", type=str, help="name of objectclass")
     parser.add_argument('--discriminator', default="PatchDiscriminator", type=str, help="name of objectclass")
     parser.add_argument('--generator', default="UNetGenerator", type=str, help="name of objectclass")
-    parser.add_argument('--n_hidden', type=int, default=24, help='features in the first hidden layer')
+    parser.add_argument('--n_hidden_gen', type=int, default=64, help='features in the first hidden layer')
+    parser.add_argument('--n_hidden_dis', type=int, default=24, help='features in the first hidden layer')
 
     # optimizer arguments
-    parser.add_argument('--discriminator_optimizer', default="SGD", type=str, help="name of objectclass")
+    parser.add_argument('--discriminator_optimizer', default="Adam", type=str, help="name of objectclass")
     parser.add_argument('--generator_optimizer', default="Adam", type=str, help="name of objectclass")
     parser.add_argument('--embedder_optimizer', default="Adam", type=str, help="name of objectclass")
 
     # loss arguments
     parser.add_argument('--loss_gen', default=TOTAL_LOSS, type=str,
                         help="Overwrites hyperparams generatorloss if not total")
-    parser.add_argument('--loss_dis', default="DefaultDLoss", type=str, help="name of objectclass")
+    parser.add_argument('--loss_dis', default="HingeAdverserialDLoss", type=str, help="name of objectclass")
 
     # hyperparams generatorloss  (-1 === DEFAULT)
     parser.add_argument('--NonSaturatingGLoss_weight', default=-1, type=float,
@@ -252,13 +257,13 @@ def parse():
                         help="weight hyperparameter for specific generatorloss")
 
     # hyperparams discriminatorcap
-    parser.add_argument('--DiscAccCap', default=0.9, type=float,
+    parser.add_argument('--DiscAccCap', default=0.85, type=float,
                         help="cap the discriminator accuracy at input value")
 
     # data arguments
     parser.add_argument('--batch_size', type=int, default=DEBUG_BATCH_SIZE, help='Batch size to run trainer.')
     parser.add_argument('--batch-size-plotting', type=int, default=DEBUG_BATCH_SIZE, help='Batch size to run plotting.')
-    parser.add_argument('--n-videos-limit', type=int, default=10,
+    parser.add_argument('--n-videos-limit', type=int, default=None,
                         help='Limit the dataset to the first N videos. Use None to use all videos.')
 
     return parser.parse_args()
