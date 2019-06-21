@@ -48,6 +48,7 @@ class UNetGenerator(GeneralGenerator):
                                      bias=use_bias)]
             block_down += [nn.InstanceNorm2d(n_hidden * mult_ch * 2)]
             block_down += [nn.LeakyReLU(0.2, inplace=True)]
+            block_down += [nn.Dropout2d(0.3)]
             self.layers += [nn.Sequential(*block_down)]
 
         mult_ch = 2 ** n_downsampling
@@ -64,6 +65,7 @@ class UNetGenerator(GeneralGenerator):
                                    output_padding=1 if (i == 0 or i == 1 or i == 3) else 0, bias=use_bias)]
             block_up += [nn.InstanceNorm2d(int(n_hidden * mult_ch / 2))]
             block_up += [nn.LeakyReLU(0.2, inplace=True)]
+            block_up += [nn.Dropout2d(0.3)]
             self.layers += [nn.Sequential(*block_up)]
 
         # Add output block layers
