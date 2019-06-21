@@ -103,7 +103,10 @@ def main(arguments):
                                      device=DEVICE,
                                      n_channels_in=INPUT_SIZE,
                                      use_dropout=arguments.dropout,
-                                     n_hidden=arguments.n_hidden_gen).to(DEVICE)
+                                     n_hidden=arguments.n_hidden_gen,
+                                     n_layers=2).to(DEVICE)
+
+    print(discriminator)
 
     # get models
     if arguments.pretrained:
@@ -230,7 +233,7 @@ def parse():
     parser.add_argument('--n_hidden_dis', type=int, default=24, help='features in the first hidden layer')
 
     # optimizer arguments
-    parser.add_argument('--discriminator_optimizer', default="SGD", type=str, help="name of objectclass")
+    parser.add_argument('--discriminator_optimizer', default="Adam", type=str, help="name of objectclass")
     parser.add_argument('--generator_optimizer', default="Adam", type=str, help="name of objectclass")
     parser.add_argument('--embedder_optimizer', default="Adam", type=str, help="name of objectclass")
 
@@ -242,7 +245,7 @@ def parse():
     # hyperparams generatorloss  (-1 === DEFAULT)
     parser.add_argument('--NonSaturatingGLoss_weight', default=-1, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--PixelLoss_weight', default=-1, type=float,
+    parser.add_argument('--PixelLoss_weight', default=50, type=float,
                         help="weight hyperparameter for specific generatorloss")
     parser.add_argument('--PerceptualLoss_weight', default= -1, type=float,
                         help="weight hyperparameter for specific generatorloss")
