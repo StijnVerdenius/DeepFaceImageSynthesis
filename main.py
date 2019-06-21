@@ -104,9 +104,8 @@ def main(arguments):
                                      n_channels_in=INPUT_SIZE,
                                      use_dropout=arguments.dropout,
                                      n_hidden=arguments.n_hidden_gen,
-                                     n_layers=2).to(DEVICE)
+                                     n_layers=3).to(DEVICE)
 
-    print(discriminator)
 
     # get models
     if arguments.pretrained:
@@ -202,7 +201,7 @@ def parse():
     parser.add_argument('--device', default="cuda", type=str, help='device')
     parser.add_argument('--mode', default="train", type=str, help="'train', 'test' or 'finetune'")
     parser.add_argument('--learning_rate_gen', type=float, default=2e-4, help='Learning rate')
-    parser.add_argument('--learning_rate_dis', type=float, default=5e-6, help='Learning rate')
+    parser.add_argument('--learning_rate_dis', type=float, default=2e-4, help='Learning rate')
     parser.add_argument('--dropout', type=bool, default=True, help='Learning rate')
     parser.add_argument('--max_training_minutes', type=int, default=2760,
                         help='After which process is killed automatically')

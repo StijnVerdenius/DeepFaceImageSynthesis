@@ -92,7 +92,7 @@ def get_network(network_path: str, use_network: bool, device: str) -> Optional:
     if use_network:
         with (open(network_path, 'rb')) as openfile:
             weights = pickle.load(openfile)
-        network = Generator(n_hidden=24, use_dropout=False)
+        network = Generator(n_hidden=24, use_dropout=True)
         network.load_state_dict(weights['generator'])
         network = network.to(device)
     else:
