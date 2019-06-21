@@ -258,7 +258,7 @@ def parse():
     # data arguments
     parser.add_argument('--batch_size', type=int, default=DEBUG_BATCH_SIZE, help='Batch size to run trainer.')
     parser.add_argument('--batch-size-plotting', type=int, default=DEBUG_BATCH_SIZE, help='Batch size to run plotting.')
-    parser.add_argument('--n-videos-limit', type=int, default=10,
+    parser.add_argument('--n-videos-limit', type=int, default=None,
                         help='Limit the dataset to the first N videos. Use None to use all videos.')
 
     return parser.parse_args()
