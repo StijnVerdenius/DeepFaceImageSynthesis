@@ -105,7 +105,7 @@ def _load_pts_file(file_path: Path) -> np.ndarray:
 
 
 def _rescale_image(image: np.ndarray) -> np.ndarray:
-    output_width, output_height = constants.IMSIZE, constants.IMSIZE
+    output_width, output_height = constants.DATASET_300VW_IMSIZE, constants.DATASET_300VW_IMSIZE
     _, _, n_channels = image.shape
     image = cv2.resize(
         image,
