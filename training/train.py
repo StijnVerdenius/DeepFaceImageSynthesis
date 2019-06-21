@@ -141,11 +141,11 @@ class TrainingProcess:
         predictions_fake = self.discriminator.forward(landmarked_fake.detach())
 
 
-        if self.arguments.loss_diss == "DefaultDLoss":
+        if self.arguments.loss_dis == "DefaultDLoss":
             predictions = torch.cat((predictions_fake, predictions_true), dim=0)
             loss_dis, loss_dis_saving = self.loss_dis.forward(predictions, usable_labels)
 
-        elif self.arguments.loss_diss == "HingeAdverserialDLoss":
+        elif self.arguments.loss_dis == "HingeAdverserialDLoss":
             loss_dis, loss_dis_saving = self.loss_dis.forward(predictions_true, predictions_fake)
 
 
