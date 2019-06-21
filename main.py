@@ -126,15 +126,15 @@ def main(arguments):
         # init optimizers
         generator_optimizer = find_right_model(OPTIMS, arguments.generator_optimizer,
                                                params=generator.parameters(),
-                                               lr=arguments.learning_rate
+                                               lr=arguments.learning_rate_gen
                                                )
         discriminator_optimizer = find_right_model(OPTIMS, arguments.discriminator_optimizer,
                                                    params=discriminator.parameters(),
-                                                   lr=arguments.learning_rate)
+                                                   lr=arguments.learning_rate_dis)
 
         embedder_optimizer = find_right_model(OPTIMS, arguments.embedder_optimizer,
                                               params=embedder.parameters(),
-                                              lr=arguments.learning_rate)
+                                              lr=arguments.learning_rate_gen)
         # define loss functions
         if (not arguments.loss_gen == TOTAL_LOSS):
             print(
@@ -198,7 +198,8 @@ def parse():
     parser.add_argument('--saving_freq', type=int, default=1, help='Frequency (epoch-wise) of saving models')
     parser.add_argument('--device', default="cuda", type=str, help='device')
     parser.add_argument('--mode', default="train", type=str, help="'train', 'test' or 'finetune'")
-    parser.add_argument('--learning_rate', type=float, default=2e-4, help='Learning rate')
+    parser.add_argument('--learning_rate_gen', type=float, default=2e-4, help='Learning rate')
+    parser.add_argument('--learning_rate_dis', type=float, default=5e-6, help='Learning rate')
     parser.add_argument('--dropout', type=bool, default=True, help='Learning rate')
     parser.add_argument('--max_training_minutes', type=int, default=2760,
                         help='After which process is killed automatically')
@@ -252,7 +253,7 @@ def parse():
                         help="weight hyperparameter for specific generatorloss")
 
     # hyperparams discriminatorcap
-    parser.add_argument('--DiscAccCap', default=0.9, type=float,
+    parser.add_argument('--DiscAccCap', default=0.85, type=float,
                         help="cap the discriminator accuracy at input value")
 
     # data arguments
