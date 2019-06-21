@@ -136,11 +136,18 @@ class TrainingProcess:
         landmarked_fake = landmarked_fake.detach()
 
         # forward pass discriminator
+
         predictions_true = self.discriminator.forward(landmarked_truth.detach())
         predictions_fake = self.discriminator.forward(landmarked_fake.detach())
-        predictions = torch.cat((predictions_fake, predictions_true), dim=0)
 
-        loss_dis, loss_dis_saving = self.loss_dis.forward(predictions, usable_labels)
+
+        if self.arguments.loss_diss == "DefaultDLoss":
+            predictions = torch.cat((predictions_fake, predictions_true), dim=0)
+            loss_dis, loss_dis_saving = self.loss_dis.forward(predictions, usable_labels)
+
+        elif self.arguments.loss_diss == "HingeAdverserialDLoss":
+            loss_dis, loss_dis_saving = self.loss_dis.forward(predictions_true, predictions_fake)
+
 
         if (train):
 

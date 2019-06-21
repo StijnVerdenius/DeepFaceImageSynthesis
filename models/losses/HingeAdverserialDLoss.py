@@ -12,12 +12,9 @@ class HingeAdverserialDLoss(GeneralLoss):
         super(HingeAdverserialDLoss, self).__init__(weight)
         self.zero = torch.zeros((1)).to(DEVICE)
 
-    def custom_forward(self, combined: torch.Tensor, *args) \
+    def custom_forward(self, real_scores: torch.Tensor, fake_scores: torch.Tensor, *args) \
             -> torch.Tensor:
-        split_index = combined.shape[0] // 2
 
-        fake_scores = combined[:split_index]
-        real_scores = combined[split_index:]
 
         loss = - torch.min(self.zero, -1 + fake_scores).mean() - \
                torch.min(self.zero, -real_scores - 1).mean()
