@@ -170,7 +170,7 @@ class TrainingProcess:
 
         return loss_gen_saving, loss_dis_saving, fake, accuracy_discriminator
 
-    def epoch_iteration(self, epoch_num: int) -> List[Statistic]:
+    def epoch_iteration(self, epoch_num: int, accuracy_discriminator:float = 0) -> List[Statistic]:
         """
         one epoch implementation
 
@@ -181,7 +181,7 @@ class TrainingProcess:
         for i, (batch_1, batch_2, batch_3) in enumerate(self.dataloader_train):
 
             # run batch iteration
-            loss_gen, loss_dis, fake_images, accuracy_discriminator = self.batch_iteration(batch_1, batch_2, batch_3)
+            loss_gen, loss_dis, fake_images, accuracy_discriminator = self.batch_iteration(batch_1, batch_2, batch_3, accuracy_discriminator=accuracy_discriminator)
 
             # assertions
             assert_type(dict, loss_gen)
