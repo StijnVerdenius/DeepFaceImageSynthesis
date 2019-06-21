@@ -27,8 +27,8 @@ def landmarks_to_box(
 
     # landmarks can be out of image, but that's okay, we'll still export them.
     image_height, image_width, _ = image_size
-    # // 2 returns numpy float but we need ints
-    center_x, center_y = int((x1 + x2) / 2), int((y1 + y2) / 2)
+    center_x = int(landmarks[constants.DATASET_300VW_CENTER_LANDMARK_INDEX, 0])
+    center_y = int(landmarks[constants.DATASET_300VW_CENTER_LANDMARK_INDEX, 1])
     box_radius = min(
         box_radius, center_x, center_y, image_width - center_x, image_height - center_y
     )

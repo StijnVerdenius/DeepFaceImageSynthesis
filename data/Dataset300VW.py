@@ -50,10 +50,10 @@ class X300VWDataset(Dataset):
             for video_path in self._all_videos
             if video_path.stem in mode.value
         ]
-        if len(mode.value) != len(filtered_list):
-            raise Exception(
-                f'Videos are missing from dataset. Should have the following: {mode.value}'
-            )
+        # if len(mode.value) != len(filtered_list):
+        #     raise Exception(
+        #         f'Videos are missing from dataset. Should have the following: {mode.value}'
+        #     )
         return filtered_list
 
     def _load_all_landmarks(self) -> List[np.ndarray]:

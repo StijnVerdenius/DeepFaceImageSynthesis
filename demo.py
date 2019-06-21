@@ -285,7 +285,9 @@ def parse():
     parser.add_argument('--device', default='cuda', type=str)
     parser.add_argument('--no-use-mirror', dest='use_mirror', action='store_false')
     parser.add_argument('--predictor-path', type=str, default=1.0)
-    parser.add_argument('--image-to-box-size', dest='image_to_box_size', action='store_true')
+    parser.add_argument(
+        '--image-to-box-size', dest='image_to_box_size', action='store_true'
+    )
     parser.add_argument(
         '--from-image-path', type=str, default='./data/local_data/0.jpg'
     )

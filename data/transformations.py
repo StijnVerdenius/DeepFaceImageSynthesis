@@ -177,8 +177,8 @@ def _test_augmentations():
     transform = transforms.Compose(
         [
             RandomHorizontalFlip(probability=1),
-            RandomRescale(probability=1),
-            RandomCrop(probability=1),
+            # RandomRescale(probability=1),
+            # RandomCrop(probability=1),
             Resize(),
             RescaleValues(),
             ChangeChannels(),
@@ -250,5 +250,5 @@ def _test_values(batch_size: int = 32, n_videos_limit: Optional[int] = None) -> 
 
 
 if __name__ == '__main__':
-    # _test_augmentations()
-    _test_values()
+    _test_augmentations()
+    # _test_values()
