@@ -232,7 +232,7 @@ def parse():
     parser.add_argument('--n_hidden_dis', type=int, default=24, help='features in the first hidden layer')
 
     # optimizer arguments
-    parser.add_argument('--discriminator_optimizer', default="Adam", type=str, help="name of objectclass")
+    parser.add_argument('--discriminator_optimizer', default="SGD", type=str, help="name of objectclass")
     parser.add_argument('--generator_optimizer', default="Adam", type=str, help="name of objectclass")
     parser.add_argument('--embedder_optimizer', default="Adam", type=str, help="name of objectclass")
 
