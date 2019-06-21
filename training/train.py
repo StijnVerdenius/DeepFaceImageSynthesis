@@ -296,13 +296,12 @@ class TrainingProcess:
                          loss_dis_train_dict=loss_dis_dict,
                          dis_acc=discriminator_accuracy)
 
-        # print in-place with 3 decimals
+        # print
         print(
-            f"\r",
+            f"",
             f"batch: {batches_passed}/{len(self.dataloader_train)}",
             f"|\t {stat}",
-            f"details: {loss_gen_dict}",
-            end='')
+            f"details: {loss_gen_dict}")
 
         # define training statistic
         return stat
