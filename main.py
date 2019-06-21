@@ -33,7 +33,7 @@ def dummy_batch(batch_size, channels):
     return np.random.normal(0, 1, (batch_size, channels, IMSIZE, IMSIZE))
 
 
-def load_data(keyword: str, batch_size: int, mode: str, n_videos_limit: Optional[int]) -> DataLoader:  # todo @ klaus
+def load_data(keyword: str, batch_size: int, mode: str, n_videos_limit: Optional[int]) -> DataLoader:
 
     data = None
 
