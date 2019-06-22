@@ -17,7 +17,10 @@ def ensure_current_directory():
     """
 
     current_dir = os.getcwd()
-    os.chdir(current_dir.split("DeepFakes")[0] + "DeepFakes/")
+    default_name = "DeepFakes"
+    base_name = default_name if default_name in current_dir else "5204PRAI6Y-project-ai"
+    os.chdir(current_dir.split(base_name )[0] + base_name + "/")
+
 
 
 def setup_directories():
