@@ -12,7 +12,8 @@ from tqdm import tqdm
 import _pickle as pickle
 import cv2
 from data import transformations
-from models.generators.ResnetGenerator import ResnetGenerator as Generator
+# from models.generators.ResnetGenerator import ResnetGenerator as Generator
+from models.generators.UNetGenerator import UNetGenerator as Generator
 from utils import constants, data_utils, general_utils, personal_constants
 
 ESCAPE_KEY_CODE = 27
