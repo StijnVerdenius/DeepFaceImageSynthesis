@@ -56,7 +56,8 @@ def load_data(keyword: str, batch_size: int, mode: str, n_videos_limit: Optional
         ]
     )
 
-    shuffle = keyword == "train"
+    # shuffle = keyword == "train"
+    shuffle = False
 
     if keyword == "train" or keyword == "validate":
         data = DataLoader(X300VWDataset(dataset_mode, transform=transform, n_videos_limit=n_videos_limit),
@@ -104,7 +105,7 @@ def main(arguments):
                                      n_channels_in=INPUT_SIZE,
                                      use_dropout=arguments.dropout,
                                      n_hidden=arguments.n_hidden_gen,
-                                     n_layers=2).to(DEVICE)
+                                     n_layers=3).to(DEVICE)
 
 
     # get models
@@ -201,7 +202,7 @@ def parse():
     parser.add_argument('--device', default="cuda", type=str, help='device')
     parser.add_argument('--mode', default="train", type=str, help="'train', 'test' or 'finetune'")
     parser.add_argument('--learning_rate_gen', type=float, default=2e-4, help='Learning rate')
-    parser.add_argument('--learning_rate_dis', type=float, default=1e-5, help='Learning rate')
+    parser.add_argument('--learning_rate_dis', type=float, default=2e-5, help='Learning rate')
     parser.add_argument('--dropout', type=bool, default=True, help='Learning rate')
     parser.add_argument('--max_training_minutes', type=int, default=2760,
                         help='After which process is killed automatically')

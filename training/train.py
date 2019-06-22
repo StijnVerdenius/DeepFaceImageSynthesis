@@ -17,8 +17,9 @@ import numpy as np
 from datetime import datetime
 import sys
 import os
-from tensorboardX import SummaryWriter  ####### TESTING tensorboard
+from tensorboardX import SummaryWriter
 from utils.personal_constants import WRITER_DIRECTORY
+import matplotlib.pyplot as plt
 
 class TrainingProcess:
 
@@ -107,12 +108,14 @@ class TrainingProcess:
             self.trainer_gen.prepare_training()
             self.trainer_dis.prepare_evaluation()
 
+
         # forward pass generator
         loss_gen, loss_gen_saving, fake, landmarked_fake, landmarked_truth = self.loss_gen.forward(self.generator,
                                                                                                    self.discriminator,
                                                                                                    batch_1,
                                                                                                    batch_2,
                                                                                                    batch_3)
+
         if (train):
             # backward pass generator
             self.trainer_gen.do_backward(loss_gen)
