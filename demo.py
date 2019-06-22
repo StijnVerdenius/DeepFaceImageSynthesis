@@ -12,7 +12,7 @@ from tqdm import tqdm
 import _pickle as pickle
 import cv2
 from data import transformations
-from models.generators.ResnetGenerator import ResnetGenerator as Generator
+from models.generators import ResnetGenerator, UNetGenerator
 from utils import constants, data_utils, general_utils, personal_constants
 from utils.constants import (
     ESCAPE_KEY_CODE,
@@ -26,10 +26,18 @@ from utils.constants import (
     RECTANGLE_THICKNESS_SELECTED,
 )
 
+model_name_to_instance_settings = {
+    'model1': (ResnetGenerator.ResnetGenerator, {'n_hidden': 24, 'use_dropout': False}),
+    'hinge1': (UNetGenerator.UNetGenerator, {'n_hidden': 24, 'use_dropout': True}),
+}
+
 
 def main(arguments: argparse.Namespace) -> None:
-    network = get_network(
-        arguments.network_path, arguments.use_network, arguments.device
+    network = get_model(
+        arguments.use_model,
+        arguments.model_base_path,
+        arguments.model_name,
+        arguments.device,
     )
     detector = dlib.get_frontal_face_detector()
     predictor = dlib.shape_predictor(str(personal_constants.DLIB_PREDICTOR_PATH))
@@ -109,24 +117,29 @@ def main(arguments: argparse.Namespace) -> None:
     cv2.destroyAllWindows()
 
 
+def get_model(
+    use_model: bool, model_base_path: str, model_name: str, device: str
+) -> Optional[torch.nn.Module]:
+    if use_model:
+        model_path = Path(model_base_path) / f'{model_name}.pickle'
+        with (open(str(model_path), 'rb')) as openfile:
+            weights = pickle.load(openfile)
+
+        model_class, model_kwargs = model_name_to_instance_settings[model_name]
+        model = model_class(**model_kwargs)
+        model.load_state_dict(weights['generator'])
+        model = model.to(device)
+    else:
+        model = None
+    return model
+
+
 def image_to_batch(image: np.ndarray) -> torch.Tensor:
     return torch.from_numpy(image[np.newaxis, ...]).float()
 
 
 def image_from_batch(batch: torch.Tensor) -> torch.Tensor:
     return batch[0]
-
-
-def get_network(network_path: str, use_network: bool, device: str) -> Optional:
-    if use_network:
-        with (open(network_path, 'rb')) as openfile:
-            weights = pickle.load(openfile)
-        network = Generator(n_hidden=24, use_dropout=False)
-        network.load_state_dict(weights['generator'])
-        network = network.to(device)
-    else:
-        network = None
-    return network
 
 
 def show_image(
@@ -279,31 +292,36 @@ def extract(image: np.ndarray, landmarks) -> np.ndarray:
 def parse():
     parser = argparse.ArgumentParser()
 
+    # camera
     parser.add_argument('--webcam', default=0, type=int)
-    parser.add_argument('--mirror', type=bool, default=False)
-    parser.add_argument('--no-use-network', dest='use_network', action='store_false')
-    parser.add_argument('--device', default='cuda', type=str)
     parser.add_argument('--no-use-mirror', dest='use_mirror', action='store_false')
-    parser.add_argument('--predictor-path', type=str, default=1.0)
-    parser.add_argument(
-        '--image-to-box-size', dest='image_to_box_size', action='store_true'
-    )
+
+    # image
     parser.add_argument(
         '--from-image-path', type=str, default='./data/local_data/0.jpg'
     )
     parser.add_argument(
-        '--network-path', type=str, default='./data/local_data/weights.pickle'
+        '--image-to-box-size', dest='image_to_box_size', action='store_true'
     )
+
+    # model
+    parser.add_argument('--predictor-path', type=str, default=1.0)
+    parser.add_argument('--no-use-model', dest='use_model', action='store_false')
+    parser.add_argument('--device', default='cuda', type=str)
+    parser.add_argument(
+        '--model-base-path', type=str, default='./data/local_data/eval/'
+    )
+    parser.add_argument('--model-name', type=str, default='model1')
 
     return parser.parse_args()
 
 
 if __name__ == '__main__':
     print(
-        # 'cuda_version:',
-        # torch.version.cuda,
-        # 'pytorch version:',
-        # torch.__version__,
+        'cuda_version:',
+        torch.version.cuda,
+        'pytorch version:',
+        torch.__version__,
         'python version:',
         sys.version,
     )
