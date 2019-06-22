@@ -56,8 +56,7 @@ def load_data(keyword: str, batch_size: int, mode: str, n_videos_limit: Optional
         ]
     )
 
-    # shuffle = keyword == "train"
-    shuffle = False
+    shuffle = keyword == "train"
 
     if keyword == "train" or keyword == "validate":
         data = DataLoader(X300VWDataset(dataset_mode, transform=transform, n_videos_limit=n_videos_limit),
@@ -245,15 +244,15 @@ def parse():
     # hyperparams generatorloss  (-1 === DEFAULT)
     parser.add_argument('--NonSaturatingGLoss_weight', default=-1, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--PixelLoss_weight', default=50, type=float,
+    parser.add_argument('--PixelLoss_weight', default=-1, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--PerceptualLoss_weight', default= -1, type=float,
+    parser.add_argument('--PerceptualLoss_weight', default= 0, type=float,
                         help="weight hyperparameter for specific generatorloss")
     parser.add_argument('--ConsistencyLoss_weight', default=-1, type=float,
                         help="weight hyperparameter for specific generatorloss")
     parser.add_argument('--TripleConsistencyLoss_weight', default=-1, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--IdLoss_weight', default=-1, type=float,
+    parser.add_argument('--IdLoss_weight', default= 0, type=float,
                         help="weight hyperparameter for specific generatorloss")
 
     # hyperparams discriminatorcap
