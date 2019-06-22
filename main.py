@@ -104,7 +104,7 @@ def main(arguments):
                                      n_channels_in=INPUT_SIZE,
                                      use_dropout=arguments.dropout,
                                      n_hidden=arguments.n_hidden_gen,
-                                     n_layers=3).to(DEVICE)
+                                     n_layers=2).to(DEVICE)
 
 
     # get models
