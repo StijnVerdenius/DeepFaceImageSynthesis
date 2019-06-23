@@ -72,8 +72,7 @@ def load_data(keyword: str, batch_size: int, mode: str, n_videos_limit: Optional
     shuffle = keyword == "train"
 
     if keyword == "train" or keyword == "validate":
-        data = DataLoader(dataset,
-                          shuffle=shuffle, batch_size=batch_size, drop_last=True)
+        data = DataLoader(dataset, shuffle=shuffle, batch_size=batch_size, drop_last=True)
     elif keyword == "debug":
         data = [(dummy_batch(batch_size, INPUT_CHANNELS), dummy_batch(batch_size, INPUT_LANDMARK_CHANNELS)) for _ in
                 range(5)]
