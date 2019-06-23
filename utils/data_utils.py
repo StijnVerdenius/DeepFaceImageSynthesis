@@ -88,7 +88,7 @@ def single_to_multi_dim_landmarks(
 @lru_cache()
 def _landmark_to_channel(x_1: int, y_1: int, image_size: int) -> np.ndarray:
     landmark_channel = np.zeros((image_size, image_size))
-    start_indices_landmarks = np.asarray([x_1, y_1], dtype=int)
+    start_indices_landmarks = np.asarray([int(x_1), int(y_1)])
     start_indices_landmarks -= constants.DATASET_300VW_WINDOW_RADIUS_GAUSSIAN
 
     end_indices_landmarks = (
