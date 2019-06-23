@@ -20,7 +20,6 @@ from utils.constants import (
     LANDMARK_RADIUS_OTHER,
     LANDMARK_RADIUS_SELECTED,
     LANDMARK_THICKNESS,
-    ORIGINAL_IMAGE_BOX,
     RECTANGLE_COLOR,
     RECTANGLE_THICKNESS_OTHER,
     RECTANGLE_THICKNESS_SELECTED,
@@ -61,31 +60,29 @@ def main(arguments: argparse.Namespace) -> None:
     for t in transform_to_input:
         from_image = t(from_image)
 
-    base_image_path = from_image_path.parent / (
-        from_image_path.stem + '_base' + from_image_path.suffix
-    )
-    base_image = cv2.imread(str(base_image_path))
-    if arguments.image_to_box_size:
-        rescale_factor_x = constants.IMSIZE / (
-            ORIGINAL_IMAGE_BOX[2] - ORIGINAL_IMAGE_BOX[0]
-        )
-        rescale_factor_y = constants.IMSIZE / (
-            ORIGINAL_IMAGE_BOX[3] - ORIGINAL_IMAGE_BOX[1]
-        )
+    if arguments.use_outer_image:
+        outer_image = cv2.imread(arguments.outer_image_path)
+    else:
+        outer_image = None
+
+    ORIGINAL_IMAGE_BOX = (arguments.x1, arguments.y1, arguments.x2, arguments.y2)
+    if arguments.use_outer_image and arguments.image_to_box_size:
+        rescale_factor_x = constants.IMSIZE / (arguments.x2 - arguments.x1)
+        rescale_factor_y = constants.IMSIZE / (arguments.y2 - arguments.y1)
         base_image_box = [
-            ORIGINAL_IMAGE_BOX[0] * rescale_factor_x,
-            ORIGINAL_IMAGE_BOX[1] * rescale_factor_y,
-            ORIGINAL_IMAGE_BOX[2] * rescale_factor_x,
-            ORIGINAL_IMAGE_BOX[3] * rescale_factor_y,
+            arguments.x1 * rescale_factor_x,
+            arguments.y1 * rescale_factor_y,
+            arguments.x2 * rescale_factor_x,
+            arguments.y2 * rescale_factor_y,
         ]
         base_image_box = [int(bib) for bib in base_image_box]
-        target_height, target_width, _ = base_image.shape
+        target_height, target_width, _ = outer_image.shape
         target_height, target_width = (
             int(target_height * rescale_factor_y),
             int(target_width * rescale_factor_x),
         )
-        base_image = cv2.resize(
-            base_image,
+        outer_image = cv2.resize(
+            outer_image,
             dsize=(target_width, target_height),
             interpolation=constants.INTERPOLATION,
         )
@@ -105,7 +102,7 @@ def main(arguments: argparse.Namespace) -> None:
             from_image,
             arguments.device,
             transform_from_input,
-            base_image,
+            outer_image,
             base_image_box,
         )
         bar.update(1)
@@ -203,42 +200,6 @@ def show_image(
     return n_rectangles
 
 
-def display_output_image(
-    image: np.ndarray,
-    base_image: np.ndarray,
-    landmarks,
-    device: str,
-    from_image: torch.Tensor,
-    transform_from_input: List[Callable],
-    transform_to_input: List[Callable],
-    base_image_box: Tuple[int, int, int, int],
-):
-    single_dim_landmarks = extract(image, landmarks)
-    multi_dim_landmarks = data_utils.single_to_multi_dim_landmarks(
-        single_dim_landmarks, constants.DATASET_300VW_IMSIZE
-    )
-    for t in transform_to_input:
-        multi_dim_landmarks = t(multi_dim_landmarks)
-    output = torch.cat(
-        (from_image, multi_dim_landmarks.to(device)), dim=constants.CHANNEL_DIM
-    )
-    for t in transform_from_input:
-        output = t(output)
-    target_width = base_image_box[2] - base_image_box[0]
-    target_height = base_image_box[3] - base_image_box[1]
-    output = cv2.resize(
-        output,
-        dsize=(target_width, target_height),
-        interpolation=constants.INTERPOLATION,
-    )
-    base_image[
-        base_image_box[1] : base_image_box[3],
-        base_image_box[0] : base_image_box[2],
-        ...,
-    ] = output
-    cv2.imshow('merged', base_image)
-
-
 def display_webcam_image(image, predictor, bounding_boxes, selected_bounding_box_index):
     display_image = np.copy(image)
     dlib_landmarks = [
@@ -275,6 +236,50 @@ def display_webcam_image(image, predictor, bounding_boxes, selected_bounding_box
     cv2.imshow('display_image', display_image)
 
 
+def display_output_image(
+    image: np.ndarray,
+    outer_image: Optional[np.ndarray],
+    landmarks,
+    device: str,
+    from_image: torch.Tensor,
+    transform_from_input: List[Callable],
+    transform_to_input: List[Callable],
+    base_image_box: Tuple[int, int, int, int],
+):
+    single_dim_landmarks = extract(image, landmarks)
+    multi_dim_landmarks = data_utils.single_to_multi_dim_landmarks(
+        single_dim_landmarks, constants.DATASET_300VW_IMSIZE
+    )
+    for t in transform_to_input:
+        multi_dim_landmarks = t(multi_dim_landmarks)
+
+    output = torch.cat(
+        (from_image, multi_dim_landmarks.to(device)), dim=constants.CHANNEL_DIM
+    )
+
+    for t in transform_from_input:
+        output = t(output)
+
+    if outer_image is None:
+        outer_image = output
+    else:
+        target_width = base_image_box[2] - base_image_box[0]
+        target_height = base_image_box[3] - base_image_box[1]
+        output = cv2.resize(
+            output,
+            dsize=(target_width, target_height),
+            interpolation=constants.INTERPOLATION,
+        )
+
+        outer_image[
+            base_image_box[1] : base_image_box[3],
+            base_image_box[0] : base_image_box[2],
+            ...,
+        ] = output
+
+    cv2.imshow('merged', outer_image)
+
+
 def extract(image: np.ndarray, landmarks) -> np.ndarray:
     assert len(landmarks) == constants.DATASET_300VW_N_LANDMARKS
     image_landmarks = np.asarray([(lm.x, lm.y) for lm in landmarks], dtype=float)
@@ -302,11 +307,20 @@ def parse():
         '--from-image-path', type=str, default='./data/local_data/0.jpg'
     )
     parser.add_argument(
+        '--use-outer-image', dest='use_outer_image', action='store_true'
+    )
+    parser.add_argument(
+        '--outer-image-path', type=str, default='./data/local_data/0_base.jpg'
+    )
+    parser.add_argument(
         '--image-to-box-size', dest='image_to_box_size', action='store_true'
     )
+    parser.add_argument('--x1', default=671, type=int)
+    parser.add_argument('--y1', default=95, type=int)
+    parser.add_argument('--x2', default=949, type=int)
+    parser.add_argument('--y2', default=373, type=int)
 
     # model
-    parser.add_argument('--predictor-path', type=str, default=1.0)
     parser.add_argument('--no-use-model', dest='use_model', action='store_false')
     parser.add_argument('--device', default='cuda', type=str)
     parser.add_argument(

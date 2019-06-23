@@ -60,8 +60,6 @@ LANDMARK_RADIUS_SELECTED = 3
 LANDMARK_RADIUS_OTHER = 1
 LANDMARK_THICKNESS = -1
 # negative thickness means fill
-ORIGINAL_IMAGE_BOX = (671, 95, 949, 373)
-
 
 # dataset
 def _precompute_gaussian(
