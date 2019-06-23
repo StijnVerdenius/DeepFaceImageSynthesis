@@ -1,5 +1,6 @@
 from typing import Callable, List, Optional
 
+import cv2
 from torchvision import transforms
 
 from data import plot
@@ -73,11 +74,11 @@ class RandomRescale:
 
 class RandomCrop:
     def __init__(
-        self, probability: float = 1/3, scales: Optional[List[float]] = None
+        self, probability: float = 1 / 3, scales: Optional[List[float]] = None
     ):
         self._probability = probability
         if scales is None:
-            scales = [0.5, 0.6, 0.7, 0.8, 0.9]
+            scales = [0.8, 0.9, 0.95]
         self._scales = scales
 
     def __call__(
@@ -116,11 +117,31 @@ class Resize:
 
     @staticmethod
     def _f(value: np.ndarray, *args) -> np.ndarray:
-        return cv2.resize(
-            value,
-            (constants.IMSIZE, constants.IMSIZE),
-            interpolation=constants.INTERPOLATION,
-        )
+        # sometimes there's an assertion error if we use cv2 directly for the landmarks with cv2.INTER_AREA
+        # this interpolation seems to be the best though for our use case
+        # this might be because cv2 only cares about images, not general numpy arrays
+        # https://github.com/opencv/opencv/issues/14770
+        width, height, n_channels = value.shape
+        if width == height == constants.IMSIZE:
+            return value
+        elif n_channels <= 3:
+            return cv2.resize(
+                value,
+                (constants.IMSIZE, constants.IMSIZE),
+                interpolation=constants.INTERPOLATION,
+            )
+        else:
+            # this is faster than numpy indexing! tested with time measurements
+            channel_list = []
+            channels = cv2.split(value)
+            for channel in channels:
+                new_channel = cv2.resize(
+                    channel,
+                    (constants.IMSIZE, constants.IMSIZE),
+                    interpolation=constants.INTERPOLATION,
+                )
+                channel_list.append(new_channel)
+            return cv2.merge(channel_list)
 
 
 class RescaleValues:
@@ -240,17 +261,15 @@ def _test_values(batch_size: int = 32, n_videos_limit: Optional[int] = None) -> 
                 image.shape == image_target_shape
             ), f'image shape should be {image_target_shape} but is {image.shape}'
             assert torch.isfinite(image).all() and not torch.isnan(image).any()
-            assert -1 <= image.min() <= image.max() <= 1, image[
-                (image < -1) | (image > 1)
-            ]
+            assert (image >= -1).all() and (image <= 1).all()
 
             assert (
                 landmarks.shape == landmarks_target_shape
             ), f'landmarks shape should be {landmarks_target_shape} but is {landmarks.shape}'
             assert torch.isfinite(landmarks).all() and not torch.isnan(landmarks).any()
-            # assert -1 <= landmarks.min() <= landmarks.max() <= 1, landmarks[(landmarks < 0) | (landmarks > 1)]
+            # assert (landmarks >= -1).all() and (landmarks <= 1).all()
 
 
 if __name__ == '__main__':
-    # _test_augmentations()
-    _test_values()
+    _test_augmentations()
+    # _test_values()

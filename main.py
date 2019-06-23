@@ -23,6 +23,7 @@ from testing.test import compare
 import torch.optim as opt
 import torch
 from data.Dataset300VW import X300VWDataset
+from data.DatasetPerson import PersonDataset
 import numpy as np
 import sys
 
@@ -33,34 +34,44 @@ def dummy_batch(batch_size, channels):
     return np.random.normal(0, 1, (batch_size, channels, IMSIZE, IMSIZE))
 
 
-def load_data(keyword: str, batch_size: int, mode: str, n_videos_limit: Optional[int]) -> DataLoader:
+def load_data(keyword: str, batch_size: int, mode: str, n_videos_limit: Optional[int],
+              use_person_dataset: bool, person: str) -> DataLoader:
 
     data = None
-
-    if mode == "test":
-        dataset_mode = Dataset300VWMode.TEST_1
-    elif keyword == "train":
-        dataset_mode = Dataset300VWMode.TRAIN
-    elif keyword == "validate":
-        dataset_mode = Dataset300VWMode.TEST_3
-    else:
-        raise Exception("Unknown dataset_mode")
 
     transform = transforms.Compose(
         [
             transformations.RandomHorizontalFlip(),
-            # transformations.RandomCrop(probability=0.5),
             transformations.Resize(),
             transformations.RescaleValues(),
             transformations.ChangeChannels(),
         ]
     )
 
+    if use_person_dataset:
+        if mode == "test" or keyword == "validate":
+            dataset_mode = "test"
+        elif keyword == "train":
+            dataset_mode = "train"
+        else:
+            raise Exception("Unknown dataset_mode")
+        dataset = PersonDataset(dataset_mode, person, transform=transform, n_videos_limit=n_videos_limit)
+    else:
+        if mode == "test":
+            dataset_mode = Dataset300VWMode.TEST_1
+        elif keyword == "train":
+            dataset_mode = Dataset300VWMode.TRAIN
+        elif keyword == "validate":
+            dataset_mode = Dataset300VWMode.TEST_3
+        else:
+            raise Exception("Unknown dataset_mode")
+
+        dataset = X300VWDataset(dataset_mode, transform=transform, n_videos_limit=n_videos_limit)
+
     shuffle = keyword == "train"
 
     if keyword == "train" or keyword == "validate":
-        data = DataLoader(X300VWDataset(dataset_mode, transform=transform, n_videos_limit=n_videos_limit),
-                          shuffle=shuffle, batch_size=batch_size, drop_last=True)
+        data = DataLoader(dataset, shuffle=shuffle, batch_size=batch_size, drop_last=True)
     elif keyword == "debug":
         data = [(dummy_batch(batch_size, INPUT_CHANNELS), dummy_batch(batch_size, INPUT_LANDMARK_CHANNELS)) for _ in
                 range(5)]
@@ -81,8 +92,10 @@ def main(arguments):
     print(f"Device used = {DEVICE}")
 
     # data
-    dataloader_train = load_data("train", arguments.batch_size, arguments.mode, arguments.n_videos_limit)
-    dataloader_validate = load_data("validate", arguments.batch_size_plotting, arguments.mode, arguments.n_videos_limit)
+    dataloader_train = load_data("train", arguments.batch_size, arguments.mode, arguments.n_videos_limit,
+                                 arguments.use_person_dataset, arguments.person)
+    dataloader_validate = load_data("validate", arguments.batch_size_plotting, arguments.mode, arguments.n_videos_limit,
+                                    arguments.use_person_dataset, arguments.person)
 
 
 
@@ -97,15 +110,13 @@ def main(arguments):
                                  device=DEVICE,
                                  n_channels_in=INPUT_SIZE,
                                  use_dropout=arguments.dropout,
-                                 n_hidden=arguments.n_hidden_dis).to(DEVICE)
+                                 n_hidden=arguments.n_hidden_gen).to(DEVICE)
 
     discriminator = find_right_model(DIS_DIR, arguments.discriminator,
                                      device=DEVICE,
                                      n_channels_in=INPUT_SIZE,
                                      use_dropout=arguments.dropout,
-                                     n_hidden=arguments.n_hidden_gen,
-                                     n_layers=3).to(DEVICE)
-
+                                     n_hidden=arguments.n_hidden_dis).to(DEVICE)
 
     # get models
     if arguments.pretrained:
@@ -246,13 +257,13 @@ def parse():
                         help="weight hyperparameter for specific generatorloss")
     parser.add_argument('--PixelLoss_weight', default=-1, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--PerceptualLoss_weight', default= 0, type=float,
+    parser.add_argument('--PerceptualLoss_weight', default= -1, type=float,
                         help="weight hyperparameter for specific generatorloss")
     parser.add_argument('--ConsistencyLoss_weight', default=-1, type=float,
                         help="weight hyperparameter for specific generatorloss")
     parser.add_argument('--TripleConsistencyLoss_weight', default=-1, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--IdLoss_weight', default= 0, type=float,
+    parser.add_argument('--IdLoss_weight', default=-1, type=float,
                         help="weight hyperparameter for specific generatorloss")
 
     # hyperparams discriminatorcap
@@ -264,6 +275,8 @@ def parse():
     parser.add_argument('--batch-size-plotting', type=int, default=DEBUG_BATCH_SIZE, help='Batch size to run plotting.')
     parser.add_argument('--n-videos-limit', type=int, default=None,
                         help='Limit the dataset to the first N videos. Use None to use all videos.')
+    parser.add_argument('--use-person-dataset', type=bool, default=False)
+    parser.add_argument('--person', type=str, default='stijn')
 
     return parser.parse_args()
 
