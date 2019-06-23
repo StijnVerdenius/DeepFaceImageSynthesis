@@ -214,7 +214,7 @@ def display_output_image(
 ):
     single_dim_landmarks = extract(image, landmarks)
     multi_dim_landmarks = data_utils.single_to_multi_dim_landmarks(
-        single_dim_landmarks, constants.IMSIZE
+        single_dim_landmarks, constants.DATASET_300VW_IMSIZE
     )
     for t in transform_to_input:
         multi_dim_landmarks = t(multi_dim_landmarks)
