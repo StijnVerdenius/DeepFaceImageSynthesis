@@ -105,7 +105,10 @@ def _load_pts_file(file_path: Path) -> np.ndarray:
 
 
 def _rescale_image(image: np.ndarray) -> np.ndarray:
-    output_width, output_height = constants.IMSIZE, constants.IMSIZE
+    output_width, output_height = (
+        constants.DATASET_300VW_IMSIZE,
+        constants.DATASET_300VW_IMSIZE,
+    )
     _, _, n_channels = image.shape
     image = cv2.resize(
         image,
@@ -193,11 +196,10 @@ def process_temp_folder(all_videos: List[Path]) -> None:
 
 
 def main() -> None:
-    n_videos_limit = None
     all_videos = all_video_paths(personal_constants.DATASET_300VW_RAW_PATH)
-    assert len(all_videos) == constants.DATASET_300VW_N_VIDEOS
+    # assert len(all_videos) == constants.DATASET_300VW_N_VIDEOS
     print(f'n videos: {len(all_videos)}')
-    all_videos = all_videos[:n_videos_limit]
+    all_videos = all_videos[: constants.DATASET_300VW_LIMIT_N_VIDEOS]
     print(f'Taking first {len(all_videos)} videos!')
 
     print('Counting images...')

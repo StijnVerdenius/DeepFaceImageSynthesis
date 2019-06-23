@@ -27,8 +27,8 @@ def landmarks_to_box(
 
     # landmarks can be out of image, but that's okay, we'll still export them.
     image_height, image_width, _ = image_size
-    # // 2 returns numpy float but we need ints
-    center_x, center_y = int((x1 + x2) / 2), int((y1 + y2) / 2)
+    center_x = int(landmarks[constants.DATASET_300VW_CENTER_LANDMARK_INDEX, 0])
+    center_y = int(landmarks[constants.DATASET_300VW_CENTER_LANDMARK_INDEX, 1])
     box_radius = min(
         box_radius, center_x, center_y, image_width - center_x, image_height - center_y
     )
@@ -88,7 +88,7 @@ def single_to_multi_dim_landmarks(
 @lru_cache()
 def _landmark_to_channel(x_1: int, y_1: int, image_size: int) -> np.ndarray:
     landmark_channel = np.zeros((image_size, image_size))
-    start_indices_landmarks = np.asarray([x_1, y_1], dtype=int)
+    start_indices_landmarks = np.asarray([int(x_1), int(y_1)])
     start_indices_landmarks -= constants.DATASET_300VW_WINDOW_RADIUS_GAUSSIAN
 
     end_indices_landmarks = (

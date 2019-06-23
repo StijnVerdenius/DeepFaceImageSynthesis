@@ -12,10 +12,11 @@ from data import all_video_paths, count_images, plot
 from utils import constants, data_utils, personal_constants
 
 
-class X300VWDataset(Dataset):
+class PersonDataset(Dataset):
     def __init__(
         self,
-        mode: constants.Dataset300VWMode,
+        mode: str,
+        person: str,
         window_size_gaussian: int = 7,
         n_images_per_sample: int = 3,
         mu: float = 0.0,
@@ -23,13 +24,10 @@ class X300VWDataset(Dataset):
         transform: Optional = None,
         n_videos_limit: Optional[int] = None,
     ) -> None:
-        self._all_videos = all_video_paths(personal_constants.DATASET_300VW_OUTPUT_PATH)
-        if n_videos_limit is None:
-            self._all_videos = self._filter(mode)
-            self._all_videos = self._sort(mode)
-        else:
-            print(f'Limited dataset to first {n_videos_limit} videos!')
-            self._all_videos = self._all_videos[:n_videos_limit]
+        self._all_videos = [
+            personal_constants.DATASET_PERSON_OUTPUT_PATH / f'{person}_{mode}'
+        ]
+        print('Dataset paths:', self._all_videos)
 
         self._n_images_per_video = count_images(
             self._all_videos,
@@ -44,28 +42,6 @@ class X300VWDataset(Dataset):
         self._all_landmarks = self._load_all_landmarks()
 
         self._transform = transform
-
-    def _filter(self, mode: constants.Dataset300VWMode) -> List[Path]:
-        filtered_list = [
-            video_path
-            for video_path in self._all_videos
-            if video_path.stem in mode.value
-        ]
-        if len(mode.value) != len(filtered_list):
-            # raise Exception(
-            #     f'WARNING: Videos are missing from dataset. Should have the following:'
-            #     + f'{mode.value} but actually have {filtered_list}'
-            # )
-            print(
-                f'WARNING: Videos are missing from dataset. Should have the following:'
-                + f'{mode.value} but actually have {filtered_list}'
-            )
-        return filtered_list
-
-    def _sort(self, mode: constants.Dataset300VWMode) -> List[Path]:
-        name_to_path = {p.name: p for p in self._all_videos}
-        sorted_list = [name_to_path[video_name] for video_name in mode.value]
-        return sorted_list
 
     def _load_all_landmarks(self) -> List[np.ndarray]:
         print('Loading landmarks positions into memory...')
@@ -143,7 +119,7 @@ class X300VWDataset(Dataset):
 
 
 def _test_return() -> None:
-    dataset = X300VWDataset(constants.Dataset300VWMode.ALL)
+    dataset = PersonDataset('train', 'stijn')
     n_images = len(dataset)
     dataset_indices = np.random.randint(0, n_images, size=3)[:3]
     for batch_index, dataset_index in enumerate(dataset_indices):
@@ -169,7 +145,7 @@ def _test_return() -> None:
 def _test_random_sampling() -> None:
     from torch.utils.data import DataLoader
 
-    dataset = X300VWDataset(constants.Dataset300VWMode.ALL)
+    dataset = PersonDataset('train', 'stijn')
     dataloader = DataLoader(
         dataset, shuffle=False, batch_size=constants.DEBUG_BATCH_SIZE
     )
