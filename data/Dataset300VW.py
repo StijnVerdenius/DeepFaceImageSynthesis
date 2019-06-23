@@ -63,14 +63,8 @@ class X300VWDataset(Dataset):
         return filtered_list
 
     def _sort(self, mode: constants.Dataset300VWMode) -> List[Path]:
-        name_to_path = {
-            p.name: p
-            for p in self._all_videos
-        }
-        sorted_list = [
-            name_to_path[video_name]
-            for video_name in mode.value
-        ]
+        name_to_path = {p.name: p for p in self._all_videos}
+        sorted_list = [name_to_path[video_name] for video_name in mode.value]
         return sorted_list
 
     def _load_all_landmarks(self) -> List[np.ndarray]:

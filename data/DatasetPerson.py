@@ -121,7 +121,7 @@ class PersonDataset(Dataset):
 def _test_return() -> None:
     dataset = PersonDataset('train', 'stijn')
     n_images = len(dataset)
-    dataset_indices = np.random.randint(0, n_images, size=3)
+    dataset_indices = np.random.randint(0, n_images, size=3)[:3]
     for batch_index, dataset_index in enumerate(dataset_indices):
         batch = dataset[dataset_index]
         for sample_index, sample in enumerate(batch):
