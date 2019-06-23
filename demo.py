@@ -129,6 +129,7 @@ def get_model(
         model = model_class(**model_kwargs)
         model.load_state_dict(weights['generator'])
         model = model.to(device)
+        model.eval()
     else:
         model = None
     return model
