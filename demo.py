@@ -236,7 +236,7 @@ def parse():
         '--from-image-path', type=str, default='./data/local_data/0.jpg'
     )
     parser.add_argument(
-        '--network-path', type=str, default='./data/local_data/banana.pickle'
+        '--network-path', type=str, default='./data/local_data/Models_at_epoch_4.pickle'
     )
 
     return parser.parse_args()

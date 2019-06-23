@@ -36,7 +36,8 @@ def dummy_batch(batch_size, channels):
 def load_data(keyword: str, batch_size: int, mode: str, n_videos_limit: Optional[int]) -> DataLoader:
 
     data = None
-
+    mode = "train"
+    keyword="train"
     if mode == "test":
         dataset_mode = Dataset300VWMode.TEST_1
     elif keyword == "train":
@@ -49,7 +50,7 @@ def load_data(keyword: str, batch_size: int, mode: str, n_videos_limit: Optional
     transform = transforms.Compose(
         [
             transformations.RandomHorizontalFlip(),
-            transformations.RandomCrop(probability=0.5),
+            # transformations.RandomCrop(probability=0.5),
             transformations.Resize(),
             transformations.RescaleValues(),
             transformations.ChangeChannels(),
@@ -97,13 +98,13 @@ def main(arguments):
                                  device=DEVICE,
                                  n_channels_in=INPUT_SIZE,
                                  use_dropout=arguments.dropout,
-                                 n_hidden=arguments.n_hidden_dis).to(DEVICE)
+                                 n_hidden=arguments.n_hidden_gen).to(DEVICE)
 
     discriminator = find_right_model(DIS_DIR, arguments.discriminator,
                                      device=DEVICE,
                                      n_channels_in=INPUT_SIZE,
                                      use_dropout=arguments.dropout,
-                                     n_hidden=arguments.n_hidden_gen,
+                                     n_hidden=arguments.n_hidden_dis,
                                      n_layers=2).to(DEVICE)
 
     print(discriminator)
