@@ -275,7 +275,7 @@ def parse():
     parser.add_argument('--batch-size-plotting', type=int, default=DEBUG_BATCH_SIZE, help='Batch size to run plotting.')
     parser.add_argument('--n-videos-limit', type=int, default=None,
                         help='Limit the dataset to the first N videos. Use None to use all videos.')
-    parser.add_argument('--use-person-dataset', type=bool, default=True)
+    parser.add_argument('--use-person-dataset', type=bool, default=False)
     parser.add_argument('--person', type=str, default='stijn')
 
     return parser.parse_args()
