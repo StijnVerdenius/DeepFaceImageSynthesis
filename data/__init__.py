@@ -38,6 +38,7 @@ def plot(
     if landmarks_in_channel is not None:
         color_index = 'bgr'.index(color_index)
         image = image.astype(float)
+        # image = np.zeros_like(image, dtype=float)
         mask = np.zeros(image.shape, dtype=float)
         mask[..., color_index] = 255
         for index in range(landmarks_in_channel.shape[-1]):
