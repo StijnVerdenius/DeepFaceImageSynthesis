@@ -78,7 +78,7 @@ class RandomCrop:
     ):
         self._probability = probability
         if scales is None:
-            scales = [0.5, 0.6, 0.7, 0.8, 0.9]
+            scales = [0.8, 0.9, 0.95]
         self._scales = scales
 
     def __call__(
