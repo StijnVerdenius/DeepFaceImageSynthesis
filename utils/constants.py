@@ -1,10 +1,10 @@
 from enum import Enum
 
+import cv2
 import numpy as np
 import torch
 import torchvision.models.vgg as vgg
 
-import cv2
 from models.general.data_management import DataManager
 
 # directories
@@ -79,7 +79,7 @@ INTERPOLATION = cv2.INTER_AREA
 DATASET_300VW_IMSIZE = 256
 DATASET_300VW_PADDING = 0
 DATASET_300VW_EXPAND_RATIO = 2.5
-DATASET_300VW_LIMIT_N_VIDEOS = None
+DATASET_300VW_LIMIT_N_VIDEOS = 1
 DATASET_300VW_N_VIDEOS = 114
 DATASET_300VW_N_LANDMARKS = 68
 DATASET_300VW_ANNOTATIONS_INPUT_FOLDER = 'annot'

@@ -18,7 +18,7 @@ from datetime import datetime
 import sys
 import os
 from tensorboardX import SummaryWriter  ####### TESTING tensorboard
-
+from utils.personal_constants import WRITER_DIRECTORY
 
 class TrainingProcess:
 
@@ -66,10 +66,8 @@ class TrainingProcess:
         self.shuffle_indices = list(range(int(self.combined_batch_size)))
 
         # initialize tensorboardx
-        # self.writer = SummaryWriter(
-        #     f"results/output/{DATA_MANAGER.stamp}/tensorboardx/"
         self.writer = SummaryWriter(
-            f"/home/lgpu0293/ProjectAI/DeepFakes/results/output/tensorboardx/{DATA_MANAGER.stamp}/tensorboardx/")
+            f"{WRITER_DIRECTORY}/{DATA_MANAGER.stamp}/tensorboardx/")
 
         self.labels_train = None
         self.labels_validate = None
@@ -216,7 +214,7 @@ class TrainingProcess:
 
                 example_images = example_images.view(-1, 3, IMSIZE, IMSIZE)
                 example_images = BGR2RGB_pytorch(example_images)
-                plot_some_pictures(example_images, batches_passed)
+                plot_some_pictures(example_images, batches_passed, "pics", "jpg")
                 self.writer.add_image('fake_samples', vutils.make_grid(example_images, normalize=True),
                                       batches_passed)
 
@@ -224,7 +222,8 @@ class TrainingProcess:
                                        self.embedder, self.generator, self.arguments, number_of_pictures=3)
                 big_image = torch.from_numpy(np.moveaxis(big_image, -1, 0)).float()
 
-                self.writer.add_image('landmark_comparison', vutils.make_grid(big_image, normalize=True), batches_passed,)
+                self.writer.add_image('landmark_comparison', vutils.make_grid(big_image, normalize=True), batches_passed)
+                plot_some_pictures(big_image, batches_passed, "comparison", "png")
 
             # empty cache
             torch.cuda.empty_cache()
@@ -287,7 +286,7 @@ class TrainingProcess:
         self.writer.add_scalar("accuracy/dis", discriminator_accuracy, batches_passed)
 
         # validate on validationset
-        loss_gen_validate, loss_dis_validate, _ = 0, 0, 0  # self.validate() todo: do we want to restore this?
+        loss_gen_validate, loss_dis_validate, _ = 0, 0, 0  # self.validate()
 
         stat = Statistic(loss_gen_train=loss_gen,
                          loss_dis_train=loss_dis,
@@ -297,13 +296,12 @@ class TrainingProcess:
                          loss_dis_train_dict=loss_dis_dict,
                          dis_acc=discriminator_accuracy)
 
-        # print in-place with 3 decimals
+        # print
         print(
-            f"\r",
+            f"",
             f"batch: {batches_passed}/{len(self.dataloader_train)}",
             f"|\t {stat}",
-            f"details: {loss_gen_dict}",
-            end='')
+            f"details: {loss_gen_dict}")
 
         # define training statistic
         return stat

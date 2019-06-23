@@ -138,7 +138,7 @@ class TotalGeneratorLoss(GeneralLoss):
             elif self.id.active:
                 feature_selection=(13)
 
-            real_feats, fake_feats = self.get_features(image_1, fake, feature_selection)
+            real_feats, fake_feats = self.get_features(image_2, fake, feature_selection)
 
 
         # adverserial loss

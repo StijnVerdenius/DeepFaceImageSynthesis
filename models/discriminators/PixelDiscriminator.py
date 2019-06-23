@@ -25,11 +25,11 @@ class PixelDiscriminator(GeneralDiscriminator):
         layers = [
             nn.Conv2d(n_channels_in, n_hidden, kernel_size=1, stride=1, padding=0),
             nn.LeakyReLU(0.2, inplace=True),
-            nn.Dropout(0.33 * int(use_dropout)),  # todo: revisit dropout rate
+            nn.Dropout(0.5 * int(use_dropout)),  # todo: revisit dropout rate
             nn.Conv2d(n_hidden, n_hidden * 2, kernel_size=1, stride=1, padding=0, bias=use_bias),
             norm_layer(n_hidden * 2),
             nn.LeakyReLU(0.2, inplace=True),
-            nn.Dropout(0.33 * int(use_dropout)),  # todo: revisit dropout rate
+            nn.Dropout(0.5 * int(use_dropout)),  # todo: revisit dropout rate
             nn.Conv2d(n_hidden * 2, 1, kernel_size=1, stride=1, padding=0, bias=use_bias),
             nn.Sigmoid()
         ]

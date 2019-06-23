@@ -19,3 +19,4 @@ DLIB_PREDICTOR_PATH = Path('./data/local_data/shape_predictor_68_face_landmarks.
 
 check_paths = [DATASET_300VW_OUTPUT_PATH, DLIB_PREDICTOR_PATH, DATASET_PERSON_OUTPUT_PATH]
 assert all([p.exists() for p in check_paths])
+WRITER_DIRECTORY = "results/output"
