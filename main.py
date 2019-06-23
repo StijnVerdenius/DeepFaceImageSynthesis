@@ -50,6 +50,14 @@ def load_data(keyword: str, batch_size: int, mode: str, n_videos_limit: Optional
     )
 
     if use_person_dataset:
+        if mode == "test" or keyword == "validate":
+            dataset_mode = "test"
+        elif keyword == "train":
+            dataset_mode = "train"
+        else:
+            raise Exception("Unknown dataset_mode")
+        dataset = PersonDataset(dataset_mode, person, transform=transform, n_videos_limit=n_videos_limit)
+    else:
         if mode == "test":
             dataset_mode = Dataset300VWMode.TEST_1
         elif keyword == "train":
@@ -60,14 +68,6 @@ def load_data(keyword: str, batch_size: int, mode: str, n_videos_limit: Optional
             raise Exception("Unknown dataset_mode")
 
         dataset = X300VWDataset(dataset_mode, transform=transform, n_videos_limit=n_videos_limit)
-    else:
-        if mode == "test" or keyword == "validate":
-            dataset_mode = "test"
-        elif keyword == "train":
-            dataset_mode = "train"
-        else:
-            raise Exception("Unknown dataset_mode")
-        dataset = PersonDataset(dataset_mode, person, transform=transform, n_videos_limit=n_videos_limit)
 
     shuffle = keyword == "train"
 
