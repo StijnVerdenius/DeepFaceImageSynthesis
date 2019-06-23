@@ -26,6 +26,7 @@ class X300VWDataset(Dataset):
         self._all_videos = all_video_paths(personal_constants.DATASET_300VW_OUTPUT_PATH)
         if n_videos_limit is None:
             self._all_videos = self._filter(mode)
+            self._all_videos = self._sort(mode)
         else:
             print(f'Limited dataset to first {n_videos_limit} videos!')
             self._all_videos = self._all_videos[:n_videos_limit]
@@ -50,11 +51,27 @@ class X300VWDataset(Dataset):
             for video_path in self._all_videos
             if video_path.stem in mode.value
         ]
-        # if len(mode.value) != len(filtered_list):
-        #     raise Exception(
-        #         f'Videos are missing from dataset. Should have the following: {mode.value}'
-        #     )
+        if len(mode.value) != len(filtered_list):
+            # raise Exception(
+            #     f'WARNING: Videos are missing from dataset. Should have the following:'
+            #     + f'{mode.value} but actually have {filtered_list}'
+            # )
+            print(
+                f'WARNING: Videos are missing from dataset. Should have the following:'
+                + f'{mode.value} but actually have {filtered_list}'
+            )
         return filtered_list
+
+    def _sort(self, mode: constants.Dataset300VWMode) -> List[Path]:
+        name_to_path = {
+            p.name: p
+            for p in self._all_videos
+        }
+        sorted_list = [
+            name_to_path[video_name]
+            for video_name in mode.value
+        ]
+        return sorted_list
 
     def _load_all_landmarks(self) -> List[np.ndarray]:
         print('Loading landmarks positions into memory...')
@@ -134,7 +151,7 @@ class X300VWDataset(Dataset):
 def _test_return() -> None:
     dataset = X300VWDataset(constants.Dataset300VWMode.ALL)
     n_images = len(dataset)
-    dataset_indices = np.random.randint(0, n_images, size=3)
+    dataset_indices = np.random.randint(0, n_images, size=3)[:3]
     for batch_index, dataset_index in enumerate(dataset_indices):
         batch = dataset[dataset_index]
         for sample_index, sample in enumerate(batch):
