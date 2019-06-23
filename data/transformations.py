@@ -1,5 +1,6 @@
 from typing import Callable, List, Optional
 
+import cv2
 from torchvision import transforms
 
 from data import plot
@@ -116,11 +117,31 @@ class Resize:
 
     @staticmethod
     def _f(value: np.ndarray, *args) -> np.ndarray:
-        return cv2.resize(
-            value,
-            (constants.IMSIZE, constants.IMSIZE),
-            interpolation=constants.INTERPOLATION,
-        )
+        # sometimes there's an assertion error if we use cv2 directly for the landmarks with cv2.INTER_AREA
+        # this interpolation seems to be the best though for our use case
+        # this might be because cv2 only cares about images, not general numpy arrays
+        # https://github.com/opencv/opencv/issues/14770
+        width, height, n_channels = value.shape
+        if width == height == constants.IMSIZE:
+            return value
+        elif n_channels <= 3:
+            return cv2.resize(
+                value,
+                (constants.IMSIZE, constants.IMSIZE),
+                interpolation=constants.INTERPOLATION,
+            )
+        else:
+            # this is faster than numpy indexing! tested with time measurements
+            channel_list = []
+            channels = cv2.split(value)
+            for channel in channels:
+                new_channel = cv2.resize(
+                    channel,
+                    (constants.IMSIZE, constants.IMSIZE),
+                    interpolation=constants.INTERPOLATION,
+                )
+                channel_list.append(new_channel)
+            return cv2.merge(channel_list)
 
 
 class RescaleValues:
@@ -177,8 +198,8 @@ def _test_augmentations():
     transform = transforms.Compose(
         [
             RandomHorizontalFlip(probability=1),
-            # RandomRescale(probability=1),
-            # RandomCrop(probability=1),
+            RandomRescale(probability=1),
+            RandomCrop(probability=1),
             Resize(),
             RescaleValues(),
             ChangeChannels(),

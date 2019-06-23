@@ -24,7 +24,9 @@ class PersonDataset(Dataset):
         transform: Optional = None,
         n_videos_limit: Optional[int] = None,
     ) -> None:
-        self._all_videos = [personal_constants.DATASET_PERSON_OUTPUT_PATH / f'{person}_{mode}']
+        self._all_videos = [
+            personal_constants.DATASET_PERSON_OUTPUT_PATH / f'{person}_{mode}'
+        ]
         print('Dataset paths:', self._all_videos)
 
         self._n_images_per_video = count_images(
