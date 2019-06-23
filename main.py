@@ -112,13 +112,13 @@ def main(arguments):
                                  device=DEVICE,
                                  n_channels_in=INPUT_SIZE,
                                  use_dropout=arguments.dropout,
-                                 n_hidden=arguments.n_hidden_dis).to(DEVICE)
+                                 n_hidden=arguments.n_hidden_gen).to(DEVICE)
 
     discriminator = find_right_model(DIS_DIR, arguments.discriminator,
                                      device=DEVICE,
                                      n_channels_in=INPUT_SIZE,
                                      use_dropout=arguments.dropout,
-                                     n_hidden=arguments.n_hidden_gen).to(DEVICE)
+                                     n_hidden=arguments.n_hidden_dis).to(DEVICE)
 
     # get models
     if arguments.pretrained:
