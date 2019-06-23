@@ -1,3 +1,4 @@
+from utils.general_utils import ensure_current_directory
 import argparse
 import os
 import sys
@@ -36,6 +37,7 @@ def main(arguments: argparse.Namespace) -> None:
         arguments.use_model,
         arguments.model_base_path,
         arguments.model_name,
+        arguments.model_date_path,
         arguments.device,
     )
     detector = dlib.get_frontal_face_detector()
@@ -74,7 +76,7 @@ def main(arguments: argparse.Namespace) -> None:
             arguments.y1 * rescale_factor_y,
             arguments.x2 * rescale_factor_x,
             arguments.y2 * rescale_factor_y,
-        ]
+            ]
         base_image_box = [int(bib) for bib in base_image_box]
         target_height, target_width, _ = outer_image.shape
         target_height, target_width = (
@@ -115,10 +117,10 @@ def main(arguments: argparse.Namespace) -> None:
 
 
 def get_model(
-    use_model: bool, model_base_path: str, model_name: str, device: str
+    use_model: bool, model_base_path: str, model_name: str, run_name: str, device: str
 ) -> Optional[torch.nn.Module]:
     if use_model:
-        model_path = Path(model_base_path) / f'{model_name}.pickle'
+        model_path = Path(model_base_path) / f'{run_name}/{constants.MODELS_DIR}/{model_name}.pickle'
         with (open(str(model_path), 'rb')) as openfile:
             weights = pickle.load(openfile)
 
@@ -167,12 +169,12 @@ def show_image(
     else:
         bounding_boxes_sizes = [
             (
-                bounding_boxes[bb_index].br_corner().x
-                - bounding_boxes[bb_index].tl_corner().x
+                    bounding_boxes[bb_index].br_corner().x
+                    - bounding_boxes[bb_index].tl_corner().x
             )
             * (
-                bounding_boxes[bb_index].br_corner().y
-                - bounding_boxes[bb_index].tl_corner().y
+                    bounding_boxes[bb_index].br_corner().y
+                    - bounding_boxes[bb_index].tl_corner().y
             )
             for bb_index in range(n_rectangles)
         ]
@@ -272,9 +274,9 @@ def display_output_image(
         )
 
         outer_image[
-            base_image_box[1] : base_image_box[3],
-            base_image_box[0] : base_image_box[2],
-            ...,
+        base_image_box[1] : base_image_box[3],
+        base_image_box[0] : base_image_box[2],
+        ...,
         ] = output
 
     cv2.imshow('merged', outer_image)
@@ -324,7 +326,10 @@ def parse():
     parser.add_argument('--no-use-model', dest='use_model', action='store_false')
     parser.add_argument('--device', default='cuda', type=str)
     parser.add_argument(
-        '--model-base-path', type=str, default='./data/local_data/eval/'
+        '--model-base-path', type=str, default='./results/output/'
+    )
+    parser.add_argument(
+        '--model-date-path', type=str, default='2019-bladiebla'
     )
     parser.add_argument('--model-name', type=str, default='model1')
 
@@ -342,4 +347,5 @@ if __name__ == '__main__':
     )
     print('Working directory: ', os.getcwd())
     args = parse()
+    ensure_current_directory()
     main(args)
