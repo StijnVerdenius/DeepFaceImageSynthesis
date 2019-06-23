@@ -204,11 +204,11 @@ def parse():
     parser = argparse.ArgumentParser()
 
     # training arguments
-    parser.add_argument('--epochs', default=6, type=int,
+    parser.add_argument('--epochs', default=500, type=int,
                         help='max number of epochs')
     parser.add_argument('--eval_freq', type=int, default=10, help='Frequency (batch-wise) of evaluation')
     parser.add_argument('--plot_freq', type=int, default=100, help='Frequency (batch-wise) of plotting pictures')
-    parser.add_argument('--saving_freq', type=int, default=1, help='Frequency (epoch-wise) of saving models')
+    parser.add_argument('--saving_freq', type=int, default=10, help='Frequency (epoch-wise) of saving models')
     parser.add_argument('--device', default="cuda", type=str, help='device')
     parser.add_argument('--mode', default="train", type=str, help="'train', 'test' or 'finetune'")
     parser.add_argument('--learning_rate_gen', type=float, default=2e-4, help='Learning rate')
@@ -229,9 +229,9 @@ def parse():
     parser.add_argument('--timing', type=bool, default=False, help='are we measuring efficiency?')
 
     # test arguments
-    parser.add_argument('--test_model_date', default="temp", type=str,
+    parser.add_argument('--test_model_date', default="all", type=str,
                         help='date_stamp string for which model to load')
-    parser.add_argument('--test_model_suffix', default="Models_at_epoch_59", type=str,
+    parser.add_argument('--test_model_suffix', default="Models_at_epoch_4", type=str,
                         help='filename string for which model to load')
 
     # model arguments
@@ -240,7 +240,7 @@ def parse():
     parser.add_argument('--discriminator', default="PatchDiscriminator", type=str, help="name of objectclass")
     parser.add_argument('--generator', default="UNetGenerator", type=str, help="name of objectclass")
     parser.add_argument('--n_hidden_gen', type=int, default=64, help='features in the first hidden layer')
-    parser.add_argument('--n_hidden_dis', type=int, default=24, help='features in the first hidden layer')
+    parser.add_argument('--n_hidden_dis', type=int, default=32, help='features in the first hidden layer')
 
     # optimizer arguments
     parser.add_argument('--discriminator_optimizer', default="SGD", type=str, help="name of objectclass")
@@ -250,7 +250,7 @@ def parse():
     # loss arguments
     parser.add_argument('--loss_gen', default=TOTAL_LOSS, type=str,
                         help="Overwrites hyperparams generatorloss if not total")
-    parser.add_argument('--loss_dis', default="HingeAdverserialDLoss", type=str, help="name of objectclass")
+    parser.add_argument('--loss_dis', default="DefaultDLoss", type=str, help="name of objectclass")
 
     # hyperparams generatorloss  (-1 === DEFAULT)
     parser.add_argument('--NonSaturatingGLoss_weight', default=-1, type=float,
@@ -275,7 +275,7 @@ def parse():
     parser.add_argument('--batch-size-plotting', type=int, default=DEBUG_BATCH_SIZE, help='Batch size to run plotting.')
     parser.add_argument('--n-videos-limit', type=int, default=None,
                         help='Limit the dataset to the first N videos. Use None to use all videos.')
-    parser.add_argument('--use-person-dataset', type=bool, default=False)
+    parser.add_argument('--use-person-dataset', type=bool, default=True)
     parser.add_argument('--person', type=str, default='stijn')
 
     return parser.parse_args()
