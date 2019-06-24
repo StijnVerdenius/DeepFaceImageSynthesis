@@ -25,7 +25,7 @@ class ConsistencyLoss(GeneralLoss):
         input2 = torch.cat((gen_img, image_ls), CHANNEL_DIM)
 
         # Generate approximation of input batch
-        gen_img_2 = generator.forward(input2)
+        gen_img_2 = generator(input2)
 
         # Get L1**2 distance between generated approx. and original input img
         loss = L1_distance(gen_img_2, batch).pow(2).mean()

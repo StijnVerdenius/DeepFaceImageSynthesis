@@ -39,7 +39,7 @@ class PixelDiscriminator(GeneralDiscriminator):
 
     def forward(self, x: torch.Tensor)\
             -> torch.Tensor:
-        return self.model.forward(x).view(-1, IMSIZE * IMSIZE).mean(dim=1)
+        return self.model(x).view(-1, IMSIZE * IMSIZE).mean(dim=1)
 
 
 if __name__ == '__main__':
@@ -49,7 +49,7 @@ if __name__ == '__main__':
 
     G = PixelDiscriminator()
 
-    score = G.forward(dummy_batch)
+    score = G(dummy_batch)
 
     print(score.shape)
 
@@ -57,7 +57,7 @@ if __name__ == '__main__':
 
     target = torch.rand((10))
 
-    loss = get_loss.forward(score, target)[0]
+    loss = get_loss(score, target)[0]
 
     loss.backward()
 

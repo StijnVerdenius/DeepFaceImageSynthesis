@@ -48,7 +48,7 @@ class UNetGenerator(GeneralGenerator):
                                      bias=use_bias)]
             block_down += [nn.InstanceNorm2d(n_hidden * mult_ch * 2)]
             block_down += [nn.LeakyReLU(0.2, inplace=True)]
-            block_down += [nn.Dropout2d(0.3*int(use_dropout))]
+            block_down += [nn.Dropout2d(0.1*int(use_dropout))]
             self.layers += [nn.Sequential(*block_down)]
 
         mult_ch = 2 ** n_downsampling
@@ -65,7 +65,7 @@ class UNetGenerator(GeneralGenerator):
                                    output_padding=1 if (i == 0 or i == 1 or i == 3) else 0, bias=use_bias)]
             block_up += [nn.InstanceNorm2d(int(n_hidden * mult_ch / 2))]
             block_up += [nn.LeakyReLU(0.2, inplace=True)]
-            block_up += [nn.Dropout2d(0.3*int(use_dropout))]
+            block_up += [nn.Dropout2d(0.1*int(use_dropout))]
             self.layers += [nn.Sequential(*block_up)]
 
         # Add output block layers
@@ -91,7 +91,7 @@ class UNetGenerator(GeneralGenerator):
         layer: nn.Module
         for i, layer in enumerate(self.model):
 
-            temp = layer.forward(x)
+            temp = layer(x)
 
             if (isinstance(layer, nn.Sequential)):
                 if (not started_downsampling and not started_upsampling):
@@ -118,6 +118,6 @@ if __name__ == '__main__':
 
     dummy_batch = torch.rand((10, 71, 64, 64))
 
-    banana = gen.forward(dummy_batch)
+    banana = gen(dummy_batch)
 
     print(banana.shape)

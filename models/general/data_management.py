@@ -86,6 +86,7 @@ class DataManager:
 
         self.actual_date = datetime.now()
         self.stamp = str(self.actual_date).split(".")[0].replace(" ", "_")
+        print(f"Made datestamp: {self.stamp}")
         return self.stamp
 
     def create_dir(self, name):

@@ -1,3 +1,6 @@
+from torchvision import transforms
+
+from utils.general_utils import ensure_current_directory
 import argparse
 import os
 import sys
@@ -11,7 +14,7 @@ from tqdm import tqdm
 
 import _pickle as pickle
 import cv2
-from data import transformations
+from data import transformations, plot
 from models.generators import ResnetGenerator, UNetGenerator
 from utils import constants, data_utils, general_utils, personal_constants
 from utils.constants import (
@@ -25,10 +28,16 @@ from utils.constants import (
     RECTANGLE_THICKNESS_SELECTED,
 )
 
-model_name_to_instance_settings = {
-    'model1': (ResnetGenerator.ResnetGenerator, {'n_hidden': 24, 'use_dropout': False}),
-    'hinge1': (UNetGenerator.UNetGenerator, {'n_hidden': 64, 'use_dropout': True}),
-}
+if constants.IMSIZE == 64:
+    model_name_to_instance_settings = {
+        'model1': (ResnetGenerator.ResnetGenerator, {'n_hidden': 24, 'use_dropout': False}),
+        'hinge1': (UNetGenerator.UNetGenerator, {'n_hidden': 24, 'use_dropout': True}),
+    }
+elif constants.IMSIZE == 128:
+    model_name_to_instance_settings = {
+        'stijn1': (UNetGenerator.UNetGenerator, {'n_hidden': 64, 'use_dropout': True}),
+        'lossesAll_epoch3': (UNetGenerator.UNetGenerator, {'n_hidden': 64, 'use_dropout': True}),
+    }
 
 
 def main(arguments: argparse.Namespace) -> None:
@@ -36,6 +45,7 @@ def main(arguments: argparse.Namespace) -> None:
         arguments.use_model,
         arguments.model_base_path,
         arguments.model_name,
+        arguments.model_date_path,
         arguments.device,
     )
     detector = dlib.get_frontal_face_detector()
@@ -74,7 +84,7 @@ def main(arguments: argparse.Namespace) -> None:
             arguments.y1 * rescale_factor_y,
             arguments.x2 * rescale_factor_x,
             arguments.y2 * rescale_factor_y,
-        ]
+            ]
         base_image_box = [int(bib) for bib in base_image_box]
         target_height, target_width, _ = outer_image.shape
         target_height, target_width = (
@@ -115,10 +125,10 @@ def main(arguments: argparse.Namespace) -> None:
 
 
 def get_model(
-    use_model: bool, model_base_path: str, model_name: str, device: str
+    use_model: bool, model_base_path: str, model_name: str, run_name: str, device: str
 ) -> Optional[torch.nn.Module]:
     if use_model:
-        model_path = Path(model_base_path) / f'{model_name}.pickle'
+        model_path = Path(model_base_path) / f'{run_name}/{constants.MODELS_DIR}/{model_name}.pickle'
         with (open(str(model_path), 'rb')) as openfile:
             weights = pickle.load(openfile)
 
@@ -126,7 +136,7 @@ def get_model(
         model = model_class(**model_kwargs)
         model.load_state_dict(weights['generator'])
         model = model.to(device)
-        model.eval()
+        model = model.eval()
     else:
         model = None
     return model
@@ -167,12 +177,12 @@ def show_image(
     else:
         bounding_boxes_sizes = [
             (
-                bounding_boxes[bb_index].br_corner().x
-                - bounding_boxes[bb_index].tl_corner().x
+                    bounding_boxes[bb_index].br_corner().x
+                    - bounding_boxes[bb_index].tl_corner().x
             )
             * (
-                bounding_boxes[bb_index].br_corner().y
-                - bounding_boxes[bb_index].tl_corner().y
+                    bounding_boxes[bb_index].br_corner().y
+                    - bounding_boxes[bb_index].tl_corner().y
             )
             for bb_index in range(n_rectangles)
         ]
@@ -272,9 +282,9 @@ def display_output_image(
         )
 
         outer_image[
-            base_image_box[1] : base_image_box[3],
-            base_image_box[0] : base_image_box[2],
-            ...,
+        base_image_box[1] : base_image_box[3],
+        base_image_box[0] : base_image_box[2],
+        ...,
         ] = output
 
     cv2.imshow('merged', outer_image)
@@ -295,6 +305,62 @@ def extract(image: np.ndarray, landmarks) -> np.ndarray:
     return output_landmarks
 
 
+def test_landmarks(arguments):
+    video_path = Path('./data/local_data/300VW_Dataset_processed_dim128/516/')
+    target_frame = 143
+
+    from_image = cv2.imread(str(video_path / 'images' / '000001.jpg'))
+    all_landmarks = np.load(video_path / 'annotations.npy')
+    multi_dim_landmarks = data_utils.single_to_multi_dim_landmarks(
+        all_landmarks[target_frame - 1, :, :],
+        constants.DATASET_300VW_IMSIZE,
+    )
+    # plot(from_image)
+    multi_dim_landmarks_orig = np.copy(multi_dim_landmarks)
+
+    transform_to_input = [
+        transformations.Resize._f,
+        transformations.RescaleValues._f,
+        transformations.ChangeChannels._f,
+        image_to_batch,
+        lambda batch: batch.to(arguments.device),
+    ]
+    transform_from_input = [
+        image_from_batch,
+        general_utils.de_torch,
+    ]
+
+    for t in transform_to_input:
+        from_image = t(from_image)
+        multi_dim_landmarks = t(multi_dim_landmarks)
+
+    output = torch.cat(
+        (from_image, multi_dim_landmarks), dim=constants.CHANNEL_DIM
+    )
+    assert output.shape == (1, constants.INPUT_CHANNELS + constants.INPUT_LANDMARK_CHANNELS,
+                            constants.IMSIZE, constants.IMSIZE)
+
+    model = get_model(
+        arguments.use_model,
+        arguments.model_base_path,
+        arguments.model_name,
+        arguments.model_date_path,
+        arguments.device,
+    )
+    output = model(output)
+
+    for t in transform_from_input:
+        output = t(output)
+        multi_dim_landmarks = t(multi_dim_landmarks)
+
+    output = general_utils.denormalize_picture(output)
+
+    # output = output[:, :, :3]
+
+    plot(output, landmarks_in_channel=multi_dim_landmarks)
+
+
+
 def parse():
     parser = argparse.ArgumentParser()
 
@@ -304,7 +370,7 @@ def parse():
 
     # image
     parser.add_argument(
-        '--from-image-path', type=str, default='./data/local_data/0.jpg'
+        '--from-image-path', type=str, default='./data/local_data/person_processed_dim256/stijn_test/images/000001.jpg'
     )
     parser.add_argument(
         '--use-outer-image', dest='use_outer_image', action='store_true'
@@ -324,9 +390,12 @@ def parse():
     parser.add_argument('--no-use-model', dest='use_model', action='store_false')
     parser.add_argument('--device', default='cuda', type=str)
     parser.add_argument(
-        '--model-base-path', type=str, default='./data/local_data/eval/'
+        '--model-base-path', type=str, default='./results/output/'
     )
-    parser.add_argument('--model-name', type=str, default='hinge1')
+    parser.add_argument(
+        '--model-date-path', type=str, default='2019-bladiebla'
+    )
+    parser.add_argument('--model-name', type=str, default='lossesAll_epoch3')
 
     return parser.parse_args()
 
@@ -342,4 +411,6 @@ if __name__ == '__main__':
     )
     print('Working directory: ', os.getcwd())
     args = parse()
-    main(args)
+    ensure_current_directory()
+    # main(args)
+    test_landmarks(args)

@@ -49,7 +49,7 @@ imgs2 = torch.cat((imgs2, lm2), dim=1)
 first = imgs1
 second = torch.cat((imgs1[:4], imgs2[3:4]), dim=0)
 
-a = gen.forward(first.to(DEVICE))
-b = gen.forward(second.to(DEVICE))
+a = gen(first.to(DEVICE))
+b = gen(second.to(DEVICE))
 
 print(torch.allclose(a[:4], b[:4]))

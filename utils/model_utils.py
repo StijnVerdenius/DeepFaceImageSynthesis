@@ -84,7 +84,7 @@ def load_models_and_state(discriminator: GeneralDiscriminator, generator: Genera
 
     models = DATA_MANAGER.load_python_obj(f"{stamp}/{MODELS_DIR}/{suffix}")
 
-    discriminator.load_state_dict(models["discriminator"])
+    # discriminator.load_state_dict(models["discriminator"])
     embedder.load_state_dict(models["embedder"])
     generator.load_state_dict(models["generator"])
 

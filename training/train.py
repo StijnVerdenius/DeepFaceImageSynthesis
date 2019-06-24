@@ -17,7 +17,7 @@ import numpy as np
 from datetime import datetime
 import sys
 import os
-from tensorboardX import SummaryWriter
+from tensorboardX import SummaryWriter  ####### TESTING tensorboard
 from utils.personal_constants import WRITER_DIRECTORY
 import matplotlib.pyplot as plt
 
