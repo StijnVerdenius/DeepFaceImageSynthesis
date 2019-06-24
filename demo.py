@@ -25,10 +25,15 @@ from utils.constants import (
     RECTANGLE_THICKNESS_SELECTED,
 )
 
-model_name_to_instance_settings = {
-    'model1': (ResnetGenerator.ResnetGenerator, {'n_hidden': 24, 'use_dropout': False}),
-    'hinge1': (UNetGenerator.UNetGenerator, {'n_hidden': 24, 'use_dropout': True}),
-}
+if constants.IMSIZE == 64:
+    model_name_to_instance_settings = {
+        'model1': (ResnetGenerator.ResnetGenerator, {'n_hidden': 24, 'use_dropout': False}),
+        'hinge1': (UNetGenerator.UNetGenerator, {'n_hidden': 24, 'use_dropout': True}),
+    }
+elif constants.IMSIZE == 128:
+    model_name_to_instance_settings = {
+        'stijn1': (UNetGenerator.UNetGenerator, {'n_hidden': 64, 'use_dropout': True}),
+    }
 
 
 def main(arguments: argparse.Namespace) -> None:
@@ -326,7 +331,7 @@ def parse():
     parser.add_argument(
         '--model-base-path', type=str, default='./data/local_data/eval/'
     )
-    parser.add_argument('--model-name', type=str, default='model1')
+    parser.add_argument('--model-name', type=str, default='stijn1')
 
     return parser.parse_args()
 

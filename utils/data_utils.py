@@ -27,7 +27,8 @@ def landmarks_to_box(
 
     # landmarks can be out of image, but that's okay, we'll still export them.
     image_height, image_width, _ = image_size
-    center_x = int(landmarks[constants.DATASET_300VW_CENTER_LANDMARK_INDEX, 0])
+    # center_x = int(landmarks[constants.DATASET_300VW_CENTER_LANDMARK_INDEX, 0])
+    center_x = int((x1 + x2) / 2)
     center_y = int(landmarks[constants.DATASET_300VW_CENTER_LANDMARK_INDEX, 1])
     box_radius = min(
         box_radius, center_x, center_y, image_width - center_x, image_height - center_y
