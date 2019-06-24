@@ -38,6 +38,7 @@ elif constants.IMSIZE == 128:
     model_name_to_instance_settings = {
         'stijn1': (UNetGenerator.UNetGenerator, {'n_hidden': 64, 'use_dropout': True}),
         'Models_at_epoch_3': (UNetGenerator.UNetGenerator, {'n_hidden': 64, 'use_dropout': True}),
+        'klaus_monday': (UNetGenerator.UNetGenerator, {'n_hidden': 64, 'use_dropout': True})
     }
 
 
@@ -372,7 +373,7 @@ def parse():
 
     # image
     parser.add_argument(
-        '--from-image-path', dest='from_image_path', type=str, default='./data/local_data/Dataset/300VW_Dataset_processed_dim128/001/000001.jpg'
+        '--from-image-path', dest='from_image_path', type=str, default='./data/local_data/Dataset/300VW_Dataset_processed_dim128/klaus/000001.jpg'
     )
     parser.add_argument(
         '--use-outer-image', dest='use_outer_image', action='store_true'
@@ -397,7 +398,7 @@ def parse():
     parser.add_argument(
         '--model-date-path', type=str, default='full_loss'
     )
-    parser.add_argument('--model-name', type=str, default='Models_at_epoch_3')
+    parser.add_argument('--model-name', type=str, default='klaus_monday')
 
     return parser.parse_args()
 
