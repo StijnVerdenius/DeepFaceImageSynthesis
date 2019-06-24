@@ -309,7 +309,7 @@ def parse():
 
     # image
     parser.add_argument(
-        '--from-image-path', type=str, default='./data/local_data/0.jpg'
+        '--from-image-path', type=str, default='./data/local_data/person_processed_dim256/stijn_test/images/000001.jpg'
     )
     parser.add_argument(
         '--use-outer-image', dest='use_outer_image', action='store_true'
