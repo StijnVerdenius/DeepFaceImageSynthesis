@@ -26,10 +26,15 @@ from utils.constants import (
     RECTANGLE_THICKNESS_SELECTED,
 )
 
-model_name_to_instance_settings = {
-    'model1': (ResnetGenerator.ResnetGenerator, {'n_hidden': 24, 'use_dropout': False}),
-    'hinge1': (UNetGenerator.UNetGenerator, {'n_hidden': 24, 'use_dropout': True}),
-}
+if constants.IMSIZE == 64:
+    model_name_to_instance_settings = {
+        'model1': (ResnetGenerator.ResnetGenerator, {'n_hidden': 24, 'use_dropout': False}),
+        'hinge1': (UNetGenerator.UNetGenerator, {'n_hidden': 24, 'use_dropout': True}),
+    }
+elif constants.IMSIZE == 128:
+    model_name_to_instance_settings = {
+        'stijn1': (UNetGenerator.UNetGenerator, {'n_hidden': 64, 'use_dropout': True}),
+    }
 
 
 def main(arguments: argparse.Namespace) -> None:
@@ -306,7 +311,7 @@ def parse():
 
     # image
     parser.add_argument(
-        '--from-image-path', type=str, default='./data/local_data/0.jpg'
+        '--from-image-path', type=str, default='./data/local_data/person_processed_dim256/stijn_test/images/000001.jpg'
     )
     parser.add_argument(
         '--use-outer-image', dest='use_outer_image', action='store_true'
@@ -331,7 +336,7 @@ def parse():
     parser.add_argument(
         '--model-date-path', type=str, default='2019-bladiebla'
     )
-    parser.add_argument('--model-name', type=str, default='model1')
+    parser.add_argument('--model-name', type=str, default='stijn1')
 
     return parser.parse_args()
 
