@@ -32,11 +32,12 @@ if constants.IMSIZE == 64:
     model_name_to_instance_settings = {
         'model1': (ResnetGenerator.ResnetGenerator, {'n_hidden': 24, 'use_dropout': False}),
         'hinge1': (UNetGenerator.UNetGenerator, {'n_hidden': 24, 'use_dropout': True}),
+        'Models_at_epoch_3': (UNetGenerator.UNetGenerator, {'n_hidden': 64, 'use_dropout': True})
     }
 elif constants.IMSIZE == 128:
     model_name_to_instance_settings = {
         'stijn1': (UNetGenerator.UNetGenerator, {'n_hidden': 64, 'use_dropout': True}),
-        'lossesAll_epoch3': (UNetGenerator.UNetGenerator, {'n_hidden': 64, 'use_dropout': True}),
+        'Models_at_epoch_3': (UNetGenerator.UNetGenerator, {'n_hidden': 64, 'use_dropout': True}),
     }
 
 
@@ -66,6 +67,7 @@ def main(arguments: argparse.Namespace) -> None:
     ]
 
     from_image_path = Path(arguments.from_image_path)
+
     from_image = cv2.imread(str(from_image_path))
     for t in transform_to_input:
         from_image = t(from_image)
@@ -306,7 +308,7 @@ def extract(image: np.ndarray, landmarks) -> np.ndarray:
 
 
 def test_landmarks(arguments):
-    video_path = Path('./data/local_data/300VW_Dataset_processed_dim128/516/')
+    video_path = Path('./data/local_data/Dataset/300VW_Dataset_processed_dim128/516/')
     target_frame = 143
 
     from_image = cv2.imread(str(video_path / 'images' / '000001.jpg'))
@@ -370,7 +372,7 @@ def parse():
 
     # image
     parser.add_argument(
-        '--from-image-path', type=str, default='./data/local_data/person_processed_dim256/stijn_test/images/000001.jpg'
+        '--from-image-path', dest='from_image_path', type=str, default='./data/local_data/Dataset/300VW_Dataset_processed_dim128/001/000001.jpg'
     )
     parser.add_argument(
         '--use-outer-image', dest='use_outer_image', action='store_true'
@@ -393,9 +395,9 @@ def parse():
         '--model-base-path', type=str, default='./results/output/'
     )
     parser.add_argument(
-        '--model-date-path', type=str, default='2019-bladiebla'
+        '--model-date-path', type=str, default='full_loss'
     )
-    parser.add_argument('--model-name', type=str, default='lossesAll_epoch3')
+    parser.add_argument('--model-name', type=str, default='Models_at_epoch_3')
 
     return parser.parse_args()
 
@@ -412,5 +414,5 @@ if __name__ == '__main__':
     print('Working directory: ', os.getcwd())
     args = parse()
     ensure_current_directory()
-    # main(args)
-    test_landmarks(args)
+    main(args)
+    # test_landmarks(args)
