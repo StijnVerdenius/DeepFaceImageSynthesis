@@ -29,7 +29,7 @@ if __name__ == '__main__':
     G = G()
     get_loss = PixelLoss()
 
-    loss = get_loss.forward(dummy_batch, dummy_ls1, G)[0]
+    loss = get_loss(dummy_batch, dummy_ls1, G)[0]
     loss.backward()
 
     print(loss.item())

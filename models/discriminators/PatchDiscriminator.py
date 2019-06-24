@@ -67,7 +67,7 @@ if __name__ == '__main__':
 
     D = PatchDiscriminator(n_channels_in=71)
 
-    score = D.forward(dummy_batch)
+    score = D(dummy_batch)
 
     print(D.model[0].weight.grad)
     print(score.shape)
@@ -79,7 +79,7 @@ if __name__ == '__main__':
 
     D = PatchDiscriminator(n_channels_in=3)
 
-    score = D.forward(dummy_batch)
+    score = D(dummy_batch)
 
     print(D.model[0].weight.grad)
     print(score.shape)

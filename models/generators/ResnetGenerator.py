@@ -151,13 +151,13 @@ if __name__ == '__main__':
     G = ResnetGenerator()
     D = PatchDiscriminator()
 
-    gen_imgs = G.forward(dummy_batch)
+    gen_imgs = G(dummy_batch)
 
     print(gen_imgs.shape)
 
     get_loss = GLoss(1)
 
-    loss = get_loss.forward(gen_imgs, D)[0]
+    loss = get_loss(gen_imgs, D)[0]
 
     loss.backward()
 

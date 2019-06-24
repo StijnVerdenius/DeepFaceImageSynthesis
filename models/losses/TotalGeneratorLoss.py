@@ -74,30 +74,30 @@ class TotalGeneratorLoss(GeneralLoss):
             feat_2_3 = usable_feats[:self.feature_selection[0] + 1]
 
         if self.pp.active:
-            a_1_2_real = feat_1_2.forward(batch)
-            a_1_2_fake = feat_1_2.forward(generated_images)
+            a_1_2_real = feat_1_2(batch)
+            a_1_2_fake = feat_1_2(generated_images)
 
-            a_2_2_real = feat_2_2.forward(a_1_2_real)
-            a_2_2_fake = feat_2_2.forward(a_1_2_fake)
+            a_2_2_real = feat_2_2(a_1_2_real)
+            a_2_2_fake = feat_2_2(a_1_2_fake)
 
             if self.id.active:
-                a_2_3_real = feat_2_3.forward(a_2_2_real)
-                a_2_3_fake = feat_2_3.forward(a_2_2_fake)
+                a_2_3_real = feat_2_3(a_2_2_real)
+                a_2_3_fake = feat_2_3(a_2_2_fake)
 
-                a_3_3_real = feat_3_3.forward(a_2_3_real)
-                a_3_3_fake = feat_3_3.forward(a_2_3_fake)
+                a_3_3_real = feat_3_3(a_2_3_real)
+                a_3_3_fake = feat_3_3(a_2_3_fake)
 
             else:
 
-                a_3_3_real = feat_3_3.forward(a_2_2_real)
-                a_3_3_fake = feat_3_3.forward(a_2_2_fake)
+                a_3_3_real = feat_3_3(a_2_2_real)
+                a_3_3_fake = feat_3_3(a_2_2_fake)
 
-            a_4_3_real = feat_4_3.forward(a_3_3_real)
-            a_4_3_fake = feat_4_3.forward(a_3_3_fake)
+            a_4_3_real = feat_4_3(a_3_3_real)
+            a_4_3_fake = feat_4_3(a_3_3_fake)
 
         elif self.id.active:
-            a_2_3_real = feat_2_3.forward(batch)
-            a_2_3_fake = feat_2_3.forward(generated_images)
+            a_2_3_real = feat_2_3(batch)
+            a_2_3_fake = feat_2_3(generated_images)
 
 
         return (a_2_3_real, a_1_2_real, a_2_2_real, a_3_3_real, a_4_3_real), (a_2_3_fake, a_1_2_fake, a_2_2_fake, a_3_3_fake, a_4_3_fake)
@@ -123,7 +123,7 @@ class TotalGeneratorLoss(GeneralLoss):
 
         target_landmarked_input = torch.cat((image_1, landmarks_2), dim=CHANNEL_DIM)
         target_landmarked_truth = torch.cat((image_2, landmarks_2), dim=CHANNEL_DIM)
-        fake = generator.forward(target_landmarked_input)
+        fake = generator(target_landmarked_input)
         target_landmarked_fake = torch.cat((fake, landmarks_2), dim=CHANNEL_DIM)
 
         total_loss = 0
@@ -154,7 +154,7 @@ class TotalGeneratorLoss(GeneralLoss):
         landmarks_1.detach()
         del landmarks_1
 
-        loss_triple, save_triple = self.trip.forward(image_1, fake, landmarks_3, landmarks_2, generator)
+        loss_triple, save_triple = self.trip(image_1, fake, landmarks_3, landmarks_2, generator)
         total_loss += loss_triple
         del loss_triple
         landmarks_2.detach()
@@ -168,7 +168,7 @@ class TotalGeneratorLoss(GeneralLoss):
         del image_2
 
         # style losses
-        loss_pp, save_pp = self.pp.forward(real_feats, fake_feats)
+        loss_pp, save_pp = self.pp(real_feats, fake_feats)
         total_loss += loss_pp
         del loss_pp
 
@@ -203,6 +203,6 @@ if __name__ == '__main__':
 
     # optimizer =
 
-    bana = loss_func.forward(G, D, batch1, batch2, batch3)
+    bana = loss_func(G, D, batch1, batch2, batch3)
 
     print(bana[0].shape, bana[0], bana[1])

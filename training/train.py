@@ -108,11 +108,11 @@ class TrainingProcess:
             self.trainer_dis.prepare_evaluation()
 
         # forward pass generator
-        loss_gen, loss_gen_saving, fake, landmarked_fake, landmarked_truth = self.loss_gen.forward(self.generator,
-                                                                                                   self.discriminator,
-                                                                                                   batch_1,
-                                                                                                   batch_2,
-                                                                                                   batch_3)
+        loss_gen, loss_gen_saving, fake, landmarked_fake, landmarked_truth = self.loss_gen(self.generator,
+                                                                                           self.discriminator,
+                                                                                           batch_1,
+                                                                                           batch_2,
+                                                                                           batch_3)
         if (train):
             # backward pass generator
             self.trainer_gen.do_backward(loss_gen)
@@ -136,11 +136,11 @@ class TrainingProcess:
         landmarked_fake = landmarked_fake.detach()
 
         # forward pass discriminator
-        predictions_true = self.discriminator.forward(landmarked_truth.detach())
-        predictions_fake = self.discriminator.forward(landmarked_fake.detach())
+        predictions_true = self.discriminator(landmarked_truth.detach())
+        predictions_fake = self.discriminator(landmarked_fake.detach())
         predictions = torch.cat((predictions_fake, predictions_true), dim=0)
 
-        loss_dis, loss_dis_saving = self.loss_dis.forward(predictions, usable_labels)
+        loss_dis, loss_dis_saving = self.loss_dis(predictions, usable_labels)
 
         if (train):
 

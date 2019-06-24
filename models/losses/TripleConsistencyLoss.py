@@ -22,9 +22,9 @@ class TripleConsistencyLoss(GeneralLoss):
 
         in_between_landmarks = in_between_landmarks.to(DEVICE).float()
 
-        in_between_output = generator.forward(torch.cat((batch, in_between_landmarks), dim=CHANNEL_DIM))
+        in_between_output = generator(torch.cat((batch, in_between_landmarks), dim=CHANNEL_DIM))
 
-        indirect_output = generator.forward(torch.cat((in_between_output, target_landmarks), dim=CHANNEL_DIM))
+        indirect_output = generator(torch.cat((in_between_output, target_landmarks), dim=CHANNEL_DIM))
 
         # l1 norm
         norm = L1_distance(indirect_output, direct_output).pow(2)

@@ -10,6 +10,6 @@ class NonSaturatingGLoss(GeneralLoss):
         super(NonSaturatingGLoss, self).__init__(weight=weight)
 
     def custom_forward(self, fake: torch.Tensor, discriminator: GeneralDiscriminator):
-        loss = -1 * torch.mean(torch.log(discriminator.forward(fake)))  # CHECKK
+        loss = -1 * torch.mean(torch.log(discriminator(fake)))  # CHECKK
 
         return loss

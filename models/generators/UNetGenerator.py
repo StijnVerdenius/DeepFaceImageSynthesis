@@ -91,7 +91,7 @@ class UNetGenerator(GeneralGenerator):
         layer: nn.Module
         for i, layer in enumerate(self.model):
 
-            temp = layer.forward(x)
+            temp = layer(x)
 
             if (isinstance(layer, nn.Sequential)):
                 if (not started_downsampling and not started_upsampling):
@@ -118,6 +118,6 @@ if __name__ == '__main__':
 
     dummy_batch = torch.rand((10, 71, 64, 64))
 
-    banana = gen.forward(dummy_batch)
+    banana = gen(dummy_batch)
 
     print(banana.shape)

@@ -41,7 +41,7 @@ def plot_batch(batch_1, batch_2, batch_3,
 
     combined = torch.cat((image_1, landmarks_2), dim=CHANNEL_DIM).to(DEVICE).float()
 
-    generated_images = generator.forward(combined[:number_of_pictures, :, :, :])
+    generated_images = generator(combined[:number_of_pictures, :, :, :])
 
     landmarks_1 = torch.sum(landmarks_1, dim=CHANNEL_DIM)
     landmarks_2 = torch.sum(landmarks_2, dim=CHANNEL_DIM)
