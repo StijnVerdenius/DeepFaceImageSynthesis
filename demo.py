@@ -39,6 +39,10 @@ elif constants.IMSIZE == 128:
         'lossesAll_epoch3': (UNetGenerator.UNetGenerator, {'n_hidden': 64, 'use_dropout': True}),
     }
 
+model_name_to_instance_settings = {
+    'klaus_monday': (UNetGenerator.UNetGenerator, {'n_hidden': 64, 'use_dropout': True}),
+}
+
 
 def main(arguments: argparse.Namespace) -> None:
     network = get_model(
@@ -128,7 +132,8 @@ def get_model(
     use_model: bool, model_base_path: str, model_name: str, run_name: str, device: str
 ) -> Optional[torch.nn.Module]:
     if use_model:
-        model_path = Path(model_base_path) / f'{run_name}/{constants.MODELS_DIR}/{model_name}.pickle'
+        # model_path = Path(model_base_path) / f'{run_name}/{constants.MODELS_DIR}/{model_name}.pickle'
+        model_path = Path(model_base_path) / f'{model_name}.pickle'
         with (open(str(model_path), 'rb')) as openfile:
             weights = pickle.load(openfile)
 
@@ -370,7 +375,7 @@ def parse():
 
     # image
     parser.add_argument(
-        '--from-image-path', type=str, default='./data/local_data/person_processed_dim256/stijn_test/images/000001.jpg'
+        '--from-image-path', type=str, default='./data/local_data/person_processed_dim128/klaus_train/images/000001.jpg'
     )
     parser.add_argument(
         '--use-outer-image', dest='use_outer_image', action='store_true'
@@ -390,12 +395,12 @@ def parse():
     parser.add_argument('--no-use-model', dest='use_model', action='store_false')
     parser.add_argument('--device', default='cuda', type=str)
     parser.add_argument(
-        '--model-base-path', type=str, default='./results/output/'
+        '--model-base-path', type=str, default='./data/local_data/eval/'
     )
     parser.add_argument(
         '--model-date-path', type=str, default='2019-bladiebla'
     )
-    parser.add_argument('--model-name', type=str, default='lossesAll_epoch3')
+    parser.add_argument('--model-name', type=str, default='klaus_monday')
 
     return parser.parse_args()
 
@@ -412,5 +417,5 @@ if __name__ == '__main__':
     print('Working directory: ', os.getcwd())
     args = parse()
     ensure_current_directory()
-    # main(args)
     test_landmarks(args)
+    main(args)
