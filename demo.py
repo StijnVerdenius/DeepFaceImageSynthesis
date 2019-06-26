@@ -124,7 +124,7 @@ def main(arguments: argparse.Namespace) -> None:
 
 
 def get_model(
-    use_model: bool, model_base_path: str, model_name: str, device: str
+        use_model: bool, model_base_path: str, model_name: str, device: str
 ) -> Optional[torch.nn.Module]:
     if use_model:
         model_path = Path(model_base_path) / f'{model_name}.pickle'
@@ -150,16 +150,16 @@ def image_from_batch(batch: torch.Tensor) -> torch.Tensor:
 
 
 def show_image(
-    cam: cv2.VideoCapture,
-    use_mirror: bool,
-    detector,
-    predictor,
-    transform_to_input: List[Callable],
-    from_image: torch.Tensor,
-    device: str,
-    transform_from_input: List[Callable],
-    base_image: np.ndarray,
-    base_image_box: Tuple[int, int, int, int],
+        cam: cv2.VideoCapture,
+        use_mirror: bool,
+        detector,
+        predictor,
+        transform_to_input: List[Callable],
+        from_image: torch.Tensor,
+        device: str,
+        transform_from_input: List[Callable],
+        base_image: np.ndarray,
+        base_image_box: Tuple[int, int, int, int],
 ) -> int:
     image_success, image = cam.read()
     if not image_success:
@@ -176,12 +176,12 @@ def show_image(
     else:
         bounding_boxes_sizes = [
             (
-                bounding_boxes[bb_index].br_corner().x
-                - bounding_boxes[bb_index].tl_corner().x
+                    bounding_boxes[bb_index].br_corner().x
+                    - bounding_boxes[bb_index].tl_corner().x
             )
             * (
-                bounding_boxes[bb_index].br_corner().y
-                - bounding_boxes[bb_index].tl_corner().y
+                    bounding_boxes[bb_index].br_corner().y
+                    - bounding_boxes[bb_index].tl_corner().y
             )
             for bb_index in range(n_rectangles)
         ]
@@ -242,18 +242,25 @@ def display_webcam_image(image, predictor, bounding_boxes, selected_bounding_box
             cv2.circle(
                 display_image, (lm.x, lm.y), radius, LANDMARK_COLOR, LANDMARK_THICKNESS
             )
+
+    ratio = 1920/(2*640)
+    display_image = cv2.resize(
+        display_image,
+        dsize=tuple([int(x) for x in (640*ratio, 480*ratio)]),
+        interpolation=cv2.INTER_CUBIC,
+    )
     cv2.imshow('display_image', display_image)
 
 
 def display_output_image(
-    image: np.ndarray,
-    outer_image: Optional[np.ndarray],
-    landmarks,
-    device: str,
-    from_image: torch.Tensor,
-    transform_from_input: List[Callable],
-    transform_to_input: List[Callable],
-    base_image_box: Tuple[int, int, int, int],
+        image: np.ndarray,
+        outer_image: Optional[np.ndarray],
+        landmarks,
+        device: str,
+        from_image: torch.Tensor,
+        transform_from_input: List[Callable],
+        transform_to_input: List[Callable],
+        base_image_box: Tuple[int, int, int, int],
 ):
     single_dim_landmarks = extract(image, landmarks)
     multi_dim_landmarks = data_utils.single_to_multi_dim_landmarks(
@@ -278,6 +285,12 @@ def display_output_image(
     # exit()
 
     if outer_image is None:
+        size = int(1920/2)
+        output = cv2.resize(
+            output,
+            dsize=(size, size),
+            interpolation=cv2.INTER_CUBIC,
+        )
         outer_image = output
     else:
         target_width = base_image_box[2] - base_image_box[0]
@@ -289,8 +302,8 @@ def display_output_image(
         )
 
         outer_image[
-        base_image_box[1] : base_image_box[3],
-        base_image_box[0] : base_image_box[2],
+        base_image_box[1]: base_image_box[3],
+        base_image_box[0]: base_image_box[2],
         ...,
         ] = output
 
@@ -299,7 +312,6 @@ def display_output_image(
     # plot(outer_image)
     #
     # exit()
-
 
 
 def extract(image: np.ndarray, landmarks) -> np.ndarray:
