@@ -23,6 +23,7 @@ from utils.constants import (
     RECTANGLE_COLOR,
     RECTANGLE_THICKNESS_OTHER,
     RECTANGLE_THICKNESS_SELECTED,
+    VGG
 )
 
 if constants.IMSIZE == 64:
@@ -33,6 +34,9 @@ if constants.IMSIZE == 64:
 elif constants.IMSIZE == 128:
     model_name_to_instance_settings = {
         'stijn1': (UNetGenerator.UNetGenerator, {'n_hidden': 64, 'use_dropout': True}),
+        'klaus': (UNetGenerator.UNetGenerator, {'n_hidden': 64, 'use_dropout': True}),
+        'klaus_monday': (UNetGenerator.UNetGenerator, {'n_hidden': 64, 'use_dropout': True}),
+        'klaus_wednesday': (UNetGenerator.UNetGenerator, {'n_hidden': 64, 'use_dropout': True}),
     }
 
 
@@ -131,7 +135,7 @@ def get_model(
         model = model_class(**model_kwargs)
         model.load_state_dict(weights['generator'])
         model = model.to(device)
-        model.eval()
+        model = model.eval()
     else:
         model = None
     return model
@@ -265,6 +269,14 @@ def display_output_image(
     for t in transform_from_input:
         output = t(output)
 
+    # plottable = general_utils.BGR2RGB_numpy(output)
+    #
+    # import matplotlib.pyplot as plt
+    #
+    # plt.imshow(plottable)
+    # plt.show()
+    # exit()
+
     if outer_image is None:
         outer_image = output
     else:
@@ -277,12 +289,17 @@ def display_output_image(
         )
 
         outer_image[
-            base_image_box[1] : base_image_box[3],
-            base_image_box[0] : base_image_box[2],
-            ...,
+        base_image_box[1] : base_image_box[3],
+        base_image_box[0] : base_image_box[2],
+        ...,
         ] = output
 
+    from data import plot
     cv2.imshow('merged', outer_image)
+    # plot(outer_image)
+    #
+    # exit()
+
 
 
 def extract(image: np.ndarray, landmarks) -> np.ndarray:
@@ -309,7 +326,7 @@ def parse():
 
     # image
     parser.add_argument(
-        '--from-image-path', type=str, default='./data/local_data/0.jpg'
+        '--from-image-path', type=str, default='./data/local_data/300VW_Dataset_processed_dim128/516/images/000098.jpg'
     )
     parser.add_argument(
         '--use-outer-image', dest='use_outer_image', action='store_true'
@@ -329,9 +346,9 @@ def parse():
     parser.add_argument('--no-use-model', dest='use_model', action='store_false')
     parser.add_argument('--device', default='cuda', type=str)
     parser.add_argument(
-        '--model-base-path', type=str, default='./data/local_data/eval/'
+        '--model-base-path', type=str, default='./data/local_data/'
     )
-    parser.add_argument('--model-name', type=str, default='stijn1')
+    parser.add_argument('--model-name', type=str, default='klaus_wednesday')
 
     return parser.parse_args()
 
