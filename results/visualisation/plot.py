@@ -10,7 +10,14 @@ from utils.general_utils import ensure_current_directory, mean
 from utils.constants import DATA_MANAGER, PROGRESS_DIR, PIC_DIR
 import matplotlib.pyplot as plt
 
-
+color_lib = {
+        "NonSaturatingGLoss": "r",
+        "PixelLoss": "g",
+        "PerceptualLoss": "y",
+        "TripleConsistencyLoss": "o",
+        "IdLoss": "id",
+        "ConsistencyLoss": "self"
+}
 def convert_loss_dict(loss_dict, operation):
     translation_dict = {
         "NonSaturatingGLoss": "adv",
@@ -91,7 +98,7 @@ def main(args):
         plt.yticks(yticks, [str(10 ** int((x - 1))) for x in yticks])
         plt.title("Final Magnitude of Losses")
         plt.hlines(yticks, -0.5, 5.5, colors="gray", alpha=0.5)
-        plt.xlim((-0.5, 5.5))
+        plt.xlim((-0.5, len(last_data_points)-0.5))
 
     plt.ylabel("Loss")
     plt.legend()
@@ -103,9 +110,9 @@ def main(args):
 def parse():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--model-date-path', type=str, default='stijn'
+    parser.add_argument('--model-date-path', type=str, default='ablation'
                         )
-    parser.add_argument('--model-name', type=str, default='progress_list')
+    parser.add_argument('--model-name', type=str, default='ablated_cons')
 
     parser.add_argument('--smoothing-window', type=int, default=3)
     parser.add_argument('--smoothing-removal-frequency', type=int, default=30)

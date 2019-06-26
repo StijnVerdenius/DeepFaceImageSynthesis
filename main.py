@@ -295,7 +295,7 @@ def manipulate_defaults_for_own_test(args):
 if __name__ == '__main__':
     print("cuda_version:", torch.version.cuda, "pytorch version:", torch.__version__, "python version:", sys.version)
     print("Working directory: ", os.getcwd())
-    ensure_current_directory()
+    ensure_current_directory()z
     args = parse()
     manipulate_defaults_for_own_test(args)
     main(args)
