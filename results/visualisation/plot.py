@@ -22,7 +22,7 @@ def convert_loss_dict(loss_dict, operation):
     }
     output_dict = {}
     for key, value in loss_dict.items():
-        output_dict[translation_dict[key]] = float(operation(value))#float(np.log10(value))
+        output_dict[translation_dict[key]] = float(operation(value))  # float(np.log10(value))
     return output_dict
 
 
@@ -68,25 +68,33 @@ def main(args):
         # plotting
         for (key, values) in final_plot_dict.items():
             plt.plot(range(len(values)), values, label=key)
-        plt.xticks([0, len(list(final_plot_dict.values())[0])/3, 2*(len(list(final_plot_dict.values())[0])/3), len(list(final_plot_dict.values())[0])],
-        ["0", str((8*len(data))/3)[:2]+"k", str((16*len(data))/3)[:2]+"k", str(len(data)*8)[:2]+"k"])
+        plt.xticks([0, len(list(final_plot_dict.values())[0]) / 3, 2 * (len(list(final_plot_dict.values())[0]) / 3),
+                    len(list(final_plot_dict.values())[0])],
+                   ["0", str((8 * len(data)) / 3)[:2] + "k", str((16 * len(data)) / 3)[:2] + "k",
+                    str(len(data) * 8)[:2] + "k"])
         plt.xlabel("Samples evaluated")
-        plt.ylabel("Loss")
         plt.xlim((-1, len(list(final_plot_dict.values())[0]) + 1))
         yticks = [1, 2, 3, 4, 5, 6] if args.summing else [-1, 0, 1, 2]
         plt.yticks(yticks, [str(10 ** x) for x in yticks])
+        title = "Loss During Training Time"
+        plt.title(title)
+        plt.grid()
+
     else:
 
         last_data_points = {key: mean(values[-args.smoothing_window:]) for key, values in final_plot_dict.items()}
-        for key, value in last_data_points.items():
-            plt.bar(key, value+1, label=key)
-        plt.xticks([])
+        last_data_points = sorted(last_data_points.items(), key=lambda x: x[1])
+        for key, value in last_data_points:
+            plt.bar(key, value + 1, label=key)
+        # plt.xticks([])
         yticks = [0, 1, 2, 3]
-        plt.yticks(yticks, [str(10**int((x-1))) for x in yticks])
+        plt.yticks(yticks, [str(10 ** int((x - 1))) for x in yticks])
+        plt.title("Final Magnitude of Losses")
+        plt.hlines(yticks, -0.5, 5.5, colors="gray", alpha=0.5)
+        plt.xlim((-0.5, 5.5))
 
-
+    plt.ylabel("Loss")
     plt.legend()
-    plt.grid()
     plot_string = 'bar' if args.bar else 'loss'
     plt.savefig(f"{DATA_MANAGER.directory}{args.model_date_path}/{PIC_DIR}/{DATA_MANAGER.stamp}_{plot_string}plot.png")
     plt.show()
@@ -101,8 +109,8 @@ def parse():
 
     parser.add_argument('--smoothing-window', type=int, default=3)
     parser.add_argument('--smoothing-removal-frequency', type=int, default=30)
-    parser.add_argument('--summing', type=bool, default=True)
-    parser.add_argument('--bar', type=bool, default=False)
+    parser.add_argument('--summing', type=bool, default=False)
+    parser.add_argument('--bar', type=bool, default=True)
 
     return parser.parse_args()
 
