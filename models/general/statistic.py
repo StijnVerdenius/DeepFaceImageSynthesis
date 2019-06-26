@@ -1,3 +1,4 @@
+
 class Statistic:
     """ class to keep data in """
 
