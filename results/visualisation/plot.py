@@ -10,26 +10,27 @@ from utils.general_utils import ensure_current_directory, mean
 from utils.constants import DATA_MANAGER, PROGRESS_DIR, PIC_DIR
 import matplotlib.pyplot as plt
 
+
 color_lib = {
-        "NonSaturatingGLoss": "r",
-        "PixelLoss": "g",
-        "PerceptualLoss": "y",
-        "TripleConsistencyLoss": "o",
-        "IdLoss": "id",
-        "ConsistencyLoss": "self"
+        "adv":'#1f77b4',
+        "pix": '#ff7f0e',
+        "pp": '#2ca02c',
+        "triple": '#d62728',
+        "id": '#9467bd',
+        "self": '#8c564b'
+}
+translation_lib = {
+    "NonSaturatingGLoss": "adv",
+    "PixelLoss": "pix",
+    "PerceptualLoss": "pp",
+    "TripleConsistencyLoss": "triple",
+    "IdLoss": "id",
+    "ConsistencyLoss": "self"
 }
 def convert_loss_dict(loss_dict, operation):
-    translation_dict = {
-        "NonSaturatingGLoss": "adv",
-        "PixelLoss": "pix",
-        "PerceptualLoss": "pp",
-        "TripleConsistencyLoss": "triple",
-        "IdLoss": "id",
-        "ConsistencyLoss": "self"
-    }
     output_dict = {}
     for key, value in loss_dict.items():
-        output_dict[translation_dict[key]] = float(operation(value))  # float(np.log10(value))
+        output_dict[translation_lib[key]] = float(operation(value))  # float(np.log10(value))
     return output_dict
 
 
@@ -92,7 +93,7 @@ def main(args):
         last_data_points = {key: mean(values[-args.smoothing_window:]) for key, values in final_plot_dict.items()}
         last_data_points = sorted(last_data_points.items(), key=lambda x: x[1])
         for key, value in last_data_points:
-            plt.bar(key, value + 1, label=key)
+            plt.bar(key, value + 1, label=key, color=color_lib[key])
         # plt.xticks([])
         yticks = [0, 1, 2, 3]
         plt.yticks(yticks, [str(10 ** int((x - 1))) for x in yticks])
@@ -100,10 +101,11 @@ def main(args):
         plt.hlines(yticks, -0.5, 5.5, colors="gray", alpha=0.5)
         plt.xlim((-0.5, len(last_data_points)-0.5))
 
+
     plt.ylabel("Loss")
-    plt.legend()
+    plt.legend(loc="upper left")
     plot_string = 'bar' if args.bar else 'loss'
-    plt.savefig(f"{DATA_MANAGER.directory}{args.model_date_path}/{PIC_DIR}/{DATA_MANAGER.stamp}_{plot_string}plot.png")
+    plt.savefig(f"{DATA_MANAGER.directory}{args.model_date_path}/{PIC_DIR}/{DATA_MANAGER.stamp}_{plot_string}_{args.model_name}_plot.png")
     plt.show()
 
 
@@ -112,7 +114,7 @@ def parse():
 
     parser.add_argument('--model-date-path', type=str, default='ablation'
                         )
-    parser.add_argument('--model-name', type=str, default='ablated_cons')
+    parser.add_argument('--model-name', type=str, default='ablated_pix')
 
     parser.add_argument('--smoothing-window', type=int, default=3)
     parser.add_argument('--smoothing-removal-frequency', type=int, default=30)
