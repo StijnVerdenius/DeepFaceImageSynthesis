@@ -210,7 +210,7 @@ def parse():
     parser.add_argument('--plot_freq', type=int, default=100, help='Frequency (batch-wise) of plotting pictures')
     parser.add_argument('--saving_freq', type=int, default=1, help='Frequency (epoch-wise) of saving models')
     parser.add_argument('--device', default="cuda", type=str, help='device')
-    parser.add_argument('--mode', default="test", type=str, help="'train', 'test' or 'finetune'")
+    parser.add_argument('--mode', default="train", type=str, help="'train', 'test' or 'finetune'")
     parser.add_argument('--learning_rate_gen', type=float, default=2e-4, help='Learning rate')
     parser.add_argument('--learning_rate_dis', type=float, default=5e-5, help='Learning rate')
     parser.add_argument('--dropout', type=bool, default=True, help='Drop out')
@@ -239,7 +239,7 @@ def parse():
     parser.add_argument('--embedder', default="EmptyEmbedder", type=str, help="name of objectclass")
     parser.add_argument('--discriminator', default="PatchDiscriminator", type=str, help="name of objectclass")
     parser.add_argument('--generator', default="UNetGenerator", type=str, help="name of objectclass")
-    parser.add_argument('--n_hidden_gen', type=int, default=64, help='features in the first hidden layer')
+    parser.add_argument('--n_hidden_gen', type=int, default=64, help='features in the first hidden layer') ##################################### 64
     parser.add_argument('--n_hidden_dis', type=int, default=32, help='features in the first hidden layer')
 
     # optimizer arguments
