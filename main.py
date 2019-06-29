@@ -204,7 +204,7 @@ def parse():
     parser = argparse.ArgumentParser()
 
     # training arguments
-    parser.add_argument('--epochs', default=6, type=int,
+    parser.add_argument('--epochs', default=25, type=int,
                         help='max number of epochs')
     parser.add_argument('--eval_freq', type=int, default=10, help='Frequency (batch-wise) of evaluation')
     parser.add_argument('--plot_freq', type=int, default=100, help='Frequency (batch-wise) of plotting pictures')
@@ -259,7 +259,7 @@ def parse():
                         help="weight hyperparameter for specific generatorloss")
     parser.add_argument('--PerceptualLoss_weight', default= -1, type=float,
                         help="weight hyperparameter for specific generatorloss")
-    parser.add_argument('--ConsistencyLoss_weight', default= -1, type=float,
+    parser.add_argument('--ConsistencyLoss_weight', default= 0, type=float,
                         help="weight hyperparameter for specific generatorloss")
     parser.add_argument('--TripleConsistencyLoss_weight', default=-1, type=float,
                         help="weight hyperparameter for specific generatorloss")
